@@ -19,9 +19,7 @@ keysFile3="/Users/aiyenggar/datafiles/patents/country_ipr.csv"
 #0-uuid,1-patent_id,2-citation_id,3-date,4-name,5-kind,6-country,7-category,8-sequence
 searchFile="/Users/aiyenggar/datafiles/patents/uspatentcitation.applicant.csv"
 
-
-masster_kheader=list(["cit_uuid", "cg_patent_id", "ct_patent_id", "cg_inventor_year", "cg_assignee_id", "cg_assignee_region", "cg_assignee_region_source", "cg_assignee_country", "cg_assignee_ipr", "ct_assignee_id", "ct_assignee_region", "ct_assignee_region_source", "ct_assignee_country", "ct_assignee_ipr", "cg_inventor_id", "cg_inventor_region", "cg_inventor_region_source", "cg_inventor_country", "cg_inventor_ipr", "ct_inventor_id", "ct_inventor_region", "ct_inventor_region_source", "ct_inventor_country", "ct_inventor_ipr", "ass_sim", "loc_sim"])
-kheader=list(["cg_patent_id", "ct_patent_id", "cg_inventor_year",  "cg_inventor_id", "cg_inventor_region", "cg_inventor_country", "cg_inventor_ipr", "ct_inventor_id", "ct_inventor_region", "ct_inventor_country", "ct_inventor_ipr", "ass_sim", "loc_sim"])
+kheader=list(["cg_patent_id", "cg_inventor_year",  "cg_inventor_id", "cg_inventor_region", "cg_inventor_country", "cg_inventor_ipr", "ct_patent_id", "ct_inventor_year", "ct_inventor_id", "ct_inventor_region", "ct_inventor_country", "ct_inventor_ipr", "ass_sim", "loc_sim"])
 outputFile="/Users/aiyenggar/datafiles/patents/uspc.appl.master.csv"
 
 l5 = []
@@ -199,8 +197,7 @@ for entry in sreader:
                        ct_inventor_ipr = cDict[ct_inventor_country]
                    else:
                        ct_inventor_ipr = ''
-                   #master_out = list([cit_uuid, cg_patent_id, ct_patent_id, cg_inventor_year, cg_assignee_id, cg_assignee_region, cg_assignee_region_source, cg_assignee_country, cg_assignee_ipr, ct_assignee_id, ct_assignee_region, ct_assignee_region_source, ct_assignee_country, ct_assignee_ipr, cg_inventor_id, cg_inventor_region, cg_inventor_region_source, cg_inventor_country, cg_inventor_ipr, ct_inventor_id, ct_inventor_region, ct_inventor_region_source, ct_inventor_country, ct_inventor_ipr, ass_sim, loc_sim])
-                   out = list([cg_patent_id, ct_patent_id, cg_inventor_year, cg_inventor_id, cg_inventor_region, cg_inventor_country, cg_inventor_ipr, ct_inventor_id, ct_inventor_region, ct_inventor_country, ct_inventor_ipr, ass_sim, loc_sim])
+                   out = list([cg_patent_id, cg_inventor_year, cg_inventor_id, cg_inventor_region, cg_inventor_country, cg_inventor_ipr, ct_patent_id, ct_inventor_year, ct_inventor_id, ct_inventor_region, ct_inventor_country, ct_inventor_ipr, ass_sim, loc_sim])
                    writer.writerow(out)
    if sreader.line_num % 1000000 == 0:
         print("Processed " + str(sreader.line_num) + " lines")
