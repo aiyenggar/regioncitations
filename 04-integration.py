@@ -24,6 +24,8 @@ patentsf = open(patentsFile, 'r', encoding='utf-8')
 patentsr = csv.reader(patentsf)
 
 for patentsl in patentsr:
+    if patentsr.line_num == 1:
+        continue
     l = []
     l.append(patentsl[1]) #year
     l.append(patentsl[0]) #region
@@ -38,8 +40,10 @@ fDict = dict({})
 forwardf = open(fmapFile, 'r', encoding='utf-8')
 forwardr = csv.reader(forwardf)
 for forwardl in forwardr:
+    if forwardr.line_num == 1:
+        continue
     if not forwardl[0].isdigit():
-        print("Skipping " + str(forwardl))
+        print("In Forward Citations, Skipping " + str(forwardl))
         continue # skip header lines
     l = []
     l.append(forwardl[0])
@@ -67,8 +71,10 @@ bDict = dict({})
 backwardf = open(bmapFile, 'r', encoding='utf-8')
 backwardr = csv.reader(backwardf)
 for backwardl in backwardr:
+    if backwardr.line_num == 1:
+        continue
     if not backwardl[0].isdigit():
-        print("Skipping " + str(backwardl))
+        print("In Backward Citations, Skipping " + str(backwardl))
         continue # skip header lines
     l = []
     l.append(backwardl[0])
@@ -95,10 +101,6 @@ writer = csv.writer(outputf)
 writer.writerow(outputheader)
 
 for p in pDict:
-    if p not in fDict:
-        continue
-    if p not in bDict:
-        continue
     year = p[0]
     region = p[1]
     
@@ -106,7 +108,10 @@ for p in pDict:
     patents = pv[0]
     pool = pv[1]
     
-    bv = bDict[p]
+    if p in bDict:
+        bv = bDict[p]
+    else:
+        bv = [0, 0, 0, 0, 0, 0, 0, 0]
     cit_made_total = bv[0]
     cit_made_localinternal = bv[1]
     cit_made_localexternal = bv[2]
@@ -116,7 +121,11 @@ for p in pDict:
     cit_made_local = bv[6]
     cit_made_internal = bv[7]
     
-    fv = fDict[p]
+    if p in fDict:
+        fv = fDict[p]
+    else:
+        fv = [0, 0, 0, 0, 0, 0, 0, 0]
+
     cit_recd_total = fv[0]
     cit_recd_local = fv[6]
     cit_recd_nonlocal = int(fv[3]) + int(fv[4])
