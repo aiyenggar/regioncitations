@@ -115,6 +115,7 @@ sreader = csv.reader(searchf)
 lDict=dict({})
 forwardCitations=dict({})
 backwardCitations=dict({})
+yearCitations=dict({})
 
 for entry in sreader:
     if sreader.line_num == 1:
@@ -228,6 +229,10 @@ for entry in sreader:
                     tkey = tuple(mkey)
                     # Look at one region-region only once per patent-patent citation
                     if tkey not in lDict:
+                        if cg_inventor_year not in yearCitations:
+                            yearCitations[cg_inventor_year] = 1
+                        else:
+                            yearCitations[cg_inventor_year] = yearCitations[cg_inventor_year] + 1
                         lDict[tkey] = 1
                         # Calculate location assignee similarity
                         if (loc_sim == 1 and ass_sim == 1):
@@ -251,8 +256,9 @@ for entry in sreader:
                         else:
                             other = 0
                         nkey = []
-                        nkey.append(cg_inventor_year) # Citing inventor year is deliberate
-                        # ct_inventor_year will capture the vintage; figure out how to use that
+                        nkey.append(ct_inventor_year) 
+                        # ct_inventor_year will capture the vintage
+                        # Citing inventor year was used previously
                         nkey.append(ct_inventor_region)
                         ntkey = tuple(nkey)
                         if ntkey not in forwardCitations:
@@ -286,10 +292,22 @@ for entry in sreader:
     if sreader.line_num % 1000000 == 0:
         dump(forwardmapFile, forwardCitations, forwardmapheader)
         dump(backwardmapFile, backwardCitations, backwardmapheader)
-
+        if len(yearCitations)>0:
+            errorf = open("citations.year.csv", 'w', encoding='utf-8')
+            writer = csv.writer(errorf)
+            for year in yearCitations:
+                writer.writerow([year, yearCitations[year]])
+            errorf.close()
     if sreader.line_num % 1000000 == 0:
         print("Processed " + str(sreader.line_num) + " lines")
 
 dump(forwardmapFile, forwardCitations, forwardmapheader)
 dump(backwardmapFile, backwardCitations, backwardmapheader)
 searchf.close()
+
+if len(yearCitations)>0:
+    errorf = open("citations.year.csv", 'w', encoding='utf-8')
+    writer = csv.writer(errorf)
+    for year in yearCitations:
+        writer.writerow([year, yearCitations[year]])
+    errorf.close()

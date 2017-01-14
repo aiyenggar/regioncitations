@@ -11,10 +11,10 @@ pheader=list(["region","year","patent_count","pool_patent_count"])
 patentsFile="/Users/aiyenggar/datafiles/patents/regionyear.csv"
 
 forwardmapheader=["fc_year", "fc_region", "fc_total", "fc_sla", "fc_slap", "fc_slpa", "fc_slpap", "fc_sother", "fc_sl", "fc_sa"]
-fmapFile="/Users/aiyenggar/datafiles/patents/fcit.csv"
+fmapFile="/Users/aiyenggar/datafiles/patents/forwardmap.csv"
 
 backwardmapheader=["bc_year", "bc_region", "bc_total", "bc_sla", "bc_slap", "bc_slpa", "bc_slpap", "bc_sother", "bc_sl", "bc_sa"]
-bmapFile="/Users/aiyenggar/datafiles/patents/bcit.csv"
+bmapFile="/Users/aiyenggar/datafiles/patents/backwardmap.csv"
 
 outputheader=["year", "region", "patents", "pool", "cit_made_total", "cit_made_localinternal", "cit_made_localexternal", "cit_made_nonlocalinternal", "cit_made_nonlocalexternal", "cit_made_other", "cit_made_local", "cit_made_internal", "cit_recd_total", "cit_recd_local", "cit_recd_nonlocal", "cit_recd_other"]
 outputFile="/Users/aiyenggar/datafiles/patents/citations.region.year.csv"

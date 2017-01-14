@@ -87,6 +87,8 @@ gen lncit_made_local=ln(1+cit_made_local)
 gen lncit_made_internal=ln(1+cit_made_internal)
 gen lncit_made_other=ln(1 + cit_made_other)
 
+gen lncit_recd_total=ln(1+cit_recd_total)
+
 label variable lncit_made_localinternal "Log(Cit[Same Region, Same Assignee])"
 label variable lncit_made_localexternal "Log(Cit[Same Region, Different Assignee])"
 label variable lncit_made_nonlocalinternal "Log(Cit[Different Region, Same Assignee])"
@@ -95,7 +97,10 @@ label variable lncit_made_local "Log(Cit[Same Region])"
 label variable lncit_made_internal "Log(Cit[Same Assignee])"
 label variable lncit_made_other "Log(Cit[Other])"
 
+label variable lncit_recd_total "Log(Total Citations Received)"
+
 save `destdir'patents_by_region.dta, replace
+saveold `destdir'patents_by_region_stata12.dta, replace version(12) 
 export delimited using `destdir'patents_by_region.csv, replace
 
 log close
