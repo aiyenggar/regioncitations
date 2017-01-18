@@ -7,7 +7,7 @@ Created on Sat Jan  7 05:48:51 2017
 
 import csv
 
-pheader=list(["region","year","patent_count","pool_patent_count"])
+pheader=list(["region","year","patent_count","pool_patent_count","cat1","cat2","cat3","cat4","cat5","cat6","subcat11","subcat12","subcat13","subcat14","subcat15","subcat19","subcat21","subcat22","subcat23","subcat24","subcat25","subcat31","subcat32","subcat33","subcat39","subcat41","subcat42","subcat43","subcat44","subcat45","subcat46","subcat49","subcat51","subcat52","subcat53","subcat54","subcat55","subcat59","subcat61","subcat62","subcat63","subcat64","subcat65","subcat66","subcat67","subcat68","subcat69","dcat1","dcat2","dcat3","dcat4","dcat5","dcat6","dsubcat11","dsubcat12","dsubcat13","dsubcat14","dsubcat15","dsubcat19","dsubcat21","dsubcat22","dsubcat23","dsubcat24","dsubcat25","dsubcat31","dsubcat32","dsubcat33","dsubcat39","dsubcat41","dsubcat42","dsubcat43","dsubcat44","dsubcat45","dsubcat46","dsubcat49","dsubcat51","dsubcat52","dsubcat53","dsubcat54","dsubcat55","dsubcat59","dsubcat61","dsubcat62","dsubcat63","dsubcat64","dsubcat65","dsubcat66","dsubcat67","dsubcat68","dsubcat69"])
 patentsFile="/Users/aiyenggar/datafiles/patents/regionyear.csv"
 
 forwardmapheader=["fc_year", "fc_region", "fc_total", "fc_sla", "fc_slap", "fc_slpa", "fc_slpap", "fc_sother", "fc_sl", "fc_sa"]
@@ -31,7 +31,7 @@ for patentsl in patentsr:
     l.append(patentsl[0]) #region
     pkey = tuple(l)
     if pkey not in pDict:
-        pDict[pkey] = [patentsl[2], patentsl[3]]
+        pDict[pkey] = patentsl #saving the whole line
     else:
         print("Duplicate in patentsFile " + str(pkey))
 print("finished reading in patentsFile")
@@ -98,15 +98,16 @@ for backwardl in backwardr:
 
 outputf = open(outputFile, 'w', encoding='utf-8')
 writer = csv.writer(outputf)
-writer.writerow(outputheader)
+writer.writerow(outputheader+pheader[4:])
 
 for p in pDict:
     year = p[0]
     region = p[1]
     
     pv = pDict[p]
-    patents = pv[0]
-    pool = pv[1]
+    patents = pv[2]
+    pool = pv[3]
+    dummies = pv[4:]
     
     if p in bDict:
         bv = bDict[p]
@@ -130,6 +131,7 @@ for p in pDict:
     cit_recd_local = fv[6]
     cit_recd_nonlocal = int(fv[3]) + int(fv[4])
     cit_recd_other = fv[5]
-    writer.writerow([year, region, patents, pool, cit_made_total, cit_made_localinternal, cit_made_localexternal, cit_made_nonlocalinternal, cit_made_nonlocalexternal, cit_made_other, cit_made_local, cit_made_internal, cit_recd_total, cit_recd_local, cit_recd_nonlocal, cit_recd_other])
+    baserow = [year, region, patents, pool, cit_made_total, cit_made_localinternal, cit_made_localexternal, cit_made_nonlocalinternal, cit_made_nonlocalexternal, cit_made_other, cit_made_local, cit_made_internal, cit_recd_total, cit_recd_local, cit_recd_nonlocal, cit_recd_other]
+    writer.writerow(baserow+dummies)
 
 outputf.close()

@@ -11,10 +11,10 @@ save `destdir'bcit.dta, replace
 
 import delimited `destdir'fcit.csv, varnames(1) encoding(UTF-8) clear
 save `destdir'fcit.dta, replace
-
+*/
 import delimited `destdir'citations.region.year.csv, varnames(1) encoding(UTF-8) clear
 save `destdir'citations.region.year.dta, replace
-*/
+
 
 use `destdir'citations.region.year.dta, clear
 
@@ -99,8 +99,10 @@ label variable lncit_made_other "Log(Cit[Other])"
 
 label variable lncit_recd_total "Log(Total Citations Received)"
 
+order cat* subcat* d*, last // moving the dummy variables to the end
 save `destdir'patents_by_region.dta, replace
 saveold `destdir'patents_by_region_stata12.dta, replace version(12) 
+
 export delimited using `destdir'patents_by_region.csv, replace
 
 log close

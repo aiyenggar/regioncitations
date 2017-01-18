@@ -1,10 +1,13 @@
 cap log close
 log using knowledge-flows.log, append
 set more off
-
 local destdir /Users/aiyenggar/datafiles/patents/
-local reportdir /Users/aiyenggar/OneDrive/code/articles/knowledge-flows-images/
-cd `reportdir'
+
+use `destdir'primary.uspc.dta, clear
+merge m:1 mainclass_id using `destdir'uspc-hjt-mapping.dta
+drop if _merge==2
+drop _merge uuid
+save `destdir'category.primary.uspc.dta, replace
 
 use `destdir'rawinventor_region.dta, clear
 
@@ -23,12 +26,41 @@ keep if patent_region_index == 1
 drop inventor_id patent_region_index
 // We have 8,456,978 observations now
 
+// Add any patent level information here
+merge m:1 patent_id using `destdir'category.primary.uspc.dta
+drop if _merge==2
+drop _merge
 
 sort iregion year
+
+local icat=1
+while `icat' <= 6 {
+	bysort iregion year: gen runsumcat`icat'=sum(1)  if cat==`icat'
+	replace runsumcat`icat'=0 if missing(runsumcat`icat')
+	bysort iregion year: egen cat`icat'=max(runsumcat`icat')
+	drop runsumcat`icat'
+	local icat= `icat' + 1
+}
+
+set more off
+levels subcat, local(subcatid)
+foreach l of local subcatid {
+	bysort iregion year: gen runsumsubcat`l'=sum(1)  if subcat==`l'
+	replace runsumsubcat`l'=0 if missing(runsumsubcat`l')
+	bysort iregion year: egen subcat`l'=max(runsumsubcat`l')
+	drop runsumsubcat`l'
+}
+
+/*
+egen sumcat=rowtotal(cat1-cat6)
+egen sumsubcat=rowtotal(subcat*)
+count if sumcat != sumsubcat
+*/
+
 bysort iregion year: gen patent_count=_N
 bysort iregion year: gen region_year_index = _n
 keep if region_year_index == 1
-drop patent_id region_year_index
+drop patent_id region_year_index mainclass_id subclass_id sequence class subcat cat
 // We have 535,695 observations now
 
 sort iregion year
@@ -59,8 +91,16 @@ sort yrank year
 save `destdir'patents.regionyear.dta, replace
 export delimited using `destdir'patents.regionyear.csv, replace
 
+local destdir /Users/aiyenggar/datafiles/patents/
+use `destdir'patents.regionyear.dta, clear
 sort region year pool_patent_count
-keep region year patent_count pool_patent_count
+keep region year patent_count pool_patent_count cat* subcat*
+order region year patent_count pool_patent_count
+
+foreach var of varlist cat* subcat* {
+  gen d`var' = 1 if `var' > 0
+  replace d`var' = 0 if missing(d`var')
+}
 export delimited using `destdir'regionyear.csv, replace
 
 log close
