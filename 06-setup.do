@@ -98,7 +98,26 @@ label variable lncit_made_internal "Log(Cit[Same Assignee])"
 label variable lncit_made_other "Log(Cit[Other])"
 
 label variable lncit_recd_total "Log(Total Citations Received)"
+gen rcit_made_localinternal=cit_made_localinternal/cit_made_total
+gen rcit_made_localexternal=cit_made_localexternal/cit_made_total
+gen rcit_made_nonlocalinternal=cit_made_nonlocalinternal/cit_made_total
+gen rcit_made_nonlocalexternal=cit_made_nonlocalexternal/cit_made_total
+gen rcit_made_other=cit_made_other/cit_made_total
+gen lncit_made_total=ln(cit_made_total)
+gen avg_cit_recd=cit_recd_total/cit_made_total
 
+gen pool2001=pool if year==2001
+replace pool2001=0 if missing(pool2001)
+bysort region: egen sumpool2001=sum(pool2001)
+
+merge m:1 region using `destdir'region_region_source_country.dta
+
+
+drop _merge
+egen countryid = group(country)
+tabulate countryid, generate(dcountry)
+
+local destdir /Users/aiyenggar/datafiles/patents/
 order cat* subcat* d*, last // moving the dummy variables to the end
 save `destdir'patents_by_region.dta, replace
 saveold `destdir'patents_by_region_stata12.dta, replace version(12) 
