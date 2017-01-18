@@ -117,7 +117,10 @@ drop _merge
 egen countryid = group(country)
 tabulate countryid, generate(dcountry)
 
-local destdir /Users/aiyenggar/datafiles/patents/
+foreach var of varlist cat* subcat* {
+  gen percent`var' = (100*`var')/patents
+}
+
 order cat* subcat* d*, last // moving the dummy variables to the end
 save `destdir'patents_by_region.dta, replace
 saveold `destdir'patents_by_region_stata12.dta, replace version(12) 

@@ -55,10 +55,11 @@ while `icat' <= 6 {
 	gen percentcat`icat' = (100*cat`icat')/patents
 	local icat= `icat' + 1
 }
-*/
 foreach var of varlist cat* subcat* {
   gen percent`var' = (100*`var')/patents
 }
+
+*/
 
 
 eststo clear
@@ -87,17 +88,7 @@ esttab using `reportdir'xtnbreg20170117.tex, ///
 		label longtable replace
 		
 /* non log */
-gen rcit_made_localinternal=cit_made_localinternal/cit_made_total
-gen rcit_made_localexternal=cit_made_localexternal/cit_made_total
-gen rcit_made_nonlocalinternal=cit_made_nonlocalinternal/cit_made_total
-gen rcit_made_nonlocalexternal=cit_made_nonlocalexternal/cit_made_total
-gen rcit_made_other=cit_made_other/cit_made_total
-gen lncit_made_total=ln(cit_made_total)
-gen avg_cit_recd=cit_recd_total/cit_made_total
 
-gen pool2001=pool if year==2001
-replace pool2001=0 if missing(pool2001)
-bysort region: egen sumpool2001=sum(pool2001)
 
 local cutoff 50	
 reg lncit_recd_total lncit_made_localinternal lncit_made_localexternal lncit_made_nonlocalinternal lncit_made_nonlocalexternal  lncit_made_other lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & mean_patent_rate12 > `cutoff')
@@ -111,3 +102,18 @@ xtnbreg cit_recd_total lncit_made_localinternal lncit_made_localexternal lncit_m
 reg lncit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & sumpool > 300)
 matrix _s=e(b)	
 xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & sumpool > 300), i(regionid) fe from(_s, skip)
+
+/* 18-Jan-2017. We now have country dummies and region source */
+local destdir /Users/aiyenggar/datafiles/patents/
+use `destdir'patents_by_region.dta, clear
+foreach var of varlist cat* subcat* {
+  gen percent`var' = (100*`var')/patents
+}
+
+xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers"), i(regionid) fe
+
+
+reg lncit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers")
+matrix _s=e(b)	
+xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers"), i(regionid) fe from(_s, skip)
+
