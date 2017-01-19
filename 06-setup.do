@@ -11,10 +11,10 @@ save `destdir'bcit.dta, replace
 
 import delimited `destdir'fcit.csv, varnames(1) encoding(UTF-8) clear
 save `destdir'fcit.dta, replace
-*/
+
 import delimited `destdir'citations.region.year.csv, varnames(1) encoding(UTF-8) clear
 save `destdir'citations.region.year.dta, replace
-
+*/
 
 use `destdir'citations.region.year.dta, clear
 
@@ -86,25 +86,38 @@ gen lncit_made_nonlocalexternal=ln(1 + cit_made_nonlocalexternal)
 gen lncit_made_local=ln(1+cit_made_local)
 gen lncit_made_internal=ln(1+cit_made_internal)
 gen lncit_made_other=ln(1 + cit_made_other)
-
 gen lncit_recd_total=ln(1+cit_recd_total)
 
-label variable lncit_made_localinternal "Log(Cit[Same Region, Same Assignee])"
-label variable lncit_made_localexternal "Log(Cit[Same Region, Different Assignee])"
-label variable lncit_made_nonlocalinternal "Log(Cit[Different Region, Same Assignee])"
-label variable lncit_made_nonlocalexternal "Log(Cit[Different Region, Different Assignee])"
-label variable lncit_made_local "Log(Cit[Same Region])"
-label variable lncit_made_internal "Log(Cit[Same Assignee])"
-label variable lncit_made_other "Log(Cit[Other])"
-
-label variable lncit_recd_total "Log(Total Citations Received)"
 gen rcit_made_localinternal=cit_made_localinternal/cit_made_total
 gen rcit_made_localexternal=cit_made_localexternal/cit_made_total
 gen rcit_made_nonlocalinternal=cit_made_nonlocalinternal/cit_made_total
 gen rcit_made_nonlocalexternal=cit_made_nonlocalexternal/cit_made_total
 gen rcit_made_other=cit_made_other/cit_made_total
+gen rcit_made_local=cit_made_local/cit_made_total
+gen rcit_made_internal=cit_made_internal/cit_made_total
 gen lncit_made_total=ln(cit_made_total)
 gen avg_cit_recd=cit_recd_total/cit_made_total
+
+
+label variable lncit_made_localinternal "Log(Citations Made[Same Region, Same Assignee])"
+label variable lncit_made_localexternal "Log(Citations Made[Same Region, Different Assignee])"
+label variable lncit_made_nonlocalinternal "Log(Citations Made[Different Region, Same Assignee])"
+label variable lncit_made_nonlocalexternal "Log(Citations Made[Different Region, Different Assignee])"
+label variable lncit_made_local "Log(Citations Made[Same Region])"
+label variable lncit_made_internal "Log(Citations Made[Same Assignee])"
+label variable lncit_made_other "Log(Citations Made[Other])"
+label variable lncit_recd_total "Log(Total Citations Received)"
+
+label variable rcit_made_localinternal "Share Citations Made[Same Region, Same Assignee]"
+label variable rcit_made_localexternal "Share Citations Made[Same Region, Different Assignee]"
+label variable rcit_made_nonlocalinternal "Share Citations Made[Different Region, Same Assignee]"
+label variable rcit_made_nonlocalexternal "Share Citations Made[Different Region, Different Assignee]"
+label variable rcit_made_other "Share Citations Made[Other]"
+label variable rcit_made_local "Share Citations Made[Same Region]"
+label variable rcit_made_internal "Share Citations Made[Same Assignee]"
+
+label variable lncit_made_total "Log(Total Citations Made)"
+label variable avg_cit_recd "Average Citations Received"
 
 gen pool2001=pool if year==2001
 replace pool2001=0 if missing(pool2001)
@@ -112,8 +125,17 @@ bysort region: egen sumpool2001=sum(pool2001)
 
 merge m:1 region using `destdir'region_region_source_country.dta
 
-
 drop _merge
+
+gen intr_localinternal_ipr_score=rcit_made_localinternal*ipr_score
+gen intr_localexternal_ipr_score=rcit_made_localexternal*ipr_score
+gen intr_nonlocalinternal_ipr_score=rcit_made_nonlocalinternal*ipr_score
+gen intr_nonlocalexternal_ipr_score=rcit_made_nonlocalexternal*ipr_score
+label variable intr_localinternal_ipr_score "Share [Same Region, Same Assignee] * IPR"
+label variable intr_localexternal_ipr_score "Share [Same Region, Different Assignee] * IPR"
+label variable intr_nonlocalinternal_ipr_score "Share [Different Region, Same Assignee] * IPR"
+label variable intr_nonlocalexternal_ipr_score "Share [Different Region, Different Assignee] * IPR"
+
 egen countryid = group(country)
 tabulate countryid, generate(dcountry)
 

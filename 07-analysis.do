@@ -104,16 +104,42 @@ matrix _s=e(b)
 xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & sumpool > 300), i(regionid) fe from(_s, skip)
 
 /* 18-Jan-2017. We now have country dummies and region source */
+
 local destdir /Users/aiyenggar/datafiles/patents/
 use `destdir'patents_by_region.dta, clear
-foreach var of varlist cat* subcat* {
-  gen percent`var' = (100*`var')/patents
-}
+local reportdir /Users/aiyenggar/OneDrive/code/articles/citations-20170114/
+eststo clear
+xtset regionid year
 
 xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers"), i(regionid) fe
+eststo model1
+xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers" & countryid != 188), i(regionid) fe
+eststo model2
 
 
-reg lncit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers")
-matrix _s=e(b)	
-xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers"), i(regionid) fe from(_s, skip)
+gen intr_localinternal_ipr_score=rcit_made_localinternal*ipr_score
+gen intr_localexternal_ipr_score=rcit_made_localexternal*ipr_score
+gen intr_nonlocalinternal_ipr_score=rcit_made_nonlocalinternal*ipr_score
+gen intr_nonlocalexternal_ipr_score=rcit_made_nonlocalexternal*ipr_score
+label variable intr_localinternal_ipr_score "Share [Same Region, Same Assignee] * IPR"
+label variable intr_localexternal_ipr_score "Share [Same Region, Different Assignee] * IPR"
+label variable intr_nonlocalinternal_ipr_score "Share [Different Region, Same Assignee] * IPR"
+label variable intr_nonlocalexternal_ipr_score "Share [Different Region, Different Assignee] * IPR"
 
+//reg lncit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal intr_localinternal_lnpatents intr_localexternal_lnpatents intr_nonlocalinternal_lnpatents intr_nonlocalexternal_lnpatents lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers" & !missing(rcit_made_localinternal) & !missing(rcit_made_localexternal) & !missing(rcit_made_nonlocalinternal) & !missing(rcit_made_nonlocalexternal))
+//matrix _s=e(b)	
+// from(_s, skip)
+// & !missing(rcit_made_localinternal) & !missing(rcit_made_localexternal) & !missing(rcit_made_nonlocalinternal) & !missing(rcit_made_nonlocalexternal)
+xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal intr_localinternal_ipr_score intr_localexternal_ipr_score intr_nonlocalinternal_ipr_score intr_nonlocalexternal_ipr_score lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers"), i(regionid) fe 
+eststo model3
+
+xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal intr_localinternal_ipr_score intr_localexternal_ipr_score intr_nonlocalinternal_ipr_score intr_nonlocalexternal_ipr_score lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers" & countryid != 188), i(regionid) fe 
+eststo model4
+//reg lncit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers")
+//xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers"), i(regionid) fe from(_s, skip)
+/* End Experiments */
+
+esttab using `reportdir'xtnbreg20170118.tex, ///
+		title("Effect of Geographic Distribution of Citations Made on Citations Received \label{xtnbreg20170118}") ///
+		order(cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal intr_localinternal_ipr_score intr_localexternal_ipr_score intr_nonlocalinternal_ipr_score intr_nonlocalexternal_ipr_score lncit_made_total lnpatents lnpool ) ///
+		label longtable replace wide p(3) se(3) not nostar
