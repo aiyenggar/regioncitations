@@ -52,7 +52,7 @@ for forwardl in forwardr:
     fkey = tuple(l)
     
     if fkey not in fDict:
-        fDict[fkey] = [int(forwardl[2]), int(forwardl[3]), int(forwardl[4]), int(forwardl[5]), int(forwardl[6]), int(forwardl[7]), int(forwardl[8]), 
+        fDict[fkey] = [forwardl[2], forwardl[3], int(forwardl[4]), int(forwardl[5]), int(forwardl[6]), int(forwardl[7]), int(forwardl[8]), 
 int(forwardl[9]), int(forwardl[10]), int(forwardl[11])]
     else:
         # multiple entries due to the division in 03-urbanareas_citations.py
@@ -66,7 +66,8 @@ int(forwardl[9]), int(forwardl[10]), int(forwardl[11])]
         sl = prev[8] + int(forwardl[10])
         sa = prev[9] + int(forwardl[11])
         fDict[fkey] = [prev[0], prev[1], total, sla, slap, slpa, slpap, sother, sl, sa]
-        
+    if forwardr.line_num % 5000 == 0:
+        print("Processed " + str(forwardr.line_num) + " forward citation lines")    
 
 
 bDict = dict({})
@@ -84,7 +85,7 @@ for backwardl in backwardr:
     bkey = tuple(l)
     
     if bkey not in bDict:
-        bDict[bkey] = [int(backwardl[2]), int(backwardl[3]), int(backwardl[4]), int(backwardl[5]), int(backwardl[6]), int(backwardl[7]), int(backwardl[8]), int(backwardl[9]), int(backwardl[10]), int(backwardl[11])]
+        bDict[bkey] = [backwardl[2], backwardl[3], int(backwardl[4]), int(backwardl[5]), int(backwardl[6]), int(backwardl[7]), int(backwardl[8]), int(backwardl[9]), int(backwardl[10]), int(backwardl[11])]
     else:
         # multiple entries due to the division in 03-regioncitations.py
         prev = bDict[bkey]
@@ -97,6 +98,8 @@ for backwardl in backwardr:
         sl = prev[8] + int(backwardl[10])
         sa = prev[9] + int(backwardl[11])
         bDict[bkey] = [prev[0], prev[1], total, sla, slap, slpa, slpap, sother, sl, sa]
+    if backwardr.line_num % 5000 == 0:
+        print("Processed " + str(backwardr.line_num) + " backward citation lines")  
 
 outputf = open(outputFile, 'w', encoding='utf-8')
 writer = csv.writer(outputf)
