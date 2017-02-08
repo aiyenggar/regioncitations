@@ -6,17 +6,26 @@ cd `destdir'
 log using knowledge-flows.log, append
 
 /*
-import delimited `destdir'bcit.csv, varnames(1) encoding(UTF-8) clear
-save `destdir'bcit.dta, replace
+import delimited `destdir'backwardmap.csv, varnames(1) encoding(UTF-8) clear
+save `destdir'backwardmap.dta, replace
 
-import delimited `destdir'fcit.csv, varnames(1) encoding(UTF-8) clear
-save `destdir'fcit.dta, replace
+import delimited `destdir'forwardmap.csv, varnames(1) encoding(UTF-8) clear
+save `destdir'forwardmap.dta, replace
 
-import delimited `destdir'citations.region.year.csv, varnames(1) encoding(UTF-8) clear
-save `destdir'citations.region.year.dta, replace
+import delimited `destdir'citations.urbanareas.year.csv, varnames(1) encoding(UTF-8) clear
+save `destdir'citations.urbanareas.year.dta, replace
 */
 
-use `destdir'citations.region.year.dta, clear
+use `destdir'citations.urbanareas.year.dta, clear
+
+replace cit_made_pop = cit_recd_pop if missing(cit_made_pop) | cit_made_pop == 0
+replace cit_made_areakm = cit_recd_areakm if missing(cit_made_areakm) | cit_made_areakm == 0
+
+drop cit_recd_pop cit_recd_areakm
+rename cit_made_pop pop
+rename cit_made_areakm areakm
+label variable pop "Population in 2015"
+label variable areakm "Area in 2015"
 
 gen lnpatents = ln(patents)
 gen lnpool = ln(pool)
@@ -123,9 +132,7 @@ gen pool2001=pool if year==2001
 replace pool2001=0 if missing(pool2001)
 bysort region: egen sumpool2001=sum(pool2001)
 
-merge m:1 region using `destdir'region_region_source_country.dta
-
-drop _merge
+merge m:1 region using `destdir'region.country2.dta, keep(match master) nogen
 
 gen intr_localinternal_ipr_score=rcit_made_localinternal*ipr_score
 gen intr_localexternal_ipr_score=rcit_made_localexternal*ipr_score
@@ -144,9 +151,9 @@ foreach var of varlist cat* subcat* {
 }
 
 order cat* subcat* d*, last // moving the dummy variables to the end
-save `destdir'patents_by_region.dta, replace
-saveold `destdir'patents_by_region_stata12.dta, replace version(12) 
+save `destdir'patents_by_urbanareas.dta, replace
+saveold `destdir'patents_by_urbanareas_stata12.dta, replace version(12) 
 
-export delimited using `destdir'patents_by_region.csv, replace
+export delimited using `destdir'patents_by_urbanareas.csv, replace
 
 log close
