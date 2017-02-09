@@ -1,5 +1,5 @@
 local destdir /Users/aiyenggar/datafiles/patents/
-local reportdir /Users/aiyenggar/OneDrive/code/articles/citations-20170114/
+local reportdir /Users/aiyenggar/OneDrive/code/articles/sms2017-images/
 cd `reportdir'
 use `destdir'patents_by_region.dta, clear
 
@@ -8,25 +8,34 @@ xtset regionid year
 
 xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers"), i(regionid) fe
 //reg lncit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers")
-estadd local Sample "MSA-Urban Centres"
+estadd local Groups `e(N_g)'
+estadd local Sample "All Locations (MSA-UC)"
 est store model1
 
 xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers" & countryid != 188), i(regionid) fe
 //reg lncit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers" & countryid != 188)
-estadd local Sample "Non-US MSA-Urban Centres"
+estadd local Groups `e(N_g)'
+estadd local Sample "Non-US (MSA-UC)"
 est store model2
+
+xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers" & countryid == 188), i(regionid) fe
+//reg lncit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers" & countryid != 188)
+estadd local Groups `e(N_g)'
+estadd local Sample "US Locations (MSA-UC)"
+est store model5
 
 xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal intr_localinternal_ipr_score intr_localexternal_ipr_score intr_nonlocalinternal_ipr_score intr_nonlocalexternal_ipr_score lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers"), i(regionid) fe 
 //reg lncit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal intr_localinternal_ipr_score intr_localexternal_ipr_score intr_nonlocalinternal_ipr_score intr_nonlocalexternal_ipr_score lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers")
-estadd local Sample "MSA-Urban Centres"
+estadd local Groups `e(N_g)'
+estadd local Sample "All Locations (MSA-UC)"
 est store model3
 
 xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal intr_localinternal_ipr_score intr_localexternal_ipr_score intr_nonlocalinternal_ipr_score intr_nonlocalexternal_ipr_score lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers" & countryid != 188), i(regionid) fe 
 //reg lncit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal intr_localinternal_ipr_score intr_localexternal_ipr_score intr_nonlocalinternal_ipr_score intr_nonlocalexternal_ipr_score lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers" & countryid != 188)
-estadd local Sample "Non-US MSA-Urban Centres"
+estadd local Groups `e(N_g)'
+estadd local Sample "Non-US (MSA-UC)"
 est store model4
 
-local reportdir /Users/aiyenggar/OneDrive/code/articles/citations-20170114/
 esttab model1 model2 using `reportdir'model12.tex, ///
 		title("Effect of Geographic Distribution of Citations Made on Citations Received \label{model12}") ///
 		order(cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal intr_localinternal_ipr_score intr_localexternal_ipr_score intr_nonlocalinternal_ipr_score intr_nonlocalexternal_ipr_score lncit_made_total lnpatents lnpool ) ///
@@ -50,6 +59,11 @@ esttab model3 model4 using `reportdir'model34.tex, ///
 		order(cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal intr_localinternal_ipr_score intr_localexternal_ipr_score intr_nonlocalinternal_ipr_score intr_nonlocalexternal_ipr_score lncit_made_total lnpatents lnpool ) ///
 		label longtable replace wide p(3) not nostar compress nogaps nopa noomitted ///
 		drop (d* percent*) scalars("Sample")
+
+esttab model1 model5 model2 using `reportdir'model152.tex, ///
+		title("Effect of Geographic Distribution of Citations Made on Citations Received \label{model152}") ///
+		label longtable replace p(3) not noomitted compress nogaps ///
+		drop (d* percent*) scalars("Groups" "Sample") addnotes("All models include region fixed effects, year dummies and technology subcategory controls")
 
 //reg lncit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal intr_localinternal_lnpatents intr_localexternal_lnpatents intr_nonlocalinternal_lnpatents intr_nonlocalexternal_lnpatents lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers" & !missing(rcit_made_localinternal) & !missing(rcit_made_localexternal) & !missing(rcit_made_nonlocalinternal) & !missing(rcit_made_nonlocalexternal))
 //matrix _s=e(b)	
@@ -84,7 +98,7 @@ graph twoway (connected nla year if region=="Bangalore", mlabel(nla) msymbol(d))
 	ytitle("Normalized Citations (percent)") xtitle("Year of Citation") ///
 	ylabel(, angle(horizontal)) yscale(titlegap(*+10)) ///
 	title("Same Region Same Assignee Flows") ///
-	note("Data Source: PatentsView.org") ///
+	note("Data Source: PatentsView.org, Merged MSA-Natural Earth Data") ///
 	legend(cols(1) label(1 Bangalore) label(2 Beijing) label(3 Tel Aviv-Yafo) label(4 Austin-Round Rock) label(5 Boston-Cambridge-Newton) label(6 San Francisco-Oakland-Hayward) label(7 San Jose-Sunnyvale-Santa Clara))
 graph2tex, epsfile(SameRegionSameAssigneeFlows) ht(5) caption(Same Region Same Assignee Flows)
 graph export SameRegionSameAssigneeFlows.png, replace
@@ -96,7 +110,7 @@ graph twoway (connected nlap year if region=="Bangalore", mlabel(nlap) msymbol(d
 	ytitle("Normalized Citations (percent)") xtitle("Year of Citation") /// 
 	ylabel(, angle(horizontal)) yscale(titlegap(*+10)) ///
 	title("Same Region Different Assignee Flows") ///
-	note("Data Source: PatentsView.org") ///
+	note("Data Source: PatentsView.org, Merged MSA-Natural Earth Data") ///
 	legend(cols(1) label(1 Bangalore) label(2 Beijing) label(3 Tel Aviv-Yafo) label(4 Austin-Round Rock) label(5 Boston-Cambridge-Newton) label(6 San Francisco-Oakland-Hayward) label(7 San Jose-Sunnyvale-Santa Clara))
 graph2tex, epsfile(SameRegionDiffAssigneeFlows) ht(5) caption(Same Region Different Assignee Flows)
 graph export SameRegionDiffAssigneeFlows.png, replace
@@ -108,7 +122,7 @@ graph twoway (connected nlpa year if region=="Bangalore", mlabel(nlpa) msymbol(d
 	ytitle("Normalized Citations (percent)") xtitle("Year of Citation") /// 
 	ylabel(, angle(horizontal)) yscale(titlegap(*+10)) ///
 	title("Different Region Same Assignee Flows") ///
-	note("Data Source: PatentsView.org") ///
+	note("Data Source: PatentsView.org, Merged MSA-Natural Earth Data") ///
 	legend(cols(1) label(1 Bangalore) label(2 Beijing) label(3 Tel Aviv-Yafo) label(4 Austin-Round Rock) label(5 Boston-Cambridge-Newton) label(6 San Francisco-Oakland-Hayward) label(7 San Jose-Sunnyvale-Santa Clara))
 graph2tex, epsfile(DiffRegionSameAssigneeFlows) ht(5) caption(Different Region Same Assignee Flows)
 graph export DiffRegionSameAssigneeFlows.png, replace
@@ -120,7 +134,7 @@ graph twoway (connected nlpap year if region=="Bangalore", msymbol(d)) (connecte
 	ytitle("Normalized Citations (percent)") xtitle("Year of Citation") ///  
 	ylabel(, angle(horizontal)) yscale(titlegap(*+10)) ///
 	title("Different Region Different Assignee Flows") ///
-	note("Data Source: PatentsView.org") ///
+	note("Data Source: PatentsView.org, Merged MSA-Natural Earth Data") ///
 	legend(cols(1) label(1 Bangalore) label(2 Beijing) label(3 Tel Aviv-Yafo) label(4 Austin-Round Rock) label(5 Boston-Cambridge-Newton) label(6 San Francisco-Oakland-Hayward) label(7 San Jose-Sunnyvale-Santa Clara))
 graph2tex, epsfile(DiffRegionDiffAssigneeFlows) ht(5) caption(Different Region Different Assignee Flows)
 graph export DiffRegionDiffAssigneeFlows.png, replace
@@ -132,7 +146,7 @@ graph twoway (connected nl year if region=="Bangalore", mlabel(nl) msymbol(d)) (
 	ytitle("Normalized Citations (percent)") xtitle("Year of Citation") ///  
 	ylabel(, angle(horizontal)) yscale(titlegap(*+10)) ///
 	title("Same Region Flows (Aggregated over Assignees)") ///
-	note("Data Source: PatentsView.org") ///
+	note("Data Source: PatentsView.org, Merged MSA-Natural Earth Data") ///
 	legend(cols(1) label(1 Bangalore) label(2 Beijing) label(3 Tel Aviv-Yafo) label(4 Austin-Round Rock) label(5 Boston-Cambridge-Newton) label(6 San Francisco-Oakland-Hayward) label(7 San Jose-Sunnyvale-Santa Clara))
 graph2tex, epsfile(SameRegionFlows) ht(5) caption(Same Region Flows)
 graph export SameRegionFlows.png, replace
@@ -144,7 +158,7 @@ graph twoway (connected na year if region=="Bangalore",  msymbol(d)) (connected 
 	ytitle("Normalized Citations (percent)") xtitle("Year of Citation") ///
 	ylabel(, angle(horizontal)) yscale(titlegap(*+10)) ///
 	title("Same Assignee Flows (Aggregated over Regions)") ///
-	note("Data Source: PatentsView.org") ///
+	note("Data Source: PatentsView.org, Merged MSA-Natural Earth Data") ///
 	legend(cols(1) label(1 Bangalore) label(2 Beijing) label(3 Tel Aviv-Yafo) label(4 Austin-Round Rock) label(5 Boston-Cambridge-Newton) label(6 San Francisco-Oakland-Hayward) label(7 San Jose-Sunnyvale-Santa Clara))
 graph2tex, epsfile(SameAssigneeFlows) ht(5) caption(Same Assignee Flows)
 graph export SameAssigneeFlows.png, replace
@@ -156,7 +170,7 @@ graph twoway (connected nother year if region=="Bangalore",  msymbol(d)) (connec
 	ytitle("Normalized Citations (percent)") xtitle("Year of Citation") ///
 	ylabel(, angle(horizontal)) yscale(titlegap(*+10)) ///
 	title("Other Flows") ///
-	note("Data Source: PatentsView.org") ///
+	note("Data Source: PatentsView.org, Merged MSA-Natural Earth Data") ///
 	legend(cols(1) label(1 Bangalore) label(2 Beijing) label(3 Tel Aviv-Yafo) label(4 Austin-Round Rock) label(5 Boston-Cambridge-Newton) label(6 San Francisco-Oakland-Hayward) label(7 San Jose-Sunnyvale-Santa Clara))
 graph2tex, epsfile(OtherFlows) ht(5) caption(Other Flows)
 graph export OtherFlows.png, replace
