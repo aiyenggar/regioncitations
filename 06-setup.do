@@ -61,7 +61,9 @@ label variable cit_made_other "Citations Made to [Other]"
 label variable cit_recd_total "Citations Received"
 label variable cit_recd_local "Citations Received Within Region"
 label variable cit_recd_nonlocal "Citations Received Outside Region"
-
+label variable cit_recd_self "Self Citations"
+label variable cit_recd_nonself "Non-Self Citations"
+label variable cit_recd_other "Other Citations"
 label variable lnpatents "Log (Num Patents)"
 label variable lnpool "Log (Patent Pool Size)"
 
@@ -108,14 +110,14 @@ gen lncit_made_total=ln(cit_made_total)
 gen avg_cit_recd=cit_recd_total/cit_made_total
 
 
-label variable lncit_made_localinternal "Log(Citations Made[Same Region, Same Assignee])"
-label variable lncit_made_localexternal "Log(Citations Made[Same Region, Different Assignee])"
-label variable lncit_made_nonlocalinternal "Log(Citations Made[Different Region, Same Assignee])"
-label variable lncit_made_nonlocalexternal "Log(Citations Made[Different Region, Different Assignee])"
-label variable lncit_made_local "Log(Citations Made[Same Region])"
-label variable lncit_made_internal "Log(Citations Made[Same Assignee])"
-label variable lncit_made_other "Log(Citations Made[Other])"
-label variable lncit_recd_total "Log(Total Citations Received)"
+label variable lncit_made_localinternal "Log (Citations Made[Same Region, Same Assignee])"
+label variable lncit_made_localexternal "Log (Citations Made[Same Region, Different Assignee])"
+label variable lncit_made_nonlocalinternal "Log (Citations Made[Different Region, Same Assignee])"
+label variable lncit_made_nonlocalexternal "Log (Citations Made[Different Region, Different Assignee])"
+label variable lncit_made_local "Log (Citations Made[Same Region])"
+label variable lncit_made_internal "Log (Citations Made[Same Assignee])"
+label variable lncit_made_other "Log (Citations Made[Other])"
+label variable lncit_recd_total "Log (Total Citations Received)"
 
 label variable rcit_made_localinternal "Share Citations Made[Same Region, Same Assignee]"
 label variable rcit_made_localexternal "Share Citations Made[Same Region, Different Assignee]"
@@ -125,7 +127,7 @@ label variable rcit_made_other "Share Citations Made[Other]"
 label variable rcit_made_local "Share Citations Made[Same Region]"
 label variable rcit_made_internal "Share Citations Made[Same Assignee]"
 
-label variable lncit_made_total "Log(Total Citations Made)"
+label variable lncit_made_total "Log (Total Citations Made)"
 label variable avg_cit_recd "Average Citations Received"
 
 gen pool2001=pool if year==2001

@@ -6,6 +6,7 @@ use `destdir'patents_by_urbanareas.dta, clear
 eststo clear
 xtset regionid year
 
+// DV is Total Citations Received
 xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012), i(regionid) fe
 estadd local Groups `e(N_g)'
 estadd local Sample "All Locations (UC)"
@@ -21,6 +22,177 @@ estadd local Groups `e(N_g)'
 estadd local Sample "Non-US Locations (UC)"
 est store model3
 
+esttab model1 model2 model3 using `reportdir'model123.tex, ///
+		title("Distribution of Citations Made on Total Citations Received (FE Models)  \label{model123}") ///
+		label longtable replace p(3) not noomitted compress nogaps ///
+		drop (d* percent*) scalars("Groups" "Sample") addnotes("All models include region fixed effects, year dummies and technology subcategory controls")
+
+esttab model1 model2 model3 using `reportdir'model123.csv, ///
+		title("Distribution of Citations Made on Total Citations Received (FE Models)  \label{model123}") ///
+		label longtable replace p(3) not noomitted compress nogaps ///
+		drop (d* percent*) scalars("Groups" "Sample") addnotes("All models include region fixed effects, year dummies and technology subcategory controls")
+
+xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012), i(regionid) re
+estadd local Groups `e(N_g)'
+estadd local Sample "All Locations (UC)"
+est store model10
+
+xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 == "US"), i(regionid) re
+estadd local Groups `e(N_g)'
+estadd local Sample "US Locations (UC)"
+est store model11
+
+xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 != "US"), i(regionid) re
+estadd local Groups `e(N_g)'
+estadd local Sample "Non-US Locations (UC)"
+est store model12
+
+esttab model10 model11 model12 using `reportdir'model101112.tex, ///
+		title("Distribution of Citations Made on Total Citations Received (RE Models) \label{model101112}") ///
+		label longtable replace p(3) not noomitted compress nogaps ///
+		drop (d* percent* _cons) scalars("Groups" "Sample") addnotes("All models include region random effects with year dummies and technology subcategory controls")
+
+// End DV is Total Citations Received
+
+// DV is Self Citations Received
+xtnbreg cit_recd_self rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "All Locations (UC)"
+est store model13
+
+xtnbreg cit_recd_self rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 == "US"), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "US Locations (UC)"
+est store model14
+
+xtnbreg cit_recd_self rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 != "US"), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "Non-US Locations (UC)"
+est store model15
+
+esttab model13 model14 model15 using `reportdir'model131415.tex, ///
+		title("Effect of Nature of Citations Made on Self Citations Received*  \label{model131415}") ///
+		label longtable replace p(3) not noomitted compress nogaps ///
+		nostar drop (d* percent*) scalars("Groups" "Sample") ///
+		addnotes("* Results reported are from a priliminary analysis" "All models include region fixed effects, year dummies and technology subcategory controls" "UC - Urban Centers definition obtained from naturalearthdata.com")
+
+
+xtnbreg cit_recd_self rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012), i(regionid) re
+estadd local Groups `e(N_g)'
+estadd local Sample "All Locations (UC)"
+est store model16
+
+xtnbreg cit_recd_self rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 == "US"), i(regionid) re
+estadd local Groups `e(N_g)'
+estadd local Sample "US Locations (UC)"
+est store model17
+
+xtnbreg cit_recd_self rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 != "US"), i(regionid) re
+estadd local Groups `e(N_g)'
+estadd local Sample "Non-US Locations (UC)"
+est store model18
+
+esttab model16 model17 model18 using `reportdir'model161718.tex, ///
+		title("Distribution of Citations Made on Self Citations Received (RE Models)  \label{model161718}") ///
+		label longtable replace p(3) not noomitted compress nogaps ///
+		drop (d* percent* _cons) scalars("Groups" "Sample") addnotes("All models include region random effects with year dummies and technology subcategory controls")
+
+// End DV is Self Citations Received
+
+
+// DV is Non-Self Citations Received
+xtnbreg cit_recd_nonself rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "All Locations (UC)"
+est store model19
+
+xtnbreg cit_recd_nonself rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 == "US"), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "US Locations (UC)"
+est store model20
+
+xtnbreg cit_recd_nonself rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 != "US"), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "Non-US Locations (UC)"
+est store model21
+
+esttab model19 model20 model21 using `reportdir'model192021.tex, ///
+		title("Distribution of Citations Made on Non-Self Citations Received (FE Models)  \label{model192021}") ///
+		label longtable replace p(3) not noomitted compress nogaps ///
+		drop (d* percent*) scalars("Groups" "Sample") addnotes("All models include region fixed effects, year dummies and technology subcategory controls")
+
+esttab model19 model20 model21 using `reportdir'model192021.csv, ///
+		title("Distribution of Citations Made on Non-Self Citations Received (FE Models)  \label{model192021}") ///
+		label longtable replace p(3) not noomitted compress nogaps ///
+		drop (d* percent*) scalars("Groups" "Sample") addnotes("All models include region fixed effects, year dummies and technology subcategory controls")
+
+xtnbreg cit_recd_nonself rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012), i(regionid) re
+estadd local Groups `e(N_g)'
+estadd local Sample "All Locations (UC)"
+est store model22
+
+xtnbreg cit_recd_nonself rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 == "US"), i(regionid) re
+estadd local Groups `e(N_g)'
+estadd local Sample "US Locations (UC)"
+est store model23
+
+xtnbreg cit_recd_nonself rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 != "US"), i(regionid) re
+estadd local Groups `e(N_g)'
+estadd local Sample "Non-US Locations (UC)"
+est store model24
+
+esttab model22 model23 model24 using `reportdir'model222324.tex, ///
+		title("Distribution of Citations Made on Non-Self Citations Received (RE Models) \label{model222324}") ///
+		label longtable replace p(3) not noomitted compress nogaps ///
+		drop (d* percent* _cons) scalars("Groups" "Sample") addnotes("All models include region random effects with year dummies and technology subcategory controls")
+
+// End DV is Non-Self Citations Received
+
+
+// DV is Other Citations Received
+xtnbreg cit_recd_other rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "All Locations (UC)"
+est store model25
+
+xtnbreg cit_recd_other rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 == "US"), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "US Locations (UC)"
+est store model26
+
+xtnbreg cit_recd_other rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 != "US"), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "Non-US Locations (UC)"
+est store model27
+
+esttab model25 model26 model27 using `reportdir'model252627.tex, ///
+		title("Distribution of Citations Made on Other Citations Received (FE Models)  \label{model252627}") ///
+		label longtable replace p(3) not noomitted compress nogaps ///
+		drop (d* percent*) scalars("Groups" "Sample") addnotes("All models include region fixed effects, year dummies and technology subcategory controls")
+
+
+xtnbreg cit_recd_other rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012), i(regionid) re
+estadd local Groups `e(N_g)'
+estadd local Sample "All Locations (UC)"
+est store model28
+
+xtnbreg cit_recd_other rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 == "US"), i(regionid) re
+estadd local Groups `e(N_g)'
+estadd local Sample "US Locations (UC)"
+est store model29
+
+xtnbreg cit_recd_other rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 != "US"), i(regionid) re
+estadd local Groups `e(N_g)'
+estadd local Sample "Non-US Locations (UC)"
+est store model30
+
+esttab model28 model29 model30 using `reportdir'model282930.tex, ///
+		title("Distribution of Citations Made on Other Citations Received (RE Models) \label{model282930}") ///
+		label longtable replace p(3) not noomitted compress nogaps ///
+		drop (d* percent* _cons) scalars("Groups" "Sample") addnotes("All models include region random effects with year dummies and technology subcategory controls")
+
+// End DV is Other Citations Received
+
 xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal intr_localinternal_ipr_score intr_localexternal_ipr_score intr_nonlocalinternal_ipr_score intr_nonlocalexternal_ipr_score lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012), i(regionid) fe 
 estadd local Groups `e(N_g)'
 estadd local Sample "All Locations (UC)"
@@ -31,6 +203,38 @@ xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made
 estadd local Groups `e(N_g)'
 estadd local Sample "Non-US Locations (UC)"
 est store model6
+
+xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* pop areakm if (year>=2001 & year<=2012 & pop!=0 & areakm != 0), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "All Locations (UC)"
+est store model7
+
+xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* pop areakm  if (year>=2001 & year<=2012 & pop!=0 & areakm != 0 & country2 == "US"), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "US Locations (UC)"
+est store model8
+
+xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* pop areakm  if (year>=2001 & year<=2012 & pop!=0 & areakm != 0 & country2 != "US"), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "Non-US Locations (UC)"
+est store model9
+
+
+xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* pop areakm if (year>=2001 & year<=2012 & pop!=0 & areakm != 0), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "All Locations (UC)"
+est store model7
+
+xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* pop areakm  if (year>=2001 & year<=2012 & pop!=0 & areakm != 0 & country2 == "US"), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "US Locations (UC)"
+est store model8
+
+xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* pop areakm  if (year>=2001 & year<=2012 & pop!=0 & areakm != 0 & country2 != "US"), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "Non-US Locations (UC)"
+est store model9
+
 
 esttab model1 model4 using `reportdir'model14.tex, ///
 		title("Effect of Geographic Distribution of Citations Made on Citations Received \label{model14}") ///
@@ -44,11 +248,11 @@ esttab model3 model6 using `reportdir'model36.tex, ///
 		drop (d* percent*) scalars("Groups" "Sample") addnotes("All models include region fixed effects, year dummies and technology subcategory controls")
 //		order(rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal intr_localinternal_ipr_score intr_localexternal_ipr_score intr_nonlocalinternal_ipr_score intr_nonlocalexternal_ipr_score lncit_made_total lnpatents lnpool ) ///
 
-esttab model1 model2 model3 using `reportdir'model123.tex, ///
-		title("Effect of Geographic Distribution of Citations Made on Citations Received \label{model123}") ///
+
+esttab model7 model8 model9 using `reportdir'model789.tex, ///
+		title("Effect of Geographic Distribution of Citations Made on Citations Received \label{model789}") ///
 		label longtable replace p(3) not noomitted compress nogaps ///
 		drop (d* percent*) scalars("Groups" "Sample") addnotes("All models include region fixed effects, year dummies and technology subcategory controls")
-//		order(rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal     lncit_made_total lnpatents lnpool ) ///
 
 //reg lncit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal intr_localinternal_lnpatents intr_localexternal_lnpatents intr_nonlocalinternal_lnpatents intr_nonlocalexternal_lnpatents lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & region_source=="MSA-Urban Centers" & !missing(rcit_made_localinternal) & !missing(rcit_made_localexternal) & !missing(rcit_made_nonlocalinternal) & !missing(rcit_made_nonlocalexternal))
 //matrix _s=e(b)	
@@ -76,6 +280,60 @@ gen nother=round(rcit_made_other*100,.01)
 label variable nother "Other Flows"
 
 
+graph twoway (connected nla year if region=="Bangalore", mlabel(nla) msymbol(d)) ///
+	(connected nla year if region=="Beijing", msymbol(t)) ///
+	(connected nla year if region=="Tel Aviv-Yafo", msymbol(s)) ///
+	(connected nla year if region=="Boston", msymbol(x))  ///
+	(connected nla year if region=="San Jose3", mlabel(nla) msymbol(oh)), ///
+	ytitle("Percentage of Backward Citations", size(small)) xtitle("Year", size(small)) ///
+	ylabel(, angle(horizontal)) yscale(titlegap(*+10)) ///
+	title(" " " " " ", justification(right)) ///
+	note("Data Source: patentsview.org, naturalearthdata.com") ///
+	legend(size(small) cols(3) label(1 Bangalore) label(2 Beijing) label(3 Tel Aviv-Yafo) label(4 Boston) label(5 San Jose))
+//graph2tex, epsfile(SMSSameRegionSameAssigneeFlows) ht(5) caption(Same Region Same Assignee Flows)
+graph export SMSSameRegionSameAssigneeFlows.png, replace
+
+graph twoway (connected nlap year if region=="Bangalore", mlabel(nlap) msymbol(d)) ///
+	(connected nlap year if region=="Beijing", msymbol(t)) ///
+	(connected nlap year if region=="Tel Aviv-Yafo",  msymbol(s)) ///
+	(connected nlap year if region=="Boston",  msymbol(x)) ///
+	(connected nlap year if region=="San Jose3", mlabel(nlap) msymbol(oh)), ///
+	ytitle("Percentage of Backward Citations", size(small)) xtitle("Year", size(small)) /// 
+	ylabel(, angle(horizontal)) yscale(titlegap(*+10)) ///
+	title(" " " " " ", justification(right)) ///
+	note("Data Source: patentsview.org, naturalearthdata.com") ///
+	legend(size(small) cols(3) label(1 Bangalore) label(2 Beijing) label(3 Tel Aviv-Yafo) label(4 Boston) label(5 San Jose))
+//graph2tex, epsfile(SMSSameRegionDiffAssigneeFlows) ht(5) caption(Same Region Different Assignee Flows)
+graph export SMSSameRegionDiffAssigneeFlows.png, replace
+
+graph twoway (connected nlpa year if region=="Bangalore", mlabel(nlpa) msymbol(d)) ///
+	(connected nlpa year if region=="Beijing",  msymbol(t)) ///
+	(connected nlpa year if region=="Tel Aviv-Yafo", mlabel(nlpa) msymbol(s)) ///
+	(connected nlpa year if region=="Boston",  msymbol(x)) ///
+	(connected nlpa year if region=="San Jose3",  msymbol(oh)), ///
+	ytitle("Percentage of Backward Citations", size(small)) xtitle("Year", size(small)) /// 
+	ylabel(, angle(horizontal)) yscale(titlegap(*+10)) ///
+	title(" " " " " ", justification(right)) ///
+	note("Data Source: patentsview.org, naturalearthdata.com") ///
+	legend(size(small) cols(3) label(1 Bangalore) label(2 Beijing) label(3 Tel Aviv-Yafo) label(4 Boston) label(5 San Jose))
+//graph2tex, epsfile(SMSDiffRegionSameAssigneeFlows) ht(5) caption(Different Region Same Assignee Flows)
+graph export SMSDiffRegionSameAssigneeFlows.png, replace
+
+graph twoway (connected nlpap year if region=="Bangalore", msymbol(d)) ///
+	(connected nlpap year if region=="Beijing",  msymbol(t)) ///
+	(connected nlpap year if region=="Tel Aviv-Yafo", mlabel(nlpap) msymbol(s)) ///
+	(connected nlpap year if region=="Boston",  msymbol(x)) ///
+	(connected nlpap year if region=="San Jose3", mlabel(nlpap) msymbol(oh)), ///
+	ytitle("Percentage of Backward Citations", size(small)) xtitle("Year", size(small)) ///  
+	ylabel(, angle(horizontal)) yscale(titlegap(*+10)) ///
+	title(" " " " " ", justification(right)) ///
+	note("Data Source: patentsview.org, naturalearthdata.com") ///
+	legend(size(small) cols(3) label(1 Bangalore) label(2 Beijing) label(3 Tel Aviv-Yafo) label(4 Boston) label(5 San Jose))
+//graph2tex, epsfile(SMSDiffRegionDiffAssigneeFlows) ht(5) caption(Different Region Different Assignee Flows)
+graph export SMSDiffRegionDiffAssigneeFlows.png, replace
+
+
+
 graph twoway (connected nla year if region=="Bangalore", mlabel(nla) msymbol(d)) (connected nla year if region=="Beijing", msymbol(t)) ///
 	(connected nla year if region=="Tel Aviv-Yafo", msymbol(s)) (connected nla year if region=="Austin", msymbol(sh)) ///
 	(connected nla year if region=="Boston", msymbol(x)) (connected nla year if region=="San Francisco1", msymbol(o)) ///
@@ -83,7 +341,7 @@ graph twoway (connected nla year if region=="Bangalore", mlabel(nla) msymbol(d))
 	ytitle("Normalized Citations (percent)") xtitle("Year of Citation") ///
 	ylabel(, angle(horizontal)) yscale(titlegap(*+10)) ///
 	title("Same Region Same Assignee Flows") ///
-	note("Data Source: PatentsView.org, Natural Earth Urban Centers Database") ///
+	note("Data Source: patentsview.org, Natural Earth Urban Centers Database") ///
 	legend(cols(1) label(1 Bangalore) label(2 Beijing) label(3 Tel Aviv-Yafo) label(4 Austin) label(5 Boston) label(6 San Francisco) label(7 San Jose))
 graph2tex, epsfile(UCSameRegionSameAssigneeFlows) ht(5) caption(Same Region Same Assignee Flows)
 graph export UCSameRegionSameAssigneeFlows.png, replace
@@ -95,7 +353,7 @@ graph twoway (connected nlap year if region=="Bangalore", mlabel(nlap) msymbol(d
 	ytitle("Normalized Citations (percent)") xtitle("Year of Citation") /// 
 	ylabel(, angle(horizontal)) yscale(titlegap(*+10)) ///
 	title("Same Region Different Assignee Flows") ///
-	note("Data Source: PatentsView.org, Natural Earth Urban Centers Database") ///
+	note("Data Source: patentsview.org, Natural Earth Urban Centers Database") ///
 	legend(cols(1) label(1 Bangalore) label(2 Beijing) label(3 Tel Aviv-Yafo) label(4 Austin) label(5 Boston) label(6 San Francisco) label(7 San Jose))
 graph2tex, epsfile(UCSameRegionDiffAssigneeFlows) ht(5) caption(Same Region Different Assignee Flows)
 graph export UCSameRegionDiffAssigneeFlows.png, replace
@@ -107,7 +365,7 @@ graph twoway (connected nlpa year if region=="Bangalore", mlabel(nlpa) msymbol(d
 	ytitle("Normalized Citations (percent)") xtitle("Year of Citation") /// 
 	ylabel(, angle(horizontal)) yscale(titlegap(*+10)) ///
 	title("Different Region Same Assignee Flows") ///
-	note("Data Source: PatentsView.org, Natural Earth Urban Centers Database") ///
+	note("Data Source: patentsview.org, Natural Earth Urban Centers Database") ///
 	legend(cols(1) label(1 Bangalore) label(2 Beijing) label(3 Tel Aviv-Yafo) label(4 Austin) label(5 Boston) label(6 San Francisco) label(7 San Jose))
 graph2tex, epsfile(UCDiffRegionSameAssigneeFlows) ht(5) caption(Different Region Same Assignee Flows)
 graph export UCDiffRegionSameAssigneeFlows.png, replace
@@ -119,7 +377,7 @@ graph twoway (connected nlpap year if region=="Bangalore", msymbol(d)) (connecte
 	ytitle("Normalized Citations (percent)") xtitle("Year of Citation") ///  
 	ylabel(, angle(horizontal)) yscale(titlegap(*+10)) ///
 	title("Different Region Different Assignee Flows") ///
-	note("Data Source: PatentsView.org, Natural Earth Urban Centers Database") ///
+	note("Data Source: patentsview.org, Natural Earth Urban Centers Database") ///
 	legend(cols(1) label(1 Bangalore) label(2 Beijing) label(3 Tel Aviv-Yafo) label(4 Austin) label(5 Boston) label(6 San Francisco) label(7 San Jose))
 graph2tex, epsfile(UCDiffRegionDiffAssigneeFlows) ht(5) caption(Different Region Different Assignee Flows)
 graph export UCDiffRegionDiffAssigneeFlows.png, replace
@@ -131,7 +389,7 @@ graph twoway (connected nl year if region=="Bangalore", mlabel(nl) msymbol(d)) (
 	ytitle("Normalized Citations (percent)") xtitle("Year of Citation") ///  
 	ylabel(, angle(horizontal)) yscale(titlegap(*+10)) ///
 	title("Same Region Flows (Aggregated over Assignees)") ///
-	note("Data Source: PatentsView.org, Natural Earth Urban Centers Database") ///
+	note("Data Source: patentsview.org, Natural Earth Urban Centers Database") ///
 	legend(cols(1) label(1 Bangalore) label(2 Beijing) label(3 Tel Aviv-Yafo) label(4 Austin) label(5 Boston) label(6 San Francisco) label(7 San Jose))
 graph2tex, epsfile(UCSameRegionFlows) ht(5) caption(Same Region Flows)
 graph export UCSameRegionFlows.png, replace
@@ -143,7 +401,7 @@ graph twoway (connected na year if region=="Bangalore",  msymbol(d)) (connected 
 	ytitle("Normalized Citations (percent)") xtitle("Year of Citation") ///
 	ylabel(, angle(horizontal)) yscale(titlegap(*+10)) ///
 	title("Same Assignee Flows (Aggregated over Regions)") ///
-	note("Data Source: PatentsView.org, Natural Earth Urban Centers Database") ///
+	note("Data Source: patentsview.org, Natural Earth Urban Centers Database") ///
 	legend(cols(1) label(1 Bangalore) label(2 Beijing) label(3 Tel Aviv-Yafo) label(4 Austin) label(5 Boston) label(6 San Francisco) label(7 San Jose))
 graph2tex, epsfile(UCSameAssigneeFlows) ht(5) caption(Same Assignee Flows)
 graph export UCSameAssigneeFlows.png, replace
@@ -155,7 +413,7 @@ graph twoway (connected nother year if region=="Bangalore",  msymbol(d)) (connec
 	ytitle("Normalized Citations (percent)") xtitle("Year of Citation") ///
 	ylabel(, angle(horizontal)) yscale(titlegap(*+10)) ///
 	title("Other Flows") ///
-	note("Data Source: PatentsView.org, Natural Earth Urban Centers Database") ///
+	note("Data Source: patentsview.org, Natural Earth Urban Centers Database") ///
 	legend(cols(1) label(1 Bangalore) label(2 Beijing) label(3 Tel Aviv-Yafo) label(4 Austin) label(5 Boston) label(6 San Francisco) label(7 San Jose))
 graph2tex, epsfile(UCOtherFlows) ht(5) caption(Other Flows)
 graph export UCOtherFlows.png, replace

@@ -16,8 +16,7 @@ fmapFile="/Users/aiyenggar/datafiles/patents/forwardmap.csv"
 backwardmapheader=["bc_year", "bc_region", "bc_pop", "bc_areakm", "bc_total", "bc_sla", "bc_slap", "bc_slpa", "bc_slpap", "bc_sother", "bc_sl", "bc_sa"]
 bmapFile="/Users/aiyenggar/datafiles/patents/backwardmap.csv"
 
-outputheader=["year", "region", "patents", "pool", "cit_made_total", "cit_made_localinternal", "cit_made_localexternal", "cit_made_nonlocalinternal", "cit_made_nonlocalexternal", "cit_made_other", "cit_made_local", "cit_made_internal", "cit_recd_total", "cit_recd_local", "cit_recd_nonlocal", "cit_recd_other",
-"cit_made_pop", "cit_made_areakm", "cit_recd_pop", "cit_recd_areakm"]
+outputheader=["year", "region", "patents", "pool", "cit_made_total", "cit_made_localinternal", "cit_made_localexternal", "cit_made_nonlocalinternal", "cit_made_nonlocalexternal", "cit_made_other", "cit_made_local", "cit_made_internal", "cit_recd_total", "cit_recd_local", "cit_recd_nonlocal", "cit_recd_self", "cit_recd_nonself", "cit_recd_other", "cit_made_pop", "cit_made_areakm", "cit_recd_pop", "cit_recd_areakm"]
 outputFile="/Users/aiyenggar/datafiles/patents/citations.urbanareas.year.csv"
 
 pDict = dict({})
@@ -138,8 +137,10 @@ for p in pDict:
     cit_recd_total = fv[2]
     cit_recd_local = fv[8]
     cit_recd_nonlocal = int(fv[5]) + int(fv[6])
+    cit_recd_self = int(fv[3]) + int(fv[5])
+    cit_recd_nonself = int(fv[4]) + int(fv[6])
     cit_recd_other = fv[7]
-    baserow = [year, region, patents, pool, cit_made_total, cit_made_localinternal, cit_made_localexternal, cit_made_nonlocalinternal, cit_made_nonlocalexternal, cit_made_other, cit_made_local, cit_made_internal, cit_recd_total, cit_recd_local, cit_recd_nonlocal, cit_recd_other, cit_made_pop, cit_made_areakm, cit_recd_pop, cit_recd_areakm]
+    baserow = [year, region, patents, pool, cit_made_total, cit_made_localinternal, cit_made_localexternal, cit_made_nonlocalinternal, cit_made_nonlocalexternal, cit_made_other, cit_made_local, cit_made_internal, cit_recd_total, cit_recd_local, cit_recd_nonlocal, cit_recd_self, cit_recd_nonself, cit_recd_other, cit_made_pop, cit_made_areakm, cit_recd_pop, cit_recd_areakm]
     writer.writerow(baserow+dummies)
 
 outputf.close()

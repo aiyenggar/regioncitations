@@ -15,7 +15,7 @@ sort patent_id iregion
 bysort patent_id iregion: gen patent_region_index=_n
 /* Keep only entry per patent region (this may not be so because of multiple inventors from the same location on the same patent) */
 keep if patent_region_index == 1
-drop inventor_id patent_region_inde
+drop inventor_id patent_region_index
 
 // Add any patent level information here
 merge m:1 patent_id using `destdir'nber.dta, keep(match master) nogen
