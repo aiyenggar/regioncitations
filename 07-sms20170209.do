@@ -1,10 +1,14 @@
 local destdir /Users/aiyenggar/datafiles/patents/
-local reportdir /Users/aiyenggar/OneDrive/code/articles/sms2017-images/
+local reportdir /Users/aiyenggar/code/articles/qepaper/
 cd `reportdir'
-use `destdir'patents_by_urbanareas.dta, clear
 
+
+use `destdir'ae.patents_by_urbanareas.dta, clear
 eststo clear
 xtset regionid year
+
+corrtex cit_recd_total cit_recd_nonself cit_recd_self rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool, file(ae.correlation.tex) longtable digits(2) sig no replace
+sutex cit_recd_total cit_recd_nonself cit_recd_self rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool, file(ae.summary.tex) labels replace
 
 // DV is Total Citations Received
 xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012), i(regionid) fe
@@ -22,16 +26,135 @@ estadd local Groups `e(N_g)'
 estadd local Sample "Non-US Locations (UC)"
 est store model3
 
-esttab model1 model2 model3 using `reportdir'model123.tex, ///
-		title("Distribution of Citations Made on Total Citations Received (FE Models)  \label{model123}") ///
-		label longtable replace p(3) not noomitted compress nogaps ///
+
+// DV is Non-Self Citations Received
+xtnbreg cit_recd_nonself rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "All Locations (UC)"
+est store model19
+
+xtnbreg cit_recd_nonself rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 == "US"), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "US Locations (UC)"
+est store model20
+
+xtnbreg cit_recd_nonself rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 != "US"), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "Non-US Locations (UC)"
+est store model21
+
+
+esttab model1 model2 model3 model19 model20 model21 using `reportdir'ae.model123192021.tex, ///
+		title("NB Regression Analysis of Invention Quality for Applicant \& Examiner Citations \label{ae.model123192021}") ///
+		label longtable replace p(3) not nostar noomitted compress nogaps ///
 		drop (d* percent*) scalars("Groups" "Sample") addnotes("All models include region fixed effects, year dummies and technology subcategory controls")
 
-esttab model1 model2 model3 using `reportdir'model123.csv, ///
-		title("Distribution of Citations Made on Total Citations Received (FE Models)  \label{model123}") ///
-		label longtable replace p(3) not noomitted compress nogaps ///
+		
+		
+// Examiner citations only
+
+use `destdir'e.patents_by_urbanareas.dta, clear
+eststo clear
+xtset regionid year
+
+corrtex cit_recd_total cit_recd_nonself cit_recd_self rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool, file(e.correlation.tex) longtable digits(2) sig no replace
+sutex cit_recd_total cit_recd_nonself cit_recd_self rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool, file(e.summary.tex) labels replace
+
+// DV is Total Citations Received
+xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "All Locations (UC)"
+est store model1
+
+xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 == "US"), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "US Locations (UC)"
+est store model2
+
+xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 != "US"), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "Non-US Locations (UC)"
+est store model3
+
+
+// DV is Non-Self Citations Received
+xtnbreg cit_recd_nonself rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "All Locations (UC)"
+est store model19
+
+xtnbreg cit_recd_nonself rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 == "US"), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "US Locations (UC)"
+est store model20
+
+xtnbreg cit_recd_nonself rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 != "US"), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "Non-US Locations (UC)"
+est store model21
+
+
+esttab model1 model2 model3 model19 model20 model21 using `reportdir'e.model123192021.tex, ///
+		title("NB Regression Analysis of Invention Quality for Examiner Citations Only \label{e.model123192021}") ///
+		label longtable replace p(3) not nostar noomitted compress nogaps ///
 		drop (d* percent*) scalars("Groups" "Sample") addnotes("All models include region fixed effects, year dummies and technology subcategory controls")
 
+		
+		
+// Applicant citations only
+
+use `destdir'a.patents_by_urbanareas.dta, clear
+eststo clear
+xtset regionid year
+
+corrtex cit_recd_total cit_recd_nonself cit_recd_self rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool, file(a.correlation.tex) longtable digits(2) sig no replace
+sutex cit_recd_total cit_recd_nonself cit_recd_self rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool, file(a.summary.tex) labels replace
+
+// DV is Total Citations Received
+xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "All Locations (UC)"
+est store model1
+
+xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 == "US"), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "US Locations (UC)"
+est store model2
+
+xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 != "US"), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "Non-US Locations (UC)"
+est store model3
+
+
+// DV is Non-Self Citations Received
+xtnbreg cit_recd_nonself rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "All Locations (UC)"
+est store model19
+
+xtnbreg cit_recd_nonself rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 == "US"), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "US Locations (UC)"
+est store model20
+
+xtnbreg cit_recd_nonself rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 != "US"), i(regionid) fe
+estadd local Groups `e(N_g)'
+estadd local Sample "Non-US Locations (UC)"
+est store model21
+
+
+esttab model1 model2 model3 model19 model20 model21 using `reportdir'a.model123192021.tex, ///
+		title("NB Regression Analysis of Invention Quality for Applicant Citations Only \label{a.model123192021}") ///
+		label longtable replace p(3) not nostar noomitted compress nogaps ///
+		drop (d* percent*) scalars("Groups" "Sample") addnotes("All models include region fixed effects, year dummies and technology subcategory controls")
+
+		
+		
+		
+		
+		
+		
 xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012), i(regionid) re
 estadd local Groups `e(N_g)'
 estadd local Sample "All Locations (UC)"

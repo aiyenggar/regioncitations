@@ -6,6 +6,8 @@ Created on Fri Dec  9 05:48:51 2016
 """
 
 import csv
+from datetime import datetime
+import math
 
 def dump(fName, dictionary, header):
     mapf = open(fName, 'w', encoding='utf-8')
@@ -24,7 +26,15 @@ def dump(fName, dictionary, header):
 def getname(base, number, extension):
     return base + str(number) + extension
     
-# 0-patent_id, 1-inventor_id, 2-region, 3-country_loc, 4-year, 5-pop 6-areakm
+def years(fromdate, todate):
+    try:
+        dt1=datetime.strptime(todate, '%Y-%m-%d')
+        dt2=datetime.strptime(fromdate, '%Y-%m-%d')
+    except ValueError:
+        return None
+    return math.floor(((dt1 - dt2).days)/365.2425)
+
+# 0-patent_id, 1-inventor_id, 2-region, 3-country_loc, 4-year, 5-pop, 6-areakm, 7-date
 keysFile1="/Users/aiyenggar/datafiles/patents/rawinventor_urban_areas.csv"
 
 # 0-patent_id, 1-assignee_id 2-region, 3-country_loc
@@ -34,22 +44,27 @@ keysFile2="/Users/aiyenggar/datafiles/patents/rawassignee_urban_areas.csv"
 keysFile3="/Users/aiyenggar/datafiles/patents/country2.country.ipr_score.csv"
 
 #0-uuid,1-patent_id,2-citation_id,3-date,4-name,5-kind,6-country,7-category,8-sequence
-searchFile="/Users/aiyenggar/datafiles/patents/uspatentcitation.applicant.csv"
+searchFile1="/Users/aiyenggar/datafiles/patents/uspatentcitation.applicant.examiner.csv"
+searchFile2="/Users/aiyenggar/datafiles/patents/uspatentcitation.examiner.csv"
+searchFile3="/Users/aiyenggar/datafiles/patents/uspatentcitation.applicant.csv"
+
+searchFile=searchFile2
 
 forwardmapheader=["fc_year", "fc_region", "fc_pop", "fc_areakm", "fc_total", "fc_sla", "fc_slap", "fc_slpa", "fc_slpap", "fc_sother", "fc_sl", "fc_sa"]
 forwardmapFile="/Users/aiyenggar/datafiles/patents/forwardmap.csv"
 backwardmapheader=["bc_year", "bc_region", "bc_pop", "bc_areakm", "bc_total", "bc_sla", "bc_slap", "bc_slpa", "bc_slpap", "bc_sother", "bc_sl", "bc_sa"]
 backwardmapFile="/Users/aiyenggar/datafiles/patents/backwardmap.csv"
 
-l6 = []
-l6.append('')
-l6.append('')
-l6.append('')
-l6.append('')
-l6.append('')
-l6.append('')
-ll6 = []
-ll6.append(l6)
+l7 = []
+l7.append('')
+l7.append('')
+l7.append('')
+l7.append('')
+l7.append('')
+l7.append('')
+l7.append('')
+ll7 = []
+ll7.append(l7)
 
 """
 l5 = []
@@ -81,6 +96,7 @@ k1 = open(keysFile1, 'r', encoding='utf-8')
 kreader1 = csv.reader(k1)
 
 # Read the entire keysFile1 to memory
+# Keyed on patent-id, pull out a list of all inventors and their asociated regions
 iDict=dict({})
 ipatent_id = 0
 iinventor_id = 1
@@ -89,12 +105,13 @@ icountry = 3
 iyear = 4
 ipop = 5
 iareakm = 6
+idate = 7
 for k1r in kreader1:
     if kreader1.line_num == 1:
         continue
     if (k1r[ipatent_id] not in iDict):
         iDict[k1r[ipatent_id]] = list([])
-    iDict[k1r[ipatent_id]].append([k1r[iinventor_id],k1r[iregion],k1r[icountry],k1r[iyear],k1r[ipop],k1r[iareakm]])
+    iDict[k1r[ipatent_id]].append([k1r[iinventor_id],k1r[iregion],k1r[icountry],k1r[iyear],k1r[ipop],k1r[iareakm],k1r[idate]])
     if kreader1.line_num % 1000000 == 0:
         print("Read " + str(kreader1.line_num) + " patent inventor locations")
 print("done reading rawinventor_region.csv to memory")
@@ -105,6 +122,7 @@ k2 = open(keysFile2, 'r', encoding='utf-8')
 kreader2 = csv.reader(k2)
 
 # Read the entire keysFile2 to memory
+# Keyed on patent-id, retrieve a list of all assignee-id and associated region
 aDict=dict({})
 ipatent_id = 0
 iassignee_id = 1
@@ -126,6 +144,7 @@ k3 = open(keysFile3, 'r', encoding='utf-8')
 kreader3 = csv.reader(k3)
 
 # Read the entire keysFile3 to memory
+# Keyed on 2 digit country code, retrieve ipr score
 cDict=dict({})
 icountry2 = 0
 icountry = 1 
@@ -162,9 +181,9 @@ for entry in sreader:
         icg_list = iDict[cg_patent_id] 
         if (len(icg_list) == 0):
             #print("Citing " + cg_patent_id + " of length 0 in iDict dictionary")
-            icg_list = ll6
+            icg_list = ll7
     else:
-        icg_list = ll6
+        icg_list = ll7
         #print("Citing " + cg_patent_id + " not found in the iDict dictionary")
            
     for next_entry in icg_list:
@@ -174,6 +193,7 @@ for entry in sreader:
         cg_inventor_year = next_entry[3]
         cg_inventor_pop = next_entry[4]
         cg_inventor_areakm = next_entry[5]
+        cg_inventor_date = next_entry[6]
         acg_list = None
         #Loop 2
         if (cg_patent_id in aDict):
@@ -195,9 +215,9 @@ for entry in sreader:
                 ict_list = iDict[ct_patent_id] 
                 if (len(ict_list) == 0):
                     #print("Cited " + ct_patent_id + " of length 0 in iDict dictionary")
-                    ict_list = ll6
+                    ict_list = ll7
             else:
-                ict_list = ll6
+                ict_list = ll7
                 #print("Cited " + ct_patent_id + " not found in the iDict dictionary")
                
             for xt_entry in ict_list:
@@ -207,6 +227,7 @@ for entry in sreader:
                 ct_inventor_year = xt_entry[3]
                 ct_inventor_pop = xt_entry[4]
                 ct_inventor_areakm = xt_entry[5]
+                ct_inventor_date = xt_entry[6]
                 act_list = None
                 #Loop 4
                 if (ct_patent_id in aDict):
@@ -223,6 +244,11 @@ for entry in sreader:
                     ct_assignee_country = t_entry[2]
                    
                     # We are now ready to write a line
+                   
+                    # Accumulate citations only till 5 years
+                    delta = years(ct_inventor_date, cg_inventor_date)
+                    if delta == None or delta >= 5:
+                        continue
                     ass_sim = 2 # indeterminate by default
                     if (len(cg_assignee_id) > 0 and len(ct_assignee_id) > 0):
                          if (cg_assignee_id == ct_assignee_id):

@@ -11,14 +11,17 @@ pheader=list(["region","year","patent_count","pool_patent_count","cat1","cat2","
 patentsFile="/Users/aiyenggar/datafiles/patents/urbanareas.year.csv"
 
 forwardmapheader=["fc_year", "fc_region", "fc_pop", "fc_areakm", "fc_total", "fc_sla", "fc_slap", "fc_slpa", "fc_slpap", "fc_sother", "fc_sl", "fc_sa"]
-fmapFile="/Users/aiyenggar/datafiles/patents/forwardmap.csv"
+fmapFile="/Users/aiyenggar/datafiles/patents/ae.forwardmap.csv"
 
 backwardmapheader=["bc_year", "bc_region", "bc_pop", "bc_areakm", "bc_total", "bc_sla", "bc_slap", "bc_slpa", "bc_slpap", "bc_sother", "bc_sl", "bc_sa"]
-bmapFile="/Users/aiyenggar/datafiles/patents/backwardmap.csv"
+bmapFile="/Users/aiyenggar/datafiles/patents/ae.backwardmap.csv"
 
 outputheader=["year", "region", "patents", "pool", "cit_made_total", "cit_made_localinternal", "cit_made_localexternal", "cit_made_nonlocalinternal", "cit_made_nonlocalexternal", "cit_made_other", "cit_made_local", "cit_made_internal", "cit_recd_total", "cit_recd_local", "cit_recd_nonlocal", "cit_recd_self", "cit_recd_nonself", "cit_recd_other", "cit_made_pop", "cit_made_areakm", "cit_recd_pop", "cit_recd_areakm"]
-outputFile="/Users/aiyenggar/datafiles/patents/citations.urbanareas.year.csv"
+outputFile1="/Users/aiyenggar/datafiles/patents/ae.citations.urbanareas.year.csv"
+outputFile2="/Users/aiyenggar/datafiles/patents/e.citations.urbanareas.year.csv"
+outputFile3="/Users/aiyenggar/datafiles/patents/a.citations.urbanareas.year.csv"
 
+outputFile=outputFile2
 pDict = dict({})
 patentsf = open(patentsFile, 'r', encoding='utf-8')
 patentsr = csv.reader(patentsf)
