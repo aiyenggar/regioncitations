@@ -48,12 +48,19 @@ searchFile1="/Users/aiyenggar/datafiles/patents/uspatentcitation.applicant.exami
 searchFile2="/Users/aiyenggar/datafiles/patents/uspatentcitation.examiner.csv"
 searchFile3="/Users/aiyenggar/datafiles/patents/uspatentcitation.applicant.csv"
 
-searchFile=searchFile2
-
 forwardmapheader=["fc_year", "fc_region", "fc_pop", "fc_areakm", "fc_total", "fc_sla", "fc_slap", "fc_slpa", "fc_slpap", "fc_sother", "fc_sl", "fc_sa"]
-forwardmapFile="/Users/aiyenggar/datafiles/patents/forwardmap.csv"
+forwardmapFile1="/Users/aiyenggar/datafiles/patents/ae.forwardmap.csv"
+forwardmapFile2="/Users/aiyenggar/datafiles/patents/e.forwardmap.csv"
+forwardmapFile3="/Users/aiyenggar/datafiles/patents/a.forwardmap.csv"
+
 backwardmapheader=["bc_year", "bc_region", "bc_pop", "bc_areakm", "bc_total", "bc_sla", "bc_slap", "bc_slpa", "bc_slpap", "bc_sother", "bc_sl", "bc_sa"]
-backwardmapFile="/Users/aiyenggar/datafiles/patents/backwardmap.csv"
+backwardmapFile1="/Users/aiyenggar/datafiles/patents/ae.backwardmap.csv"
+backwardmapFile2="/Users/aiyenggar/datafiles/patents/e.backwardmap.csv"
+backwardmapFile3="/Users/aiyenggar/datafiles/patents/a.backwardmap.csv"
+
+searchFile=searchFile3
+forwardmapFile=forwardmapFile3
+backwardmapFile=backwardmapFile3
 
 l7 = []
 l7.append('')

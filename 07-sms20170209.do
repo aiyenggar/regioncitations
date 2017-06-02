@@ -1,8 +1,6 @@
 local destdir /Users/aiyenggar/datafiles/patents/
 local reportdir /Users/aiyenggar/code/articles/qepaper/
 cd `reportdir'
-
-
 use `destdir'ae.patents_by_urbanareas.dta, clear
 eststo clear
 xtset regionid year
@@ -52,7 +50,9 @@ esttab model1 model2 model3 model19 model20 model21 using `reportdir'ae.model123
 		
 		
 // Examiner citations only
-
+local destdir /Users/aiyenggar/datafiles/patents/
+local reportdir /Users/aiyenggar/code/articles/qepaper/
+cd `reportdir'
 use `destdir'e.patents_by_urbanareas.dta, clear
 eststo clear
 xtset regionid year
@@ -102,7 +102,9 @@ esttab model1 model2 model3 model19 model20 model21 using `reportdir'e.model1231
 		
 		
 // Applicant citations only
-
+local destdir /Users/aiyenggar/datafiles/patents/
+local reportdir /Users/aiyenggar/code/articles/qepaper/
+cd `reportdir'
 use `destdir'a.patents_by_urbanareas.dta, clear
 eststo clear
 xtset regionid year
@@ -149,6 +151,10 @@ esttab model1 model2 model3 model19 model20 model21 using `reportdir'a.model1231
 		label longtable replace p(3) not nostar noomitted compress nogaps ///
 		drop (d* percent*) scalars("Groups" "Sample") addnotes("All models include region fixed effects, year dummies and technology subcategory controls")
 
+		
+		
+		
+		
 		
 		
 		
