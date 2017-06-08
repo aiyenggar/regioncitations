@@ -1,0 +1,27 @@
+Iteration 6, Dated 2017-06-08 (Using Urban Areas alone)
+I take the natural earth urban centers data from http://www.naturalearthdata.com/downloads/10m-cultural-vectors/ with the specific link being
+http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/cultural/ne_10m_urban_areas_landscan.zip
+
+I copied all files to the parent folder ~/data/gis renamed all files as urban_areas. Then I opened urban_areas.shp in QGIS, deleted all but three  fields: name_conve, max_pop_al, min_areakm. Save the file as urban_areas.shp
+
+
+In QGIS - Create a Layer from a Delimited Text File, 
+Layer - Add Layer - Add Delimited Text Layer
+~/data/patentsview/location.tsv Let the X: Longitude and Y: Latitude be as default. Set CRS to WGS84 EPSG:4326 (was previously World Geodetic System 1984 IGNF:WBS84G)
+
+Open urban_areas.shp (merged_usmsa_worldurban.shp) file
+
+Vector -> Data Management Tools -> Join Attributes by Location
+Target vector layer : location
+Join vector layer: urban_areas
+Geometric Predicate (intersects)
+Precision - Leave at 0
+Attribute Summary - Take attributes of the first located feature
+Statistics for summary - Delete all (and leave blank)
+Joined table - Keep all records (including non-matching target records)
+Output shapefile: ~/data/gis/merged.shp
+This will take a few (4) hours, then say yes to if you would like to add the layer to TOC. Choose the CRS as above. I save this as locationid_urban_areas (regions_usmsa_worldurban_100k) changed the field name of name_conve as region, max_pop_al as pop and min_areakm as areakm.
+
+Open the attribute table, select all. Now go back to the map, right click on the layer and save as -> Format: Comma Separated Value [CSV] and save as ~/data/patentsview/locationid_urban_areas.csv (~/data/patentsview/locationid_region.csv)
+
+
