@@ -10,13 +10,11 @@ import delimited `datadir'uspatentcitation.tsv, varnames(1) encoding(UTF-8) clea
 save uspatentcitation.dta, replace
 
 import delimited `datadir'rawassignee.tsv, varnames(1) encoding(UTF-8) clear
-gen ntype = real(type)
-drop type
-rename ntype type
 drop  if patent_id=="" & assignee_id==""
 //replace assignee_id=organization if assignee=="" & (type==2 | type==3)
 save rawassignee.dta, replace
 
+local datadir ~/data/patentsview/
 import delimited `datadir'rawinventor.tsv, varnames(1) encoding(UTF-8) clear
 sort patent_id sequence
 save rawinventor.dta, replace

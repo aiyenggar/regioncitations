@@ -19,7 +19,7 @@ drop if _merge == 2
 // There are 328,838 empty location_id that are referenced by a rawlocation_id, but obviously absent in location.tsv
 // Choosing to keep all
 
-order rawlocation_id location_id region city_loc state_loc country_loc latitude longitude pop areakm
+order rawlocation_id location_id region city_loc state_loc country_loc latitude longitude
 drop _merge
 sort rawlocation_id
 save `destdir'rawlocation_urban_areas.dta, replace
