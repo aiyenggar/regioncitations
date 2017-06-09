@@ -43,6 +43,7 @@ replace city = subinstr(city, `"""',  "", .)
 replace city = substr(city, 1, 32)
 compress city
 drop x y
+sort location_id
 save `destdir'locationid_urban_areas.dta, replace
 
 import delimited `datadir'nber.tsv, varnames(1) encoding(UTF-8) clear

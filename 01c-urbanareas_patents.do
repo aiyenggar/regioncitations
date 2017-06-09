@@ -9,7 +9,11 @@ sort region
 egen iregion = group(region)
 sort iregion year
 bysort iregion year: gen dup_patent_count=_N
-// 13,734,673 observations
+
+gen rflag = 0 if missing(iregion)
+replace rflag = 1 if missing(rflag)
+sort patent_id
+bysort patent_id: egen defined_regions = sum(rflag)
 
 sort patent_id iregion
 bysort patent_id iregion: gen patent_region_index=_n

@@ -8,8 +8,12 @@ rename city city_rawloc
 rename state state_rawloc
 rename country country_rawloc
 rename latlong latlong_rawloc
+sort location_id
 merge m:1 location_id using `destdir'locationid_urban_areas.dta
 
+rename name_conve region
+rename max_pop_al pop
+rename min_areakm areakm
 rename city city_loc
 rename state state_loc
 rename country country_loc
@@ -33,7 +37,7 @@ bysort region: gen index = _n
 keep if index == 1
 keep region country_loc 
 rename country_loc country2
-merge m:1 country2 using country2.country.ipr_score.dta, keep(match master) nogen
+// seemed to have lost this file >> merge m:1 country2 using country2.country.ipr_score.dta, keep(match master) nogen
 save region.country2.dta, replace
 
 use `destdir'rawinventor.dta, clear
@@ -47,13 +51,10 @@ drop id series_code country uuid
 order year patent_id inventor_id region country_loc 
 sort patent_id
 save `destdir'rawinventor_urban_areas.dta, replace
-// rawinventor_region has 13,734,673 entries; 
-// 3,831,577 have an empty region that includes 2,338,849 unique patents, 1,219,931 unique inventors
-// 9,903,096 have region defined that include 4,736,011  unique patents,  2,424,569 unique inventors
-// Total unique inventors: 3,287,305  
+
 use `destdir'rawinventor_urban_areas.dta, clear
-keep patent_id inventor_id region country_loc year pop areakm date
-order patent_id inventor_id region country_loc year pop areakm date
+keep patent_id inventor_id region country_loc year date
+order patent_id inventor_id region country_loc year date
 export delimited using `destdir'rawinventor_urban_areas.csv, replace
 
 use `destdir'rawassignee.dta, clear
@@ -62,7 +63,7 @@ replace assignee = name_first + " " + name_last if missing(assignee)
 drop name_first name_last organization
 rename sequence assigneeseq
 rename type assigneetype
-// We have 5,300,888 entries in rawassignee
+
 merge 1:1 rawlocation_id using `destdir'rawlocation_urban_areas.dta, keep(match master) nogen
 drop uuid
 merge m:1 patent_id using `destdir'application.dta, keep(match master) nogen
@@ -78,7 +79,11 @@ use `destdir'rawassignee_urban_areas.dta, clear
 keep patent_id assignee_id region country_loc
 order patent_id assignee_id region country_loc
 export delimited using `destdir'rawassignee_urban_areas.csv, replace
-// 360,637 unique assignee ids, 187,224 since 2001
+
+
+
+
+
 /* 
 tab assigneetype if year > 2000
 assigneetyp |
