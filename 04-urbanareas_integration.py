@@ -25,9 +25,9 @@ outputFile1="/Users/aiyenggar/datafiles/patents/ae.citations.urbanareas.year.csv
 outputFile2="/Users/aiyenggar/datafiles/patents/e.citations.urbanareas.year.csv"
 outputFile3="/Users/aiyenggar/datafiles/patents/a.citations.urbanareas.year.csv"
 
-fmapFile=fmapFile3
-bmapFile=bmapFile3
-outputFile=outputFile3
+fmapFile=fmapFile1
+bmapFile=bmapFile1
+outputFile=outputFile1
 
 pDict = dict({})
 patentsf = open(patentsFile, 'r', encoding='utf-8')

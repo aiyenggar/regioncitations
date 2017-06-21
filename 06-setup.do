@@ -14,11 +14,11 @@ save `destdir'forwardmap.dta, replace
 */
 
 
-import delimited `destdir'a.citations.urbanareas.year.csv, varnames(1) encoding(UTF-8) clear
-save `destdir'a.citations.urbanareas.year.dta, replace
+import delimited `destdir'ae.citations.urbanareas.year.csv, varnames(1) encoding(UTF-8) clear
+save `destdir'ae.citations.urbanareas.year.dta, replace
 
 
-use `destdir'a.citations.urbanareas.year.dta, clear
+use `destdir'ae.citations.urbanareas.year.dta, clear
 
 gen lnpatents = ln(patents)
 gen lnpool = ln(1 + pool)
@@ -148,9 +148,9 @@ foreach var of varlist cat* subcat* {
 }
 
 order cat* subcat* d*, last // moving the dummy variables to the end
-save `destdir'a.patents_by_urbanareas.dta, replace
-saveold `destdir'a.patents_by_urbanareas_stata12.dta, replace version(12) 
+save `destdir'ae.patents_by_urbanareas.dta, replace
+saveold `destdir'ae.patents_by_urbanareas_stata12.dta, replace version(12) 
 
-export delimited using `destdir'a.patents_by_urbanareas.csv, replace
+export delimited using `destdir'ae.patents_by_urbanareas.csv, replace
 
 log close

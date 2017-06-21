@@ -58,9 +58,9 @@ backwardmapFile1="/Users/aiyenggar/datafiles/patents/ae.backwardmap.csv"
 backwardmapFile2="/Users/aiyenggar/datafiles/patents/e.backwardmap.csv"
 backwardmapFile3="/Users/aiyenggar/datafiles/patents/a.backwardmap.csv"
 
-searchFile=searchFile3
-forwardmapFile=forwardmapFile3
-backwardmapFile=backwardmapFile3
+searchFile=searchFile1
+forwardmapFile=forwardmapFile1
+backwardmapFile=backwardmapFile1
 
 l7 = []
 l7.append('')
