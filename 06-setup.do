@@ -11,8 +11,8 @@ save `destdir'backwardmap.dta, replace
 
 import delimited `destdir'forwardmap.csv, varnames(1) encoding(UTF-8) clear
 save `destdir'forwardmap.dta, replace
-
 */
+
 
 import delimited `destdir'a.citations.urbanareas.year.csv, varnames(1) encoding(UTF-8) clear
 save `destdir'a.citations.urbanareas.year.dta, replace
@@ -20,17 +20,8 @@ save `destdir'a.citations.urbanareas.year.dta, replace
 
 use `destdir'a.citations.urbanareas.year.dta, clear
 
-replace cit_made_pop = cit_recd_pop if missing(cit_made_pop) | cit_made_pop == 0
-replace cit_made_areakm = cit_recd_areakm if missing(cit_made_areakm) | cit_made_areakm == 0
-
-drop cit_recd_pop cit_recd_areakm
-rename cit_made_pop pop
-rename cit_made_areakm areakm
-label variable pop "Population in 2015"
-label variable areakm "Area in 2015"
-
 gen lnpatents = ln(patents)
-gen lnpool = ln(pool)
+gen lnpool = ln(1 + pool)
 
 sort year
 egen yrank = rank(-patents), by(year)
@@ -63,9 +54,9 @@ label variable cit_made_other "Citations Made to [Other]"
 label variable cit_recd_total "Citations Received"
 label variable cit_recd_local "Citations Received Within Region"
 label variable cit_recd_nonlocal "Citations Received Outside Region"
-label variable cit_recd_self "Self Citations"
-label variable cit_recd_nonself "Non-Self Citations"
-label variable cit_recd_other "Other Citations"
+label variable cit_recd_self "Self Citations Received"
+label variable cit_recd_nonself "Non-Self Citations Received"
+label variable cit_recd_other "Other Citations Received"
 label variable lnpatents "Log (Num Patents)"
 label variable lnpool "Log (Patent Pool Size)"
 
@@ -101,6 +92,8 @@ gen lncit_made_internal=ln(1+cit_made_internal)
 gen lncit_made_other=ln(1 + cit_made_other)
 gen lncit_recd_total=ln(1+cit_recd_total)
 
+//replace cit_made_total = 1 if cit_made_total == 0
+
 gen rcit_made_localinternal=cit_made_localinternal/cit_made_total
 gen rcit_made_localexternal=cit_made_localexternal/cit_made_total
 gen rcit_made_nonlocalinternal=cit_made_nonlocalinternal/cit_made_total
@@ -108,7 +101,7 @@ gen rcit_made_nonlocalexternal=cit_made_nonlocalexternal/cit_made_total
 gen rcit_made_other=cit_made_other/cit_made_total
 gen rcit_made_local=cit_made_local/cit_made_total
 gen rcit_made_internal=cit_made_internal/cit_made_total
-gen lncit_made_total=ln(cit_made_total)
+gen lncit_made_total=ln(1 + cit_made_total)
 gen avg_cit_recd=cit_recd_total/cit_made_total
 
 
@@ -137,7 +130,7 @@ replace pool2001=0 if missing(pool2001)
 bysort region: egen sumpool2001=sum(pool2001)
 
 merge m:1 region using `destdir'region.country2.dta, keep(match master) nogen
-
+/*
 gen intr_localinternal_ipr_score=rcit_made_localinternal*ipr_score
 gen intr_localexternal_ipr_score=rcit_made_localexternal*ipr_score
 gen intr_nonlocalinternal_ipr_score=rcit_made_nonlocalinternal*ipr_score
@@ -146,7 +139,7 @@ label variable intr_localinternal_ipr_score "Share [Same Region, Same Assignee] 
 label variable intr_localexternal_ipr_score "Share [Same Region, Different Assignee] * IPR"
 label variable intr_nonlocalinternal_ipr_score "Share [Different Region, Same Assignee] * IPR"
 label variable intr_nonlocalexternal_ipr_score "Share [Different Region, Different Assignee] * IPR"
-
+*/
 egen countryid = group(country)
 tabulate countryid, generate(dcountry)
 

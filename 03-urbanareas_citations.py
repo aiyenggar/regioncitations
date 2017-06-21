@@ -34,7 +34,7 @@ def years(fromdate, todate):
         return None
     return math.floor(((dt1 - dt2).days)/365.2425)
 
-# 0-patent_id, 1-inventor_id, 2-region, 3-country_loc, 4-year, 5-pop, 6-areakm, 7-date
+# 0-patent_id, 1-inventor_id, 2-region, 3-country_loc, 4-year, 5-date
 keysFile1="/Users/aiyenggar/datafiles/patents/rawinventor_urban_areas.csv"
 
 # 0-patent_id, 1-assignee_id 2-region, 3-country_loc
@@ -48,12 +48,12 @@ searchFile1="/Users/aiyenggar/datafiles/patents/uspatentcitation.applicant.exami
 searchFile2="/Users/aiyenggar/datafiles/patents/uspatentcitation.examiner.csv"
 searchFile3="/Users/aiyenggar/datafiles/patents/uspatentcitation.applicant.csv"
 
-forwardmapheader=["fc_year", "fc_region", "fc_pop", "fc_areakm", "fc_total", "fc_sla", "fc_slap", "fc_slpa", "fc_slpap", "fc_sother", "fc_sl", "fc_sa"]
+forwardmapheader=["fc_year", "fc_region", "fc_total", "fc_sla", "fc_slap", "fc_slpa", "fc_slpap", "fc_sother", "fc_sl", "fc_sa"]
 forwardmapFile1="/Users/aiyenggar/datafiles/patents/ae.forwardmap.csv"
 forwardmapFile2="/Users/aiyenggar/datafiles/patents/e.forwardmap.csv"
 forwardmapFile3="/Users/aiyenggar/datafiles/patents/a.forwardmap.csv"
 
-backwardmapheader=["bc_year", "bc_region", "bc_pop", "bc_areakm", "bc_total", "bc_sla", "bc_slap", "bc_slpa", "bc_slpap", "bc_sother", "bc_sl", "bc_sa"]
+backwardmapheader=["bc_year", "bc_region", "bc_total", "bc_sla", "bc_slap", "bc_slpa", "bc_slpap", "bc_sother", "bc_sl", "bc_sa"]
 backwardmapFile1="/Users/aiyenggar/datafiles/patents/ae.backwardmap.csv"
 backwardmapFile2="/Users/aiyenggar/datafiles/patents/e.backwardmap.csv"
 backwardmapFile3="/Users/aiyenggar/datafiles/patents/a.backwardmap.csv"
@@ -110,15 +110,13 @@ iinventor_id = 1
 iregion = 2
 icountry = 3
 iyear = 4
-ipop = 5
-iareakm = 6
-idate = 7
+idate = 5
 for k1r in kreader1:
     if kreader1.line_num == 1:
         continue
     if (k1r[ipatent_id] not in iDict):
         iDict[k1r[ipatent_id]] = list([])
-    iDict[k1r[ipatent_id]].append([k1r[iinventor_id],k1r[iregion],k1r[icountry],k1r[iyear],k1r[ipop],k1r[iareakm],k1r[idate]])
+    iDict[k1r[ipatent_id]].append([k1r[iinventor_id],k1r[iregion],k1r[icountry],k1r[iyear],k1r[idate]])
     if kreader1.line_num % 1000000 == 0:
         print("Read " + str(kreader1.line_num) + " patent inventor locations")
 print("done reading rawinventor_region.csv to memory")
@@ -198,9 +196,7 @@ for entry in sreader:
         cg_inventor_region = next_entry[1]
         cg_inventor_country = next_entry[2]
         cg_inventor_year = next_entry[3]
-        cg_inventor_pop = next_entry[4]
-        cg_inventor_areakm = next_entry[5]
-        cg_inventor_date = next_entry[6]
+        cg_inventor_date = next_entry[4]
         acg_list = None
         #Loop 2
         if (cg_patent_id in aDict):
@@ -232,9 +228,7 @@ for entry in sreader:
                 ct_inventor_region = xt_entry[1]
                 ct_inventor_country = xt_entry[2]
                 ct_inventor_year = xt_entry[3]
-                ct_inventor_pop = xt_entry[4]
-                ct_inventor_areakm = xt_entry[5]
-                ct_inventor_date = xt_entry[6]
+                ct_inventor_date = xt_entry[4]
                 act_list = None
                 #Loop 4
                 if (ct_patent_id in aDict):
@@ -254,8 +248,10 @@ for entry in sreader:
                    
                     # Accumulate citations only till 5 years
                     delta = years(ct_inventor_date, cg_inventor_date)
+                    """
                     if delta == None or delta >= 5:
                         continue
+                    """
                     ass_sim = 2 # indeterminate by default
                     if (len(cg_assignee_id) > 0 and len(ct_assignee_id) > 0):
                          if (cg_assignee_id == ct_assignee_id):
@@ -325,8 +321,6 @@ for entry in sreader:
                         # ct_inventor_year will capture the vintage
                         # Citing inventor year was used previously
                         nkey.append(ct_inventor_region)
-                        nkey.append(ct_inventor_pop)
-                        nkey.append(ct_inventor_areakm)
                         ntkey = tuple(nkey)
                         if ntkey not in forwardCitations:
                             forwardCitations[ntkey] = [1, la, lap, lpa, lpap, other]
@@ -343,8 +337,6 @@ for entry in sreader:
                         nkey = []
                         nkey.append(cg_inventor_year)
                         nkey.append(cg_inventor_region)
-                        nkey.append(cg_inventor_pop)
-                        nkey.append(cg_inventor_areakm)
                         ntkey = tuple(nkey)
                         if ntkey not in backwardCitations:
                             backwardCitations[ntkey] = [1, la, lap, lpa, lpap, other]
