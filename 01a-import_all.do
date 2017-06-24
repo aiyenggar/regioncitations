@@ -50,6 +50,8 @@ import delimited `datadir'nber.tsv, varnames(1) encoding(UTF-8) clear
 save `destdir'nber.dta, replace
 
 use `destdir'uspatentcitation.dta
+export delimited using uspatentcitation.csv, replace
+
 preserve
 keep if category == "cited by applicant"
 save uspatentcitation.applicant.dta, replace
@@ -71,15 +73,18 @@ restore
 preserve
 keep if category == "cited by other"
 save uspatentcitation.other.dta, replace
+export delimited using uspatentcitation.other.csv, replace
 
 restore
 preserve
 keep if category == "cited by third party"
 save uspatentcitation.thirdparty.dta, replace
+export delimited using uspatentcitation.thirdparty.csv, replace
 
 restore
 keep if category == ""
 save uspatentcitation.blank.dta, replace
+export delimited using uspatentcitation.blank.csv, replace
 
 /* Use this only when you need an integrated region */
 /*

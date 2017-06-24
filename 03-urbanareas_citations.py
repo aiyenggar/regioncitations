@@ -44,23 +44,38 @@ keysFile2="/Users/aiyenggar/datafiles/patents/rawassignee_urban_areas.csv"
 keysFile3="/Users/aiyenggar/datafiles/patents/country2.country.ipr_score.csv"
 
 #0-uuid,1-patent_id,2-citation_id,3-date,4-name,5-kind,6-country,7-category,8-sequence
+searchFile0="/Users/aiyenggar/datafiles/patents/uspatentcitation2k.csv"
 searchFile1="/Users/aiyenggar/datafiles/patents/uspatentcitation.applicant.examiner.csv"
-searchFile2="/Users/aiyenggar/datafiles/patents/uspatentcitation.examiner.csv"
-searchFile3="/Users/aiyenggar/datafiles/patents/uspatentcitation.applicant.csv"
+searchFile2="/Users/aiyenggar/datafiles/patents/uspatentcitation.examiner2k.csv"
+searchFile3="/Users/aiyenggar/datafiles/patents/uspatentcitation.applicant2k.csv"
 
 forwardmapheader=["fc_year", "fc_region", "fc_total", "fc_sla", "fc_slap", "fc_slpa", "fc_slpap", "fc_sother", "fc_sl", "fc_sa"]
+forwardmapFile0="/Users/aiyenggar/datafiles/patents/forwardmap.csv"
 forwardmapFile1="/Users/aiyenggar/datafiles/patents/ae.forwardmap.csv"
 forwardmapFile2="/Users/aiyenggar/datafiles/patents/e.forwardmap.csv"
 forwardmapFile3="/Users/aiyenggar/datafiles/patents/a.forwardmap.csv"
 
 backwardmapheader=["bc_year", "bc_region", "bc_total", "bc_sla", "bc_slap", "bc_slpa", "bc_slpap", "bc_sother", "bc_sl", "bc_sa"]
+backwardmapFile0="/Users/aiyenggar/datafiles/patents/backwardmap.csv"
 backwardmapFile1="/Users/aiyenggar/datafiles/patents/ae.backwardmap.csv"
 backwardmapFile2="/Users/aiyenggar/datafiles/patents/e.backwardmap.csv"
 backwardmapFile3="/Users/aiyenggar/datafiles/patents/a.backwardmap.csv"
 
-searchFile=searchFile1
-forwardmapFile=forwardmapFile1
-backwardmapFile=backwardmapFile1
+logFile0="/Users/aiyenggar/datafiles/patents/log.csv"
+logFile1="/Users/aiyenggar/datafiles/patents/ae.log.csv"
+logFile2="/Users/aiyenggar/datafiles/patents/e.log.csv"
+logFile3="/Users/aiyenggar/datafiles/patents/a.log.csv"
+
+searchFile=searchFile0
+forwardmapFile=forwardmapFile0
+backwardmapFile=backwardmapFile0
+logFile=logFile0
+
+"""
+indf = open(logFile, 'w', encoding='utf-8')
+indwriter = csv.writer(indf)
+indwriter.writerow(["ass_sim", "loc_sim", "cg_patent_id", "ct_patent_id", "cg_inventor_id", "cg_inventor_region", "cg_assignee_id", "cg_inventor_year", "ct_inventor_id", "ct_inventor_region", "ct_assignee_id", "ct_inventor_year"])
+"""
 
 l7 = []
 l7.append('')
@@ -264,6 +279,9 @@ for entry in sreader:
                              loc_sim = 1
                          else:
                              loc_sim = 0
+                             
+ #                   indwriter.writerow([ass_sim, loc_sim, cg_patent_id, ct_patent_id, cg_inventor_id, cg_inventor_region, cg_assignee_id, cg_inventor_year, ct_inventor_id, ct_inventor_region, ct_assignee_id, ct_inventor_year])
+
                     if (cg_assignee_country in cDict):
                         cg_assignee_ipr = cDict[cg_assignee_country]
                     else:
@@ -362,6 +380,7 @@ for entry in sreader:
     if sreader.line_num % 1000000 == 0:
         print("Processed " + str(sreader.line_num) + " lines")
 
+#indf.close()
 dump(forwardmapFile, forwardCitations, forwardmapheader)
 dump(backwardmapFile, backwardCitations, backwardmapheader)
 print("Processed all")
