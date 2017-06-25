@@ -118,8 +118,8 @@ estadd local Groups `e(N_g)'
 estadd local Sample "All Locations (UC)"
 est store model1
 
-corrtex cit_recd_total cit_recd_nonself cit_recd_self cit_recd_other cit_recd_other rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal rcit_made_other rcit_made_local rcit_made_internal  lncit_made_total lnpatents lnpool if e(sample) == 1, file(a.tcorrelation.tex) digits(2) no key(a.tcorrelation) title("Correlation table for applicant only data set with DV as Total Citations Received") replace  
-sutex cit_recd_total cit_recd_nonself cit_recd_self cit_recd_other rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal rcit_made_other rcit_made_local rcit_made_internal  lncit_made_total lnpatents lnpool if e(sample) == 1, file(a.tsummary.tex) labels key(a.tsummary) title("Summary statistics for applicant only data set with DV as Total Citations Received") replace 
+corrtex cit_recd_total cit_recd_nonself cit_recd_self rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal rcit_made_other rcit_made_local rcit_made_internal  lncit_made_total lnpatents lnpool if e(sample) == 1, file(a.tcorrelation.tex) digits(2) no key(a.tcorrelation) title("Correlation table for applicant only data set with DV as Total Citations Received") replace  
+sutex cit_recd_total cit_recd_nonself cit_recd_self rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal rcit_made_other rcit_made_local rcit_made_internal  lncit_made_total lnpatents lnpool if e(sample) == 1, file(a.tsummary.tex) labels key(a.tsummary) title("Summary statistics for applicant only data set with DV as Total Citations Received") replace 
 
 xtnbreg cit_recd_total rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 == "US"), i(regionid) fe
 estadd local Groups `e(N_g)'
@@ -138,8 +138,8 @@ estadd local Groups `e(N_g)'
 estadd local Sample "All Locations (UC)"
 est store model19
 
-corrtex cit_recd_total cit_recd_nonself cit_recd_self cit_recd_other rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal rcit_made_other rcit_made_local rcit_made_internal  lncit_made_total lnpatents lnpool if e(sample) == 1, file(a.ncorrelation.tex) digits(2) no key(a.ncorrelation) title("Correlation table for applicant only data set with DV as Non-Self Citations Received") replace 
-sutex cit_recd_total cit_recd_nonself cit_recd_self cit_recd_other rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal rcit_made_other rcit_made_local rcit_made_internal  lncit_made_total lnpatents lnpool if e(sample) == 1, file(a.nsummary.tex) labels key(a.nsummary) title("Summary statistics for applicant only data set with DV as Non-Self Citations Received") replace 
+corrtex cit_recd_total cit_recd_nonself cit_recd_self rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal rcit_made_other rcit_made_local rcit_made_internal  lncit_made_total lnpatents lnpool if e(sample) == 1, file(a.ncorrelation.tex) digits(2) no key(a.ncorrelation) title("Correlation table for applicant only data set with DV as Non-Self Citations Received") replace 
+sutex cit_recd_total cit_recd_nonself cit_recd_self rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal rcit_made_other rcit_made_local rcit_made_internal  lncit_made_total lnpatents lnpool if e(sample) == 1, file(a.nsummary.tex) labels key(a.nsummary) title("Summary statistics for applicant only data set with DV as Non-Self Citations Received") replace 
 
 xtnbreg cit_recd_nonself rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d2002-d2012 percentsubcat* if (year>=2001 & year<=2012 & country2 == "US"), i(regionid) fe
 estadd local Groups `e(N_g)'

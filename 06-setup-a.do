@@ -5,20 +5,17 @@ local destdir /Users/aiyenggar/datafiles/patents/
 cd `destdir'
 log using knowledge-flows.log, append
 
-/*
-import delimited `destdir'backwardmap.csv, varnames(1) encoding(UTF-8) clear
-save `destdir'backwardmap.dta, replace
+import delimited `destdir'a.backwardmap.csv, varnames(1) encoding(UTF-8) clear
+save `destdir'a.backwardmap.dta, replace
 
-import delimited `destdir'forwardmap.csv, varnames(1) encoding(UTF-8) clear
-save `destdir'forwardmap.dta, replace
-*/
+import delimited `destdir'a.forwardmap.csv, varnames(1) encoding(UTF-8) clear
+save `destdir'a.forwardmap.dta, replace
 
-
-import delimited `destdir'citations.urbanareas.year.csv, varnames(1) encoding(UTF-8) clear
-save `destdir'citations.urbanareas.year.dta, replace
+import delimited `destdir'a.citations.urbanareas.year.csv, varnames(1) encoding(UTF-8) clear
+save `destdir'a.citations.urbanareas.year.dta, replace
 
 
-use `destdir'citations.urbanareas.year.dta, clear
+use `destdir'a.citations.urbanareas.year.dta, clear
 
 gen lnpatents = ln(patents)
 gen lnpool = ln(1 + pool)
@@ -52,11 +49,8 @@ label variable cit_made_internal "Citations Made to [Same Assignee]"
 label variable cit_made_other "Citations Made to [Other]"
 
 label variable cit_recd_total "Citations Received"
-label variable cit_recd_local "Citations Received Within Region"
-label variable cit_recd_nonlocal "Citations Received Outside Region"
 label variable cit_recd_self "Self Citations Received"
 label variable cit_recd_nonself "Non-Self Citations Received"
-label variable cit_recd_other "Other Citations Received"
 label variable lnpatents "Log (Num Patents)"
 label variable lnpool "Log (Patent Pool Size)"
 
@@ -148,9 +142,9 @@ foreach var of varlist cat* subcat* {
 }
 
 order cat* subcat* d*, last // moving the dummy variables to the end
-save `destdir'patents_by_urbanareas.dta, replace
-saveold `destdir'patents_by_urbanareas_stata12.dta, replace version(12) 
+save `destdir'a.patents_by_urbanareas.dta, replace
+saveold `destdir'a.patents_by_urbanareas_stata12.dta, replace version(12) 
 
-export delimited using `destdir'patents_by_urbanareas.csv, replace
+export delimited using `destdir'a.patents_by_urbanareas.csv, replace
 
 log close

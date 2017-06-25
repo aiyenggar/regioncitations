@@ -6,19 +6,19 @@ cd `destdir'
 log using knowledge-flows.log, append
 
 /*
-import delimited `destdir'backwardmap.csv, varnames(1) encoding(UTF-8) clear
-save `destdir'backwardmap.dta, replace
+import delimited `destdir'ae.backwardmap.csv, varnames(1) encoding(UTF-8) clear
+save `destdir'ae.backwardmap.dta, replace
 
-import delimited `destdir'forwardmap.csv, varnames(1) encoding(UTF-8) clear
-save `destdir'forwardmap.dta, replace
+import delimited `destdir'ae.forwardmap.csv, varnames(1) encoding(UTF-8) clear
+save `destdir'ae.forwardmap.dta, replace
 */
 
 
-import delimited `destdir'citations.urbanareas.year.csv, varnames(1) encoding(UTF-8) clear
-save `destdir'citations.urbanareas.year.dta, replace
+import delimited `destdir'ae.citations.urbanareas.year.csv, varnames(1) encoding(UTF-8) clear
+save `destdir'ae.citations.urbanareas.year.dta, replace
 
 
-use `destdir'citations.urbanareas.year.dta, clear
+use `destdir'ae.citations.urbanareas.year.dta, clear
 
 gen lnpatents = ln(patents)
 gen lnpool = ln(1 + pool)
@@ -148,9 +148,9 @@ foreach var of varlist cat* subcat* {
 }
 
 order cat* subcat* d*, last // moving the dummy variables to the end
-save `destdir'patents_by_urbanareas.dta, replace
-saveold `destdir'patents_by_urbanareas_stata12.dta, replace version(12) 
+save `destdir'ae.patents_by_urbanareas.dta, replace
+saveold `destdir'ae.patents_by_urbanareas_stata12.dta, replace version(12) 
 
-export delimited using `destdir'patents_by_urbanareas.csv, replace
+export delimited using `destdir'ae.patents_by_urbanareas.csv, replace
 
 log close
