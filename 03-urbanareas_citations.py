@@ -16,7 +16,7 @@ def haversine(lon1, lat1, lon2, lat2):
     on the earth (specified in decimal degrees)
     """
     # convert decimal degrees to radians 
-    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+    lon1, lat1, lon2, lat2 = map(radians, [float(lon1), float(lat1), float(lon2), float(lat2)])
     # haversine formula 
     dlon = lon2 - lon1 
     dlat = lat2 - lat1 
@@ -387,7 +387,7 @@ for entry in sreader:
                             other = 1
                         else:
                             other = 0
-                        if len(ct_inventor_region > 0):
+                        if len(ct_inventor_region) > 0:
                             nkey = []
                             nkey.append(ct_inventor_year) 
                             # ct_inventor_year will capture the vintage
@@ -406,7 +406,7 @@ for entry in sreader:
                                 sother = prev[5] + other
                                 forwardCitations[ntkey] = [total, sla, slap, slpa, slpap, sother]
                         
-                        if len(cg_inventor_region > 0):
+                        if len(cg_inventor_region) > 0:
                             nkey = []
                             nkey.append(cg_inventor_year)
                             nkey.append(cg_inventor_region)
