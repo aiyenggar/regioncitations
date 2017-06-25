@@ -8,6 +8,31 @@ Created on Fri Dec  9 05:48:51 2016
 import csv
 from datetime import datetime
 import math
+from math import radians, cos, sin, asin, sqrt
+
+def haversine(lon1, lat1, lon2, lat2):
+    """
+    Calculate the great circle distance between two points 
+    on the earth (specified in decimal degrees)
+    """
+    # convert decimal degrees to radians 
+    lon1, lat1, lon2, lat2 = map(radians, [lon1, lat1, lon2, lat2])
+    # haversine formula 
+    dlon = lon2 - lon1 
+    dlat = lat2 - lat1 
+    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
+    c = 2 * asin(sqrt(a)) 
+    km = 6367 * c
+    return km
+
+def dumpsimpledict(fName, dictionary, header):
+    mapf = open(fName, 'w', encoding='utf-8')
+    mapwriter = csv.writer(mapf)
+    mapwriter.writerow(header)
+    for key in dictionary:
+        mapwriter.writerow([key, dictionary[key]])
+    mapf.close()
+    return
 
 def dump(fName, dictionary, header):
     mapf = open(fName, 'w', encoding='utf-8')
@@ -34,7 +59,7 @@ def years(fromdate, todate):
         return None
     return math.floor(((dt1 - dt2).days)/365.2425)
 
-# 0-patent_id, 1-inventor_id, 2-region, 3-country_loc, 4-year, 5-date
+# 0-patent_id, 1-inventor_id, 2-region, 3-country_loc, 4-year, 5-date, 6-latitude, 7-longitude, 8-city_rawloc
 keysFile1="/Users/aiyenggar/datafiles/patents/rawinventor_urban_areas.csv"
 
 # 0-patent_id, 1-assignee_id 2-region, 3-country_loc
@@ -44,32 +69,28 @@ keysFile2="/Users/aiyenggar/datafiles/patents/rawassignee_urban_areas.csv"
 keysFile3="/Users/aiyenggar/datafiles/patents/country2.country.ipr_score.csv"
 
 #0-uuid,1-patent_id,2-citation_id,3-date,4-name,5-kind,6-country,7-category,8-sequence
-searchFile0="/Users/aiyenggar/datafiles/patents/uspatentcitation2k.csv"
-searchFile1="/Users/aiyenggar/datafiles/patents/uspatentcitation.applicant.examiner.csv"
-searchFile2="/Users/aiyenggar/datafiles/patents/uspatentcitation.examiner2k.csv"
-searchFile3="/Users/aiyenggar/datafiles/patents/uspatentcitation.applicant2k.csv"
+searchFileList=["/Users/aiyenggar/datafiles/patents/uspatentcitation2k.csv","/Users/aiyenggar/datafiles/patents/uspatentcitation.applicant.examiner.csv","/Users/aiyenggar/datafiles/patents/uspatentcitation.examiner2k.csv","/Users/aiyenggar/datafiles/patents/uspatentcitation.applicant2k.csv"]
 
 forwardmapheader=["fc_year", "fc_region", "fc_total", "fc_sla", "fc_slap", "fc_slpa", "fc_slpap", "fc_sother", "fc_sl", "fc_sa"]
-forwardmapFile0="/Users/aiyenggar/datafiles/patents/forwardmap.csv"
-forwardmapFile1="/Users/aiyenggar/datafiles/patents/ae.forwardmap.csv"
-forwardmapFile2="/Users/aiyenggar/datafiles/patents/e.forwardmap.csv"
-forwardmapFile3="/Users/aiyenggar/datafiles/patents/a.forwardmap.csv"
+forwardmapFileList=["/Users/aiyenggar/datafiles/patents/forwardmap.csv","/Users/aiyenggar/datafiles/patents/ae.forwardmap.csv","/Users/aiyenggar/datafiles/patents/e.forwardmap.csv","/Users/aiyenggar/datafiles/patents/a.forwardmap.csv"]
 
 backwardmapheader=["bc_year", "bc_region", "bc_total", "bc_sla", "bc_slap", "bc_slpa", "bc_slpap", "bc_sother", "bc_sl", "bc_sa"]
-backwardmapFile0="/Users/aiyenggar/datafiles/patents/backwardmap.csv"
-backwardmapFile1="/Users/aiyenggar/datafiles/patents/ae.backwardmap.csv"
-backwardmapFile2="/Users/aiyenggar/datafiles/patents/e.backwardmap.csv"
-backwardmapFile3="/Users/aiyenggar/datafiles/patents/a.backwardmap.csv"
+backwardmapFileList=["/Users/aiyenggar/datafiles/patents/backwardmap.csv", "/Users/aiyenggar/datafiles/patents/ae.backwardmap.csv","/Users/aiyenggar/datafiles/patents/e.backwardmap.csv","/Users/aiyenggar/datafiles/patents/a.backwardmap.csv"]
 
-logFile0="/Users/aiyenggar/datafiles/patents/log.csv"
-logFile1="/Users/aiyenggar/datafiles/patents/ae.log.csv"
-logFile2="/Users/aiyenggar/datafiles/patents/e.log.csv"
-logFile3="/Users/aiyenggar/datafiles/patents/a.log.csv"
+logFileList=["/Users/aiyenggar/datafiles/patents/log.csv","/Users/aiyenggar/datafiles/patents/ae.log.csv","/Users/aiyenggar/datafiles/patents/e.log.csv","/Users/aiyenggar/datafiles/patents/a.log.csv"]
 
-searchFile=searchFile0
-forwardmapFile=forwardmapFile0
-backwardmapFile=backwardmapFile0
-logFile=logFile0
+citationsFileList=["/Users/aiyenggar/datafiles/patents/citations.year.csv","/Users/aiyenggar/datafiles/patents/ae.citations.year.csv","/Users/aiyenggar/datafiles/patents/e.citations.year.csv","/Users/aiyenggar/datafiles/patents/a.citations.year.csv"]
+
+geoFileList=["/Users/aiyenggar/datafiles/patents/geodistance.csv","/Users/aiyenggar/datafiles/patents/ae.geodistance.csv","/Users/aiyenggar/datafiles/patents/e.geodistance.csv","/Users/aiyenggar/datafiles/patents/a.geodistance.csv"]
+
+runno=3
+
+searchFile=searchFileList[runno]
+forwardmapFile=forwardmapFileList[runno]
+backwardmapFile=backwardmapFileList[runno]
+logFile=logFileList[runno]
+citationsFile=citationsFileList[runno]
+geoFile=geoFileList[runno]
 
 """
 indf = open(logFile, 'w', encoding='utf-8')
@@ -77,16 +98,18 @@ indwriter = csv.writer(indf)
 indwriter.writerow(["ass_sim", "loc_sim", "cg_patent_id", "ct_patent_id", "cg_inventor_id", "cg_inventor_region", "cg_assignee_id", "cg_inventor_year", "ct_inventor_id", "ct_inventor_region", "ct_assignee_id", "ct_inventor_year"])
 """
 
-l7 = []
-l7.append('')
-l7.append('')
-l7.append('')
-l7.append('')
-l7.append('')
-l7.append('')
-l7.append('')
-ll7 = []
-ll7.append(l7)
+l9 = []
+l9.append('')
+l9.append('')
+l9.append('')
+l9.append('')
+l9.append('')
+l9.append('')
+l9.append('')
+l9.append('')
+l9.append('')
+ll9 = []
+ll9.append(l9)
 
 """
 l5 = []
@@ -126,12 +149,15 @@ iregion = 2
 icountry = 3
 iyear = 4
 idate = 5
+ilatitude = 6
+ilongitude = 7
+icity_rawloc = 8
 for k1r in kreader1:
     if kreader1.line_num == 1:
         continue
     if (k1r[ipatent_id] not in iDict):
         iDict[k1r[ipatent_id]] = list([])
-    iDict[k1r[ipatent_id]].append([k1r[iinventor_id],k1r[iregion],k1r[icountry],k1r[iyear],k1r[idate]])
+    iDict[k1r[ipatent_id]].append(k1r)
     if kreader1.line_num % 1000000 == 0:
         print("Read " + str(kreader1.line_num) + " patent inventor locations")
 print("done reading rawinventor_region.csv to memory")
@@ -140,7 +166,7 @@ k1.close()
 
 k2 = open(keysFile2, 'r', encoding='utf-8')
 kreader2 = csv.reader(k2)
-
+geoDict=dict({})
 # Read the entire keysFile2 to memory
 # Keyed on patent-id, retrieve a list of all assignee-id and associated region
 aDict=dict({})
@@ -201,17 +227,20 @@ for entry in sreader:
         icg_list = iDict[cg_patent_id] 
         if (len(icg_list) == 0):
             #print("Citing " + cg_patent_id + " of length 0 in iDict dictionary")
-            icg_list = ll7
+            icg_list = ll9
     else:
-        icg_list = ll7
+        icg_list = ll9
         #print("Citing " + cg_patent_id + " not found in the iDict dictionary")
            
     for next_entry in icg_list:
-        cg_inventor_id = next_entry[0]
-        cg_inventor_region = next_entry[1]
-        cg_inventor_country = next_entry[2]
-        cg_inventor_year = next_entry[3]
-        cg_inventor_date = next_entry[4]
+        cg_inventor_id = next_entry[iinventor_id]
+        cg_inventor_region = next_entry[iregion]
+        cg_inventor_country = next_entry[icountry]
+        cg_inventor_year = next_entry[iyear]
+        cg_inventor_date = next_entry[idate]
+        cg_inventor_latitude = next_entry[ilatitude]
+        cg_inventor_longigude = next_entry[ilongitude]
+        cg_inventor_city = next_entry[icity_rawloc]
         acg_list = None
         #Loop 2
         if (cg_patent_id in aDict):
@@ -233,17 +262,20 @@ for entry in sreader:
                 ict_list = iDict[ct_patent_id] 
                 if (len(ict_list) == 0):
                     #print("Cited " + ct_patent_id + " of length 0 in iDict dictionary")
-                    ict_list = ll7
+                    ict_list = ll9
             else:
-                ict_list = ll7
+                ict_list = ll9
                 #print("Cited " + ct_patent_id + " not found in the iDict dictionary")
                
             for xt_entry in ict_list:
-                ct_inventor_id = xt_entry[0]
-                ct_inventor_region = xt_entry[1]
-                ct_inventor_country = xt_entry[2]
-                ct_inventor_year = xt_entry[3]
-                ct_inventor_date = xt_entry[4]
+                ct_inventor_id = xt_entry[iinventor_id]
+                ct_inventor_region = xt_entry[iregion]
+                ct_inventor_country = xt_entry[icountry]
+                ct_inventor_year = xt_entry[iyear]
+                ct_inventor_date = xt_entry[idate]
+                ct_inventor_latitude = xt_entry[ilatitude]
+                ct_inventor_longigude = xt_entry[ilongitude]
+                ct_inventor_city = xt_entry[icity_rawloc]
                 act_list = None
                 #Loop 4
                 if (ct_patent_id in aDict):
@@ -273,12 +305,31 @@ for entry in sreader:
                              ass_sim = 1
                          else:
                              ass_sim = 0
+                    else:
+                        continue
+
                     loc_sim = 2 # indeterminate by default
                     if (len(ct_inventor_region) > 0 and len(cg_inventor_region) > 0):
                          if (ct_inventor_region == cg_inventor_region):
                              loc_sim = 1
                          else:
                              loc_sim = 0
+                    else:
+                        distkm = haversine(ct_inventor_longigude, ct_inventor_latitude, cg_inventor_longigude, cg_inventor_latitude)
+                        if distkm <= 50:
+                            loc_sim = 1
+                        else:
+                            loc_sim = 0
+                        if len(ct_inventor_city > 0) & len(cg_inventor_city > 0):
+                            if ct_inventor_city <= cg_inventor_city:
+                                geokey = ct_inventor_city + "-" + cg_inventor_city + " (" + round(distkm) + ")"
+                            else:
+                                geokey = cg_inventor_city + "-" + ct_inventor_city + " (" + round(distkm) + ")"
+                            if geokey not in geoDict:
+                                geoDict[geokey] = 1
+                            else:
+                                geoDict[geokey] = geoDict[geokey] + 1
+                            
                              
  #                   indwriter.writerow([ass_sim, loc_sim, cg_patent_id, ct_patent_id, cg_inventor_id, cg_inventor_region, cg_assignee_id, cg_inventor_year, ct_inventor_id, ct_inventor_region, ct_assignee_id, ct_inventor_year])
 
@@ -304,7 +355,9 @@ for entry in sreader:
                     mkey.append(cg_patent_id)
                     mkey.append(ct_inventor_region)
                     mkey.append(cg_inventor_region)
-                    mkey.append(ass_sim)
+                    mkey.append(ct_assignee_id)
+                    mkey.append(cg_assignee_id)
+
                     tkey = tuple(mkey)
                     # Look at one region-region only once per patent-patent citation
                     if tkey not in lDict:
@@ -334,49 +387,47 @@ for entry in sreader:
                             other = 1
                         else:
                             other = 0
-                        nkey = []
-                        nkey.append(ct_inventor_year) 
-                        # ct_inventor_year will capture the vintage
-                        # Citing inventor year was used previously
-                        nkey.append(ct_inventor_region)
-                        ntkey = tuple(nkey)
-                        if ntkey not in forwardCitations:
-                            forwardCitations[ntkey] = [1, la, lap, lpa, lpap, other]
-                        else:
-                            prev = forwardCitations[ntkey]
-                            total = prev[0] + 1
-                            sla = prev[1] + la
-                            slap = prev[2] + lap
-                            slpa = prev[3] + lpa
-                            slpap = prev[4] + lpap
-                            sother = prev[5] + other
-                            forwardCitations[ntkey] = [total, sla, slap, slpa, slpap, sother]
-                            
-                        nkey = []
-                        nkey.append(cg_inventor_year)
-                        nkey.append(cg_inventor_region)
-                        ntkey = tuple(nkey)
-                        if ntkey not in backwardCitations:
-                            backwardCitations[ntkey] = [1, la, lap, lpa, lpap, other]
-                        else:
-                            prev = backwardCitations[ntkey]
-                            total = prev[0] + 1
-                            sla = prev[1] + la
-                            slap = prev[2] + lap
-                            slpa = prev[3] + lpa
-                            slpap = prev[4] + lpap
-                            sother = prev[5] + other
-                            backwardCitations[ntkey] = [total, sla, slap, slpa, slpap, sother]
+                        if len(ct_inventor_region > 0):
+                            nkey = []
+                            nkey.append(ct_inventor_year) 
+                            # ct_inventor_year will capture the vintage
+                            # Citing inventor year was used previously
+                            nkey.append(ct_inventor_region)
+                            ntkey = tuple(nkey)
+                            if ntkey not in forwardCitations:
+                                forwardCitations[ntkey] = [1, la, lap, lpa, lpap, other]
+                            else:
+                                prev = forwardCitations[ntkey]
+                                total = prev[0] + 1
+                                sla = prev[1] + la
+                                slap = prev[2] + lap
+                                slpa = prev[3] + lpa
+                                slpap = prev[4] + lpap
+                                sother = prev[5] + other
+                                forwardCitations[ntkey] = [total, sla, slap, slpa, slpap, sother]
+                        
+                        if len(cg_inventor_region > 0):
+                            nkey = []
+                            nkey.append(cg_inventor_year)
+                            nkey.append(cg_inventor_region)
+                            ntkey = tuple(nkey)
+                            if ntkey not in backwardCitations:
+                                backwardCitations[ntkey] = [1, la, lap, lpa, lpap, other]
+                            else:
+                                prev = backwardCitations[ntkey]
+                                total = prev[0] + 1
+                                sla = prev[1] + la
+                                slap = prev[2] + lap
+                                slpa = prev[3] + lpa
+                                slpap = prev[4] + lpap
+                                sother = prev[5] + other
+                                backwardCitations[ntkey] = [total, sla, slap, slpa, slpap, sother]
 
     if sreader.line_num % 1000000 == 0:
         dump(forwardmapFile, forwardCitations, forwardmapheader)
         dump(backwardmapFile, backwardCitations, backwardmapheader)
-        if len(yearCitations)>0:
-            errorf = open("citations.year.csv", 'w', encoding='utf-8')
-            writer = csv.writer(errorf)
-            for year in yearCitations:
-                writer.writerow([year, yearCitations[year]])
-            errorf.close()
+        dumpsimpledict(citationsFile, yearCitations, "year, citations")
+        dumpsimpledict(geoFile, geoDict, "source-destination, count")
     if sreader.line_num % 1000000 == 0:
         print("Processed " + str(sreader.line_num) + " lines")
 
@@ -386,10 +437,5 @@ dump(backwardmapFile, backwardCitations, backwardmapheader)
 print("Processed all")
 searchf.close()
 print("Closed searchf")
-
-if len(yearCitations)>0:
-    errorf = open("citations.year.csv", 'w', encoding='utf-8')
-    writer = csv.writer(errorf)
-    for year in yearCitations:
-        writer.writerow([year, yearCitations[year]])
-    errorf.close()
+dumpsimpledict(citationsFile, yearCitations, "year, citations")
+dumpsimpledict(geoFile, geoDict, "source-destination-distance, count")

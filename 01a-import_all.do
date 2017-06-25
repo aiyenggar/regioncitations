@@ -82,7 +82,7 @@ save uspatentcitation.thirdparty.dta, replace
 export delimited using uspatentcitation.thirdparty.csv, replace
 
 restore
-keep if category == ""
+keep if missing(category)
 save uspatentcitation.blank.dta, replace
 export delimited using uspatentcitation.blank.csv, replace
 

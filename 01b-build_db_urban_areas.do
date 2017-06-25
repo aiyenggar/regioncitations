@@ -53,8 +53,8 @@ sort patent_id
 save `destdir'rawinventor_urban_areas.dta, replace
 
 use `destdir'rawinventor_urban_areas.dta, clear
-keep patent_id inventor_id region country_loc year date
-order patent_id inventor_id region country_loc year date
+keep patent_id inventor_id region country_loc year date latitude longitude city_rawloc
+order patent_id inventor_id region country_loc year date latitude longitude city_rawloc
 export delimited using `destdir'rawinventor_urban_areas.csv, replace
 
 use `destdir'rawassignee.dta, clear
