@@ -15,8 +15,12 @@ def haversine(lon1, lat1, lon2, lat2):
     Calculate the great circle distance between two points 
     on the earth (specified in decimal degrees)
     """
-    # convert decimal degrees to radians 
-    lon1, lat1, lon2, lat2 = map(radians, [float(lon1), float(lat1), float(lon2), float(lat2)])
+    try:
+        # convert decimal degrees to radians 
+        lon1, lat1, lon2, lat2 = map(radians, [float(lon1), float(lat1), float(lon2), float(lat2)])
+    except ValueError:
+        print("Value error with " + lon1 + ", " + lat1 + ", " + lon2 + ", " + lat2)
+        return 6367
     # haversine formula 
     dlon = lon2 - lon1 
     dlat = lat2 - lat1 
@@ -69,7 +73,7 @@ keysFile2="/Users/aiyenggar/datafiles/patents/rawassignee_urban_areas.csv"
 keysFile3="/Users/aiyenggar/datafiles/patents/country2.country.ipr_score.csv"
 
 #0-uuid,1-patent_id,2-citation_id,3-date,4-name,5-kind,6-country,7-category,8-sequence
-searchFileList=["/Users/aiyenggar/datafiles/patents/uspatentcitation2k.csv","/Users/aiyenggar/datafiles/patents/uspatentcitation.applicant.examiner.csv","/Users/aiyenggar/datafiles/patents/uspatentcitation.examiner2k.csv","/Users/aiyenggar/datafiles/patents/uspatentcitation.applicant2k.csv"]
+searchFileList=["/Users/aiyenggar/datafiles/patents/uspatentcitation.csv","/Users/aiyenggar/datafiles/patents/uspatentcitation.applicant.examiner.csv","/Users/aiyenggar/datafiles/patents/uspatentcitation.examiner.csv","/Users/aiyenggar/datafiles/patents/uspatentcitation.applicant.csv"]
 
 forwardmapheader=["fc_year", "fc_region", "fc_total", "fc_sla", "fc_slap", "fc_slpa", "fc_slpap", "fc_sother", "fc_sl", "fc_sa"]
 forwardmapFileList=["/Users/aiyenggar/datafiles/patents/forwardmap.csv","/Users/aiyenggar/datafiles/patents/ae.forwardmap.csv","/Users/aiyenggar/datafiles/patents/e.forwardmap.csv","/Users/aiyenggar/datafiles/patents/a.forwardmap.csv"]
@@ -315,20 +319,21 @@ for entry in sreader:
                          else:
                              loc_sim = 0
                     else:
-                        distkm = haversine(ct_inventor_longigude, ct_inventor_latitude, cg_inventor_longigude, cg_inventor_latitude)
-                        if distkm <= 50:
-                            loc_sim = 1
-                        else:
-                            loc_sim = 0
-                        if len(ct_inventor_city > 0) & len(cg_inventor_city > 0):
-                            if ct_inventor_city <= cg_inventor_city:
-                                geokey = ct_inventor_city + "-" + cg_inventor_city + " (" + round(distkm) + ")"
+                        if len(ct_inventor_longigude) > 0 & len(ct_inventor_latitude) > 0 & len(cg_inventor_longigude) > 0 & len(cg_inventor_latitude) > 0:
+                            distkm = haversine(ct_inventor_longigude, ct_inventor_latitude, cg_inventor_longigude, cg_inventor_latitude)
+                            if distkm <= 50:
+                                loc_sim = 1
                             else:
-                                geokey = cg_inventor_city + "-" + ct_inventor_city + " (" + round(distkm) + ")"
-                            if geokey not in geoDict:
-                                geoDict[geokey] = 1
-                            else:
-                                geoDict[geokey] = geoDict[geokey] + 1
+                                loc_sim = 0
+                            if len(ct_inventor_city) > 0 & len(cg_inventor_city) > 0:
+                                if ct_inventor_city <= cg_inventor_city:
+                                    geokey = ct_inventor_city + "-" + cg_inventor_city + " (" + round(distkm) + ")"
+                                else:
+                                    geokey = cg_inventor_city + "-" + ct_inventor_city + " (" + round(distkm) + ")"
+                                if geokey not in geoDict:
+                                    geoDict[geokey] = 1
+                                else:
+                                    geoDict[geokey] = geoDict[geokey] + 1
                             
                              
  #                   indwriter.writerow([ass_sim, loc_sim, cg_patent_id, ct_patent_id, cg_inventor_id, cg_inventor_region, cg_assignee_id, cg_inventor_year, ct_inventor_id, ct_inventor_region, ct_assignee_id, ct_inventor_year])
@@ -426,8 +431,8 @@ for entry in sreader:
     if sreader.line_num % 1000000 == 0:
         dump(forwardmapFile, forwardCitations, forwardmapheader)
         dump(backwardmapFile, backwardCitations, backwardmapheader)
-        dumpsimpledict(citationsFile, yearCitations, "year, citations")
-        dumpsimpledict(geoFile, geoDict, "source-destination, count")
+        dumpsimpledict(citationsFile, yearCitations, ["year", "citations"])
+        dumpsimpledict(geoFile, geoDict, ["source-destination", "count"])
     if sreader.line_num % 1000000 == 0:
         print("Processed " + str(sreader.line_num) + " lines")
 
@@ -437,5 +442,5 @@ dump(backwardmapFile, backwardCitations, backwardmapheader)
 print("Processed all")
 searchf.close()
 print("Closed searchf")
-dumpsimpledict(citationsFile, yearCitations, "year, citations")
-dumpsimpledict(geoFile, geoDict, "source-destination-distance, count")
+dumpsimpledict(citationsFile, yearCitations, ["year", "citations"])
+dumpsimpledict(geoFile, geoDict, ["source-destination", "count"])
