@@ -14,7 +14,6 @@ save `destdir'a.forwardmap.dta, replace
 import delimited `destdir'a.citations.urbanareas.year.csv, varnames(1) encoding(UTF-8) clear
 save `destdir'a.citations.urbanareas.year.dta, replace
 
-
 use `destdir'a.citations.urbanareas.year.dta, clear
 
 gen lnpatents = ln(patents)
@@ -48,7 +47,7 @@ label variable cit_made_local "Citations Made to [Same Region]"
 label variable cit_made_internal "Citations Made to [Same Assignee]"
 label variable cit_made_other "Citations Made to [Other]"
 
-label variable cit_recd_total "Citations Received"
+label variable cit_recd_total "Total Citations Received"
 label variable cit_recd_self "Self Citations Received"
 label variable cit_recd_nonself "Non-Self Citations Received"
 label variable lnpatents "Log (Num Patents)"
@@ -142,6 +141,8 @@ foreach var of varlist cat* subcat* {
 }
 
 order cat* subcat* d*, last // moving the dummy variables to the end
+keep if year >= 2001 & year <= 2012
+sort region year
 save `destdir'a.patents_by_urbanareas.dta, replace
 saveold `destdir'a.patents_by_urbanareas_stata12.dta, replace version(12) 
 

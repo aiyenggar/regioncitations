@@ -5,13 +5,13 @@ local destdir /Users/aiyenggar/datafiles/patents/
 cd `destdir'
 log using knowledge-flows.log, append
 
-/*
+
 import delimited `destdir'e.backwardmap.csv, varnames(1) encoding(UTF-8) clear
 save `destdir'e.backwardmap.dta, replace
 
 import delimited `destdir'e.forwardmap.csv, varnames(1) encoding(UTF-8) clear
 save `destdir'e.forwardmap.dta, replace
-*/
+
 
 
 import delimited `destdir'e.citations.urbanareas.year.csv, varnames(1) encoding(UTF-8) clear
@@ -19,6 +19,7 @@ save `destdir'e.citations.urbanareas.year.dta, replace
 
 
 use `destdir'e.citations.urbanareas.year.dta, clear
+
 
 gen lnpatents = ln(patents)
 gen lnpool = ln(1 + pool)
@@ -51,12 +52,9 @@ label variable cit_made_local "Citations Made to [Same Region]"
 label variable cit_made_internal "Citations Made to [Same Assignee]"
 label variable cit_made_other "Citations Made to [Other]"
 
-label variable cit_recd_total "Citations Received"
-label variable cit_recd_local "Citations Received Within Region"
-label variable cit_recd_nonlocal "Citations Received Outside Region"
+label variable cit_recd_total "Total Citations Received"
 label variable cit_recd_self "Self Citations Received"
 label variable cit_recd_nonself "Non-Self Citations Received"
-label variable cit_recd_other "Other Citations Received"
 label variable lnpatents "Log (Num Patents)"
 label variable lnpool "Log (Patent Pool Size)"
 
@@ -148,6 +146,8 @@ foreach var of varlist cat* subcat* {
 }
 
 order cat* subcat* d*, last // moving the dummy variables to the end
+keep if year >= 2001 & year <= 2012
+sort region year
 save `destdir'e.patents_by_urbanareas.dta, replace
 saveold `destdir'e.patents_by_urbanareas_stata12.dta, replace version(12) 
 

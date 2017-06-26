@@ -51,7 +51,7 @@ label variable cit_made_local "Citations Made to [Same Region]"
 label variable cit_made_internal "Citations Made to [Same Assignee]"
 label variable cit_made_other "Citations Made to [Other]"
 
-label variable cit_recd_total "Citations Received"
+label variable cit_recd_total "Total Citations Received"
 label variable cit_recd_local "Citations Received Within Region"
 label variable cit_recd_nonlocal "Citations Received Outside Region"
 label variable cit_recd_self "Self Citations Received"
