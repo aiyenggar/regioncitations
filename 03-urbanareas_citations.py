@@ -200,7 +200,7 @@ k3.close()
 
 distancesDict=dict({})
 
-for runno in [3, 2, 0]:
+for runno in [2]:
     print("Starting with runno " + str(runno))
     searchFile=searchFileList[runno]
     forwardmapFile=forwardmapFileList[runno]
@@ -479,15 +479,15 @@ for runno in [3, 2, 0]:
             dump(backwardmapFile, backwardCitations, backwardmapheader)
             dumpsimpledict(citationsFile, yearCitations, ["year", "citations"])
             dumpsimpledict(geoFile, geoDict, ["source-destination", "count"])
-            before = len(geoDict)
-            delkeys = []
-            for k, v in geoDict.items():
-                if (v <= 1):
-                    delkeys.append(k)
-            for key in delkeys:
-                del(geoDict[key])
-            after = len(geoDict)
-            print("Cleaned up geoDict. Before " + str(before) + " After " + str(after))
+            #before = len(geoDict)
+            #delkeys = []
+            #for k, v in geoDict.items():
+                #if (v <= 1):
+                    #delkeys.append(k)
+            #for key in delkeys:
+                #del(geoDict[key])
+            #after = len(geoDict)
+            #print("Cleaned up geoDict. Before " + str(before) + " After " + str(after))
         if sreader.line_num % 1000000 == 0:
             print("Processed " + str(sreader.line_num) + " lines")
     
