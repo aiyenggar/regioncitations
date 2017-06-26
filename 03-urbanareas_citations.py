@@ -62,7 +62,7 @@ def years(fromdate, todate):
         return None
     return math.floor(((dt1 - dt2).days)/365.2425)
 
-# 0-patent_id, 1-inventor_id, 2-region, 3-country_loc, 4-year, 5-date, 6-latitude, 7-longitude, 8-city_rawloc, 9-location_id
+# 0-patent_id, 1-inventor_id, 2-region, 3-country_loc, 4-year, 5-date, 6-latitude, 7-longitude, 8-city_rawloc, 9-location_id, 10-country_loc
 keysFile1="/Users/aiyenggar/datafiles/patents/rawinventor_urban_areas.csv"
 
 # 0-patent_id, 1-assignee_id 2-region, 3-country_loc
@@ -87,19 +87,20 @@ citationsFileList=["/Users/aiyenggar/datafiles/patents/citations.year.csv","/Use
 geoFileList=["/Users/aiyenggar/datafiles/patents/geodistance.csv","/Users/aiyenggar/datafiles/patents/ae.geodistance.csv","/Users/aiyenggar/datafiles/patents/e.geodistance.csv","/Users/aiyenggar/datafiles/patents/a.geodistance.csv"]
 
 
-l10 = []
-l10.append('')
-l10.append('')
-l10.append('')
-l10.append('')
-l10.append('')
-l10.append('')
-l10.append('')
-l10.append('')
-l10.append('')
-l10.append('')
-ll10 = []
-ll10.append(l10)
+l11 = []
+l11.append('')
+l11.append('')
+l11.append('')
+l11.append('')
+l11.append('')
+l11.append('')
+l11.append('')
+l11.append('')
+l11.append('')
+l11.append('')
+l11.append('')
+ll11 = []
+ll11.append(l11)
 
 """
 l5 = []
@@ -143,6 +144,7 @@ ilatitude = 6
 ilongitude = 7
 icity_rawloc = 8
 ilocation_id = 9
+icountry_loc = 10
 for k1r in kreader1:
     if kreader1.line_num == 1:
         continue
@@ -235,9 +237,9 @@ for runno in [3, 2, 0]:
             icg_list = iDict[cg_patent_id] 
             if (len(icg_list) == 0):
                 #print("Citing " + cg_patent_id + " of length 0 in iDict dictionary")
-                icg_list = ll10
+                icg_list = ll11
         else:
-            icg_list = ll10
+            icg_list = ll11
             #print("Citing " + cg_patent_id + " not found in the iDict dictionary")
                
         for next_entry in icg_list:
@@ -258,6 +260,7 @@ for runno in [3, 2, 0]:
             cg_inventor_longigude = next_entry[ilongitude]
             cg_inventor_city = next_entry[icity_rawloc]
             cg_location_id = next_entry[ilocation_id]
+            cg_inventor_country = next_entry[icountry_loc]
             acg_list = None
             #Loop 2
             if (cg_patent_id in aDict):
@@ -279,9 +282,9 @@ for runno in [3, 2, 0]:
                     ict_list = iDict[ct_patent_id] 
                     if (len(ict_list) == 0):
                         #print("Cited " + ct_patent_id + " of length 0 in iDict dictionary")
-                        ict_list = ll10
+                        ict_list = ll11
                 else:
-                    ict_list = ll10
+                    ict_list = ll11
                     #print("Cited " + ct_patent_id + " not found in the iDict dictionary")
                    
                 for xt_entry in ict_list:
@@ -294,6 +297,7 @@ for runno in [3, 2, 0]:
                     ct_inventor_longigude = xt_entry[ilongitude]
                     ct_inventor_city = xt_entry[icity_rawloc]
                     ct_location_id = xt_entry[ilocation_id]
+                    ct_inventor_country = xt_entry[icountry_loc]
                     act_list = None
                     #Loop 4
                     if (ct_patent_id in aDict):
@@ -334,30 +338,35 @@ for runno in [3, 2, 0]:
                             else:
                                 loc_sim = 0
                         else:
-                            if (len(ct_location_id) > 0 and len(cg_location_id) > 0):
-                                if ct_location_id <= cg_location_id:
-                                    lockey = ct_location_id + ", " + cg_location_id
-                                else:
-                                    lockey = cg_location_id + ", " + ct_location_id
-                                if lockey not in distancesDict:
-                                    distancesDict[lockey] = haversine(ct_inventor_longigude, ct_inventor_latitude, cg_inventor_longigude, cg_inventor_latitude)
-                                distkm = distancesDict[lockey]
-                            else:
-                                distkm = haversine(ct_inventor_longigude, ct_inventor_latitude, cg_inventor_longigude, cg_inventor_latitude)
-                            distance_dummy = 1
-                            if distkm <= 50:
-                                loc_sim = 1
-                            else:
+                            # Avoid calculating the distance if possible
+                            if (len(ct_inventor_country) > 0 and len(cg_inventor_country) > 0 and ct_inventor_country != cg_inventor_country):
+                                distance_dummy = 1
                                 loc_sim = 0
-                            if (len(ct_inventor_city) > 0 and len(cg_inventor_city) > 0):
-                                if ct_inventor_city <= cg_inventor_city:
-                                    geokey = ct_inventor_city + "-" + cg_inventor_city + " (" + str(round(distkm)) + ")"
+                            else:
+                                if (len(ct_location_id) > 0 and len(cg_location_id) > 0):
+                                    if ct_location_id <= cg_location_id:
+                                        lockey = ct_location_id + ", " + cg_location_id
+                                    else:
+                                        lockey = cg_location_id + ", " + ct_location_id
+                                    if lockey not in distancesDict:
+                                        distancesDict[lockey] = haversine(ct_inventor_longigude, ct_inventor_latitude, cg_inventor_longigude, cg_inventor_latitude)
+                                    distkm = distancesDict[lockey]
                                 else:
-                                    geokey = cg_inventor_city + "-" + ct_inventor_city + " (" + str(round(distkm)) + ")"
-                                if geokey not in geoDict:
-                                    geoDict[geokey] = 1
+                                    distkm = haversine(ct_inventor_longigude, ct_inventor_latitude, cg_inventor_longigude, cg_inventor_latitude)
+                                distance_dummy = 1
+                                if distkm <= 50:
+                                    loc_sim = 1
                                 else:
-                                    geoDict[geokey] = geoDict[geokey] + 1
+                                    loc_sim = 0
+                                if (len(ct_inventor_city) > 0 and len(cg_inventor_city) > 0):
+                                    if ct_inventor_city <= cg_inventor_city:
+                                        geokey = ct_inventor_city + "," + cg_inventor_city + "," + str(round(distkm)) 
+                                    else:
+                                        geokey = cg_inventor_city + "," + ct_inventor_city + "," + str(round(distkm)) 
+                                    if geokey not in geoDict:
+                                        geoDict[geokey] = 1
+                                    else:
+                                        geoDict[geokey] = geoDict[geokey] + 1
                                 
                                  
     #                    indwriter.writerow([ass_sim, loc_sim, cg_patent_id, ct_patent_id, ct_inventor_latitude, ct_inventor_longigude, cg_inventor_latitude, cg_inventor_longigude, ct_inventor_city, cg_inventor_city, cg_inventor_id, cg_inventor_region, cg_assignee_id, cg_inventor_year, ct_inventor_id, ct_inventor_region, ct_assignee_id, ct_inventor_year])
@@ -473,6 +482,12 @@ for runno in [3, 2, 0]:
             dump(backwardmapFile, backwardCitations, backwardmapheader)
             dumpsimpledict(citationsFile, yearCitations, ["year", "citations"])
             dumpsimpledict(geoFile, geoDict, ["source-destination", "count"])
+            before = len(geoDict)
+            for gkey in geoDict:
+                if (geoDict[gkey] <= 1):
+                    del geoDict[gkey]
+            after = len(geoDict)
+            print("Cleaned up geoDict. Before " + str(before) + " After " + str(after))
         if sreader.line_num % 1000000 == 0:
             print("Processed " + str(sreader.line_num) + " lines")
     
