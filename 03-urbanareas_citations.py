@@ -62,7 +62,7 @@ def years(fromdate, todate):
         return None
     return math.floor(((dt1 - dt2).days)/365.2425)
 
-# 0-patent_id, 1-inventor_id, 2-region, 3-country_loc, 4-year, 5-date, 6-latitude, 7-longitude, 8-city_rawloc, 9-location_id, 10-country_loc
+# 0-patent_id, 1-inventor_id, 2-region, 3-country_loc, 4-year, 5-date, 6-latitude, 7-longitude, 8-city_rawloc, 9-location_id
 keysFile1="/Users/aiyenggar/datafiles/patents/rawinventor_urban_areas.csv"
 
 # 0-patent_id, 1-assignee_id 2-region, 3-country_loc
@@ -87,20 +87,19 @@ citationsFileList=["/Users/aiyenggar/datafiles/patents/citations.year.csv","/Use
 geoFileList=["/Users/aiyenggar/datafiles/patents/geodistance.csv","/Users/aiyenggar/datafiles/patents/ae.geodistance.csv","/Users/aiyenggar/datafiles/patents/e.geodistance.csv","/Users/aiyenggar/datafiles/patents/a.geodistance.csv"]
 
 
-l11 = []
-l11.append('')
-l11.append('')
-l11.append('')
-l11.append('')
-l11.append('')
-l11.append('')
-l11.append('')
-l11.append('')
-l11.append('')
-l11.append('')
-l11.append('')
-ll11 = []
-ll11.append(l11)
+l10 = []
+l10.append('')
+l10.append('')
+l10.append('')
+l10.append('')
+l10.append('')
+l10.append('')
+l10.append('')
+l10.append('')
+l10.append('')
+l10.append('')
+ll10 = []
+ll10.append(l10)
 
 """
 l5 = []
@@ -237,9 +236,9 @@ for runno in [3, 2, 0]:
             icg_list = iDict[cg_patent_id] 
             if (len(icg_list) == 0):
                 #print("Citing " + cg_patent_id + " of length 0 in iDict dictionary")
-                icg_list = ll11
+                icg_list = ll10
         else:
-            icg_list = ll11
+            icg_list = ll10
             #print("Citing " + cg_patent_id + " not found in the iDict dictionary")
                
         for next_entry in icg_list:
@@ -260,7 +259,6 @@ for runno in [3, 2, 0]:
             cg_inventor_longigude = next_entry[ilongitude]
             cg_inventor_city = next_entry[icity_rawloc]
             cg_location_id = next_entry[ilocation_id]
-            cg_inventor_country = next_entry[icountry_loc]
             acg_list = None
             #Loop 2
             if (cg_patent_id in aDict):
@@ -282,9 +280,9 @@ for runno in [3, 2, 0]:
                     ict_list = iDict[ct_patent_id] 
                     if (len(ict_list) == 0):
                         #print("Cited " + ct_patent_id + " of length 0 in iDict dictionary")
-                        ict_list = ll11
+                        ict_list = ll10
                 else:
-                    ict_list = ll11
+                    ict_list = ll10
                     #print("Cited " + ct_patent_id + " not found in the iDict dictionary")
                    
                 for xt_entry in ict_list:
@@ -297,7 +295,6 @@ for runno in [3, 2, 0]:
                     ct_inventor_longigude = xt_entry[ilongitude]
                     ct_inventor_city = xt_entry[icity_rawloc]
                     ct_location_id = xt_entry[ilocation_id]
-                    ct_inventor_country = xt_entry[icountry_loc]
                     act_list = None
                     #Loop 4
                     if (ct_patent_id in aDict):
@@ -483,9 +480,12 @@ for runno in [3, 2, 0]:
             dumpsimpledict(citationsFile, yearCitations, ["year", "citations"])
             dumpsimpledict(geoFile, geoDict, ["source-destination", "count"])
             before = len(geoDict)
-            for gkey in geoDict:
-                if (geoDict[gkey] <= 1):
-                    del geoDict[gkey]
+            delkeys = []
+            for k, v in geoDict.items():
+                if (v <= 1):
+                    delkeys.append(k)
+            for key in delkeys:
+                del(geoDict[key])
             after = len(geoDict)
             print("Cleaned up geoDict. Before " + str(before) + " After " + str(after))
         if sreader.line_num % 1000000 == 0:
