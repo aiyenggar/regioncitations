@@ -36,6 +36,14 @@ logFileName="log.csv"
 citationsFileName="citations.year.csv"
 geoFileName="geodistance.csv"
 
+pheader=list(["region","year","patent_count","pool_patent_count","cat1","cat2","cat3","cat4","cat5","cat6","cat7","subcat11","subcat12","subcat13","subcat14","subcat15","subcat19","subcat21","subcat22","subcat23","subcat24","subcat25","subcat31","subcat32","subcat33","subcat39","subcat41","subcat42","subcat43","subcat44","subcat45","subcat46","subcat49","subcat51","subcat52","subcat53","subcat54","subcat55","subcat59","subcat61","subcat62","subcat63","subcat64","subcat65","subcat66","subcat67","subcat68","subcat69","subcat70","dcat1","dcat2","dcat3","dcat4","dcat5","dcat6","dcat7","dsubcat11","dsubcat12","dsubcat13","dsubcat14","dsubcat15","dsubcat19","dsubcat21","dsubcat22","dsubcat23","dsubcat24","dsubcat25","dsubcat31","dsubcat32","dsubcat33","dsubcat39","dsubcat41","dsubcat42","dsubcat43","dsubcat44","dsubcat45","dsubcat46","dsubcat49","dsubcat51","dsubcat52","dsubcat53","dsubcat54","dsubcat55","dsubcat59","dsubcat61","dsubcat62","dsubcat63","dsubcat64","dsubcat65","dsubcat66","dsubcat67","dsubcat68","dsubcat69","dsubcat70"])
+patentsFile=pathPrefix+"urbanareas.year.csv"
+    
+outputheader=["year", "region", "patents", "pool", "cit_made_total", "cit_made_localinternal", "cit_made_localexternal", "cit_made_nonlocalinternal", "cit_made_nonlocalexternal", "cit_made_other", "cit_made_local", "cit_made_internal", "cit_made_region_cnt", "cit_made_distance_cnt", "cit_recd_total", "cit_recd_self", "cit_recd_nonself"]
+outputFileName="citations.urbanareas.year.csv"
+    
+    
+
 l3 = []
 l3.append('')
 l3.append('')
@@ -483,23 +491,10 @@ for runno in runList:
     
     
     
-    pheader=list(["region","year","patent_count","pool_patent_count","cat1","cat2","cat3","cat4","cat5","cat6","cat7","subcat11","subcat12","subcat13","subcat14","subcat15","subcat19","subcat21","subcat22","subcat23","subcat24","subcat25","subcat31","subcat32","subcat33","subcat39","subcat41","subcat42","subcat43","subcat44","subcat45","subcat46","subcat49","subcat51","subcat52","subcat53","subcat54","subcat55","subcat59","subcat61","subcat62","subcat63","subcat64","subcat65","subcat66","subcat67","subcat68","subcat69","subcat70","dcat1","dcat2","dcat3","dcat4","dcat5","dcat6","dcat7","dsubcat11","dsubcat12","dsubcat13","dsubcat14","dsubcat15","dsubcat19","dsubcat21","dsubcat22","dsubcat23","dsubcat24","dsubcat25","dsubcat31","dsubcat32","dsubcat33","dsubcat39","dsubcat41","dsubcat42","dsubcat43","dsubcat44","dsubcat45","dsubcat46","dsubcat49","dsubcat51","dsubcat52","dsubcat53","dsubcat54","dsubcat55","dsubcat59","dsubcat61","dsubcat62","dsubcat63","dsubcat64","dsubcat65","dsubcat66","dsubcat67","dsubcat68","dsubcat69","dsubcat70"])
-    patentsFile="/Users/aiyenggar/datafiles/patents/urbanareas.year.csv"
-    
-    forwardmapheader=["fc_year", "fc_region", "fc_total", "fc_sla", "fc_slap", "fc_slpa", "fc_slpap", "fc_sother", "fc_sregion_cnt", "fc_sdistance_cnt", "fc_sl", "fc_sa"]
-    fmapFileList=["/Users/aiyenggar/datafiles/patents/forwardmap.csv", "/Users/aiyenggar/datafiles/patents/ae.forwardmap.csv", "/Users/aiyenggar/datafiles/patents/e.forwardmap.csv", "/Users/aiyenggar/datafiles/patents/a.forwardmap.csv"]
-    
-    backwardmapheader=["bc_year", "bc_region", "bc_total", "bc_sla", "bc_slap", "bc_slpa", "bc_slpap", "bc_sother", "bc_sregion_cnt", "bc_sdistance_cnt", "bc_sl", "bc_sa" ]
-    bmapFileList=["/Users/aiyenggar/datafiles/patents/backwardmap.csv","/Users/aiyenggar/datafiles/patents/ae.backwardmap.csv", "/Users/aiyenggar/datafiles/patents/e.backwardmap.csv", "/Users/aiyenggar/datafiles/patents/a.backwardmap.csv"]
-    
-    outputheader=["year", "region", "patents", "pool", "cit_made_total", "cit_made_localinternal", "cit_made_localexternal", "cit_made_nonlocalinternal", "cit_made_nonlocalexternal", "cit_made_other", "cit_made_local", "cit_made_internal", "cit_made_region_cnt", "cit_made_distance_cnt", "cit_recd_total", "cit_recd_self", "cit_recd_nonself"]
-    outputFileList=["/Users/aiyenggar/datafiles/patents/citations.urbanareas.year.csv", "/Users/aiyenggar/datafiles/patents/ae.citations.urbanareas.year.csv", "/Users/aiyenggar/datafiles/patents/e.citations.urbanareas.year.csv", "/Users/aiyenggar/datafiles/patents/a.citations.urbanareas.year.csv"]
-    
-    
-    fmapFile=fmapFileList[runno]
-    bmapFile=bmapFileList[runno]
-    outputFile=outputFileList[runno]
-    
+    fmapFile=forwardmapFile
+    bmapFile=backwardmapFile
+    outputFile=pathPrefix+runPrefix[runno]+outputFileName
+
     pDict = dict({})
     patentsf = open(patentsFile, 'r', encoding='utf-8')
     patentsr = csv.reader(patentsf)
