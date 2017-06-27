@@ -10,6 +10,53 @@ from datetime import datetime
 import math
 from math import radians, cos, sin, asin, sqrt
 
+runPrefix = ['', 'a.', 'e.', 'o.', 't.', 'n.']
+runList = [3]
+pathPrefix = "/Users/aiyenggar/datafiles/patents/" 
+
+# 0-patent_id, 1-inventor_id, 2-region, 3-country_loc, 4-year, 5-date, 6-latitude, 7-longitude, 8-city_rawloc, 9-location_id
+keysFile1=pathPrefix+"rawinventor_urban_areas.csv"
+
+# 0-patent_id, 1-assignee_id 2-region, 3-country_loc
+keysFile2=pathPrefix+"rawassignee_urban_areas.csv"
+
+#0-country2, 1-country, 2-ipr_score
+keysFile3=pathPrefix+"country2.country.ipr_score.csv"
+
+#0-uuid,1-patent_id,2-citation_id,3-date,4-name,5-kind,6-country,7-category,8-sequence
+searchFileName="uspatentcitation.csv"
+
+forwardmapheader=["fc_year", "fc_region", "fc_total", "fc_sla", "fc_slap", "fc_slpa", "fc_slpap", "fc_sother", "fc_sregion_cnt", "fc_sdistance_cnt", "fc_sl", "fc_sa"]
+forwardmapFileName="forwardmap.csv"
+
+backwardmapheader=["bc_year", "bc_region", "bc_total", "bc_sla", "bc_slap", "bc_slpa", "bc_slpap", "bc_sother", "bc_sregion_cnt", "bc_sdistance_cnt", "bc_sl", "bc_sa" ]
+backwardmapFileName="backwardmap.csv"
+
+logFileName="log.csv"
+citationsFileName="citations.year.csv"
+geoFileName="geodistance.csv"
+
+l3 = []
+l3.append('')
+l3.append('')
+l3.append('')
+ll3 = []
+ll3.append(l3)
+
+l10 = []
+l10.append('')
+l10.append('')
+l10.append('')
+l10.append('')
+l10.append('')
+l10.append('')
+l10.append('')
+l10.append('')
+l10.append('')
+l10.append('')
+ll10 = []
+ll10.append(l10)
+
 def haversine(lon1, lat1, lon2, lat2):
     """
     Calculate the great circle distance between two points 
@@ -61,71 +108,6 @@ def years(fromdate, todate):
     except ValueError:
         return None
     return math.floor(((dt1 - dt2).days)/365.2425)
-
-# 0-patent_id, 1-inventor_id, 2-region, 3-country_loc, 4-year, 5-date, 6-latitude, 7-longitude, 8-city_rawloc, 9-location_id
-keysFile1="/Users/aiyenggar/datafiles/patents/rawinventor_urban_areas.csv"
-
-# 0-patent_id, 1-assignee_id 2-region, 3-country_loc
-keysFile2="/Users/aiyenggar/datafiles/patents/rawassignee_urban_areas.csv"
-
-#0-country2, 1-country, 2-ipr_score
-keysFile3="/Users/aiyenggar/datafiles/patents/country2.country.ipr_score.csv"
-
-#0-uuid,1-patent_id,2-citation_id,3-date,4-name,5-kind,6-country,7-category,8-sequence
-searchFileList=["/Users/aiyenggar/datafiles/patents/uspatentcitation.csv","/Users/aiyenggar/datafiles/patents/uspatentcitation.applicant.examiner.csv","/Users/aiyenggar/datafiles/patents/uspatentcitation.examiner.csv","/Users/aiyenggar/datafiles/patents/uspatentcitation.applicant.csv"]
-
-forwardmapheader=["fc_year", "fc_region", "fc_total", "fc_sla", "fc_slap", "fc_slpa", "fc_slpap", "fc_sother", "fc_sregion_cnt", "fc_sdistance_cnt", "fc_sl", "fc_sa"]
-forwardmapFileList=["/Users/aiyenggar/datafiles/patents/forwardmap.csv","/Users/aiyenggar/datafiles/patents/ae.forwardmap.csv","/Users/aiyenggar/datafiles/patents/e.forwardmap.csv","/Users/aiyenggar/datafiles/patents/a.forwardmap.csv"]
-
-backwardmapheader=["bc_year", "bc_region", "bc_total", "bc_sla", "bc_slap", "bc_slpa", "bc_slpap", "bc_sother", "bc_sregion_cnt", "bc_sdistance_cnt", "bc_sl", "bc_sa" ]
-backwardmapFileList=["/Users/aiyenggar/datafiles/patents/backwardmap.csv", "/Users/aiyenggar/datafiles/patents/ae.backwardmap.csv","/Users/aiyenggar/datafiles/patents/e.backwardmap.csv","/Users/aiyenggar/datafiles/patents/a.backwardmap.csv"]
-
-logFileList=["/Users/aiyenggar/datafiles/patents/log.csv","/Users/aiyenggar/datafiles/patents/ae.log.csv","/Users/aiyenggar/datafiles/patents/e.log.csv","/Users/aiyenggar/datafiles/patents/a.log.csv"]
-
-citationsFileList=["/Users/aiyenggar/datafiles/patents/citations.year.csv","/Users/aiyenggar/datafiles/patents/ae.citations.year.csv","/Users/aiyenggar/datafiles/patents/e.citations.year.csv","/Users/aiyenggar/datafiles/patents/a.citations.year.csv"]
-
-geoFileList=["/Users/aiyenggar/datafiles/patents/geodistance.csv","/Users/aiyenggar/datafiles/patents/ae.geodistance.csv","/Users/aiyenggar/datafiles/patents/e.geodistance.csv","/Users/aiyenggar/datafiles/patents/a.geodistance.csv"]
-
-
-l10 = []
-l10.append('')
-l10.append('')
-l10.append('')
-l10.append('')
-l10.append('')
-l10.append('')
-l10.append('')
-l10.append('')
-l10.append('')
-l10.append('')
-ll10 = []
-ll10.append(l10)
-
-"""
-l5 = []
-l5.append('')
-l5.append('')
-l5.append('')
-l5.append('')
-l5.append('')
-ll5 = []
-ll5.append(l5)
-
-l4 = []
-l4.append('')
-l4.append('')
-l4.append('')
-l4.append('')
-ll4 = []
-ll4.append(l4)
-"""
-
-l3 = []
-l3.append('')
-l3.append('')
-l3.append('')
-ll3 = []
-ll3.append(l3)
 
 k1 = open(keysFile1, 'r', encoding='utf-8')
 kreader1 = csv.reader(k1)
@@ -200,14 +182,21 @@ k3.close()
 
 distancesDict=dict({})
 
-for runno in [2]:
+for runno in runList:
     print("Starting with runno " + str(runno))
-    searchFile=searchFileList[runno]
-    forwardmapFile=forwardmapFileList[runno]
-    backwardmapFile=backwardmapFileList[runno]
-    logFile=logFileList[runno]
-    citationsFile=citationsFileList[runno]
-    geoFile=geoFileList[runno]
+    searchFile=pathPrefix+runPrefix[runno]+searchFileName
+    forwardmapFile=pathPrefix+runPrefix[runno]+forwardmapFileName
+    backwardmapFile=pathPrefix+runPrefix[runno]+backwardmapFileName
+    logFile=pathPrefix+runPrefix[runno]+logFileName
+    citationsFile=pathPrefix+runPrefix[runno]+citationsFileName
+    geoFile=pathPrefix+runPrefix[runno]+geoFileName
+    print(searchFile)
+    print(forwardmapFile)
+    print(backwardmapFile)
+    print(logFile)
+    print(citationsFile)
+    print(geoFile)
+    continue
     
     
     indf = open(logFile, 'w', encoding='utf-8')
@@ -620,3 +609,4 @@ for runno in [2]:
     
     outputf.close()
     print("Ending with runno " + str(runno))
+exit()
