@@ -190,13 +190,6 @@ for runno in runList:
     logFile=pathPrefix+runPrefix[runno]+logFileName
     citationsFile=pathPrefix+runPrefix[runno]+citationsFileName
     geoFile=pathPrefix+runPrefix[runno]+geoFileName
-    print(searchFile)
-    print(forwardmapFile)
-    print(backwardmapFile)
-    print(logFile)
-    print(citationsFile)
-    print(geoFile)
-    continue
     
     
     indf = open(logFile, 'w', encoding='utf-8')
@@ -210,8 +203,7 @@ for runno in runList:
     forwardCitations=dict({})
     backwardCitations=dict({})
     yearCitations=dict({})
-
-    
+ 
     for entry in sreader:
         if sreader.line_num == 1:
             continue
