@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """
 Created on Fri Dec  9 05:48:51 2016
 
@@ -11,7 +10,7 @@ import math
 from math import radians, cos, sin, asin, sqrt
 
 runPrefix = ['', 'a.', 'e.', 'o.', 't.', 'n.']
-runList = [3]
+runList = [1]
 pathPrefix = "/Users/aiyenggar/datafiles/patents/" 
 
 # 0-patent_id, 1-inventor_id, 2-region, 3-country_loc, 4-year, 5-date, 6-latitude, 7-longitude, 8-city_rawloc, 9-location_id
@@ -117,76 +116,163 @@ def years(fromdate, todate):
         return None
     return math.floor(((dt1 - dt2).days)/365.2425)
 
-k1 = open(keysFile1, 'r', encoding='utf-8')
-kreader1 = csv.reader(k1)
+def load(fmapFile, fDict):
+    forwardf = open(fmapFile, 'r', encoding='utf-8')
+    forwardr = csv.reader(forwardf)
+    for forwardl in forwardr:
+        if forwardr.line_num == 1:
+            continue
+        if not forwardl[0].isdigit():
+            print("In Forward Citations, Skipping " + str(forwardl))
+            continue # skip header lines
+        l = []
+        l.append(forwardl[0])
+        l.append(forwardl[1])
+        fkey = tuple(l)
+        
+        if fkey not in fDict:
+            fDict[fkey] = forwardl
+        else:
+            nFields = len(forwardl)
+            for index in range(2,nFields):
+                fDict[fkey][index] = int(fDict[fkey][index]) + int(forwardl[index])
+    forwardf.close()
+    return fDict
+    
+def pDictLoad(patentsFile):
+    pDict = dict({})
+    patentsf = open(patentsFile, 'r', encoding='utf-8')
+    patentsr = csv.reader(patentsf)
+    
+    for patentsl in patentsr:
+        if patentsr.line_num == 1:
+            continue
+        l = []
+        l.append(patentsl[1]) #year
+        l.append(patentsl[0]) #region
+        pkey = tuple(l)
+        if pkey not in pDict:
+            pDict[pkey] = patentsl #saving the whole line
+        else:
+            print("Duplicate in patentsFile " + str(pkey))
+    print("finished reading in patentsFile")
+    patentsf.close()
+    return pDict
+    
+def consolidate(pDict, fDict, bDict, outputFile):
+    outputf = open(outputFile, 'w', encoding='utf-8')
+    writer = csv.writer(outputf)
+    writer.writerow(outputheader+pheader[4:])
+    
+    for p in pDict:
+        year = p[0]
+        region = p[1]
+        
+        pv = pDict[p]
+        patents = pv[2]
+        pool = pv[3]
+        dummies = pv[4:]
+        
+        if p in bDict:
+            bv = bDict[p]
+        else:
+            bv = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        cit_made_total = bv[2]
+        cit_made_localinternal = bv[3]
+        cit_made_localexternal = bv[4]
+        cit_made_nonlocalinternal = bv[5]
+        cit_made_nonlocalexternal = bv[6]
+        cit_made_other = bv[7]
+        cit_made_region_cnt = bv[8]
+        cit_made_distance_cnt = bv[9]
+        cit_made_local = bv[10]
+        cit_made_internal = bv[11]
+    
+        if p in fDict:
+            fv = fDict[p]
+        else:
+            fv = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        cit_recd_total = fv[2]
+        cit_recd_self = int(fv[3]) + int(fv[5])
+        cit_recd_nonself = int(fv[4]) + int(fv[6]) + int(fv[7])
+    
+        baserow = [year, region, patents, pool, cit_made_total, cit_made_localinternal, cit_made_localexternal, cit_made_nonlocalinternal, cit_made_nonlocalexternal, cit_made_other, cit_made_local, cit_made_internal, cit_made_region_cnt, cit_made_distance_cnt, cit_recd_total, cit_recd_self, cit_recd_nonself]
+        writer.writerow(baserow+dummies)
+    
+    outputf.close()
+    return
 
-# Read the entire keysFile1 to memory
-# Keyed on patent-id, pull out a list of all inventors and their asociated regions
-iDict=dict({})
-ipatent_id = 0
-iinventor_id = 1
-iregion = 2
-icountry = 3
-iyear = 4
-idate = 5
-ilatitude = 6
-ilongitude = 7
-icity_rawloc = 8
-ilocation_id = 9
-icountry_loc = 10
-for k1r in kreader1:
-    if kreader1.line_num == 1:
-        continue
-    if (k1r[ipatent_id] not in iDict):
-        iDict[k1r[ipatent_id]] = list([])
-    iDict[k1r[ipatent_id]].append(k1r)
-    if kreader1.line_num % 1000000 == 0:
-        print("Read " + str(kreader1.line_num) + " patent inventor locations")
-print("done reading rawinventor_region.csv to memory")
-kreader1 = None
-k1.close()
-
-k2 = open(keysFile2, 'r', encoding='utf-8')
-kreader2 = csv.reader(k2)
-geoDict=dict({})
-# Read the entire keysFile2 to memory
-# Keyed on patent-id, retrieve a list of all assignee-id and associated region
-aDict=dict({})
-ipatent_id = 0
-iassignee_id = 1
-iregion = 2
-icountry = 3
-for k2r in kreader2:
-    if kreader2.line_num == 1:
-        continue
-    if (k2r[ipatent_id] not in aDict):
-        aDict[k2r[ipatent_id]] = list([])
-    aDict[k2r[ipatent_id]].append([k2r[iassignee_id],k2r[iregion],k2r[icountry]])
-    if kreader2.line_num % 1000000 == 0:
-        print("Read " + str(kreader2.line_num) + " assignee locations")
-print("done reading rawassignee_region.csv to memory")
-kreader2 = None
-k2.close()
-
-k3 = open(keysFile3, 'r', encoding='utf-8')
-kreader3 = csv.reader(k3)
-
-# Read the entire keysFile3 to memory
-# Keyed on 2 digit country code, retrieve ipr score
-cDict=dict({})
-icountry2 = 0
-icountry = 1 
-iipr_score = 2
-for k3r in kreader3:
-    if kreader3.line_num == 1:
-        continue
-    if (k3r[icountry2] not in cDict):
-        cDict[k3r[icountry2]] = k3r[iipr_score]
-    else:
-        print("Repeating country " + k3r[icountry2] + " in country_ipr.csv, Skipping")
-print("done reading country_ipr.csv to memory")
-kreader3 = None
-k3.close()
+if (len(runList) > 0):
+    k1 = open(keysFile1, 'r', encoding='utf-8')
+    kreader1 = csv.reader(k1)
+    
+    # Read the entire keysFile1 to memory
+    # Keyed on patent-id, pull out a list of all inventors and their asociated regions
+    iDict=dict({})
+    ipatent_id = 0
+    iinventor_id = 1
+    iregion = 2
+    icountry = 3
+    iyear = 4
+    idate = 5
+    ilatitude = 6
+    ilongitude = 7
+    icity_rawloc = 8
+    ilocation_id = 9
+    icountry_loc = 10
+    for k1r in kreader1:
+        if kreader1.line_num == 1:
+            continue
+        if (k1r[ipatent_id] not in iDict):
+            iDict[k1r[ipatent_id]] = list([])
+        iDict[k1r[ipatent_id]].append(k1r)
+        if kreader1.line_num % 1000000 == 0:
+            print("Read " + str(kreader1.line_num) + " patent inventor locations")
+    print("done reading rawinventor_region.csv to memory")
+    kreader1 = None
+    k1.close()
+    
+    k2 = open(keysFile2, 'r', encoding='utf-8')
+    kreader2 = csv.reader(k2)
+    geoDict=dict({})
+    # Read the entire keysFile2 to memory
+    # Keyed on patent-id, retrieve a list of all assignee-id and associated region
+    aDict=dict({})
+    ipatent_id = 0
+    iassignee_id = 1
+    iregion = 2
+    icountry = 3
+    for k2r in kreader2:
+        if kreader2.line_num == 1:
+            continue
+        if (k2r[ipatent_id] not in aDict):
+            aDict[k2r[ipatent_id]] = list([])
+        aDict[k2r[ipatent_id]].append([k2r[iassignee_id],k2r[iregion],k2r[icountry]])
+        if kreader2.line_num % 1000000 == 0:
+            print("Read " + str(kreader2.line_num) + " assignee locations")
+    print("done reading rawassignee_region.csv to memory")
+    kreader2 = None
+    k2.close()
+    
+    k3 = open(keysFile3, 'r', encoding='utf-8')
+    kreader3 = csv.reader(k3)
+    
+    # Read the entire keysFile3 to memory
+    # Keyed on 2 digit country code, retrieve ipr score
+    cDict=dict({})
+    icountry2 = 0
+    icountry = 1 
+    iipr_score = 2
+    for k3r in kreader3:
+        if kreader3.line_num == 1:
+            continue
+        if (k3r[icountry2] not in cDict):
+            cDict[k3r[icountry2]] = k3r[iipr_score]
+        else:
+            print("Repeating country " + k3r[icountry2] + " in country_ipr.csv, Skipping")
+    print("done reading country_ipr.csv to memory")
+    kreader3 = None
+    k3.close()
 
 distancesDict=dict({})
 
@@ -489,111 +575,27 @@ for runno in runList:
     dumpsimpledict(citationsFile, yearCitations, ["year", "citations"])
     dumpsimpledict(geoFile, geoDict, ["source-destination", "count"])
     
-    
-    
-    fmapFile=forwardmapFile
-    bmapFile=backwardmapFile
+    pDict = pDictLoad(patentsFile)
+    fDict = load(forwardmapFile, dict({}))
+    bDict = load(backwardmapFile, dict({}))
     outputFile=pathPrefix+runPrefix[runno]+outputFileName
+    consolidate(pDict, fDict, bDict, outputFile)
 
-    pDict = dict({})
-    patentsf = open(patentsFile, 'r', encoding='utf-8')
-    patentsr = csv.reader(patentsf)
-    
-    for patentsl in patentsr:
-        if patentsr.line_num == 1:
-            continue
-        l = []
-        l.append(patentsl[1]) #year
-        l.append(patentsl[0]) #region
-        pkey = tuple(l)
-        if pkey not in pDict:
-            pDict[pkey] = patentsl #saving the whole line
-        else:
-            print("Duplicate in patentsFile " + str(pkey))
-    print("finished reading in patentsFile")
-    
-    fDict = dict({})
-    forwardf = open(fmapFile, 'r', encoding='utf-8')
-    forwardr = csv.reader(forwardf)
-    for forwardl in forwardr:
-        if forwardr.line_num == 1:
-            continue
-        if not forwardl[0].isdigit():
-            print("In Forward Citations, Skipping " + str(forwardl))
-            continue # skip header lines
-        l = []
-        l.append(forwardl[0])
-        l.append(forwardl[1])
-        fkey = tuple(l)
-        
-        if fkey not in fDict:
-            fDict[fkey] = forwardl
-        else:
-            print("Duplicate forwardl entry for " + fkey)
-        if forwardr.line_num % 5000 == 0:
-            print("Processed " + str(forwardr.line_num) + " forward citation lines")    
-    
-    
-    bDict = dict({})
-    backwardf = open(bmapFile, 'r', encoding='utf-8')
-    backwardr = csv.reader(backwardf)
-    for backwardl in backwardr:
-        if backwardr.line_num == 1:
-            continue
-        if not backwardl[0].isdigit():
-            print("In Backward Citations, Skipping " + str(backwardl))
-            continue # skip header lines
-        l = []
-        l.append(backwardl[0])
-        l.append(backwardl[1])
-        bkey = tuple(l)
-        
-        if bkey not in bDict:
-            bDict[bkey] = backwardl
-        else:
-            print("Duplicate backwardl entry for " + bkey)
-        if backwardr.line_num % 5000 == 0:
-            print("Processed " + str(backwardr.line_num) + " backward citation lines")  
-    
-    outputf = open(outputFile, 'w', encoding='utf-8')
-    writer = csv.writer(outputf)
-    writer.writerow(outputheader+pheader[4:])
-    
-    for p in pDict:
-        year = p[0]
-        region = p[1]
-        
-        pv = pDict[p]
-        patents = pv[2]
-        pool = pv[3]
-        dummies = pv[4:]
-        
-        if p in bDict:
-            bv = bDict[p]
-        else:
-            bv = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        cit_made_total = bv[2]
-        cit_made_localinternal = bv[3]
-        cit_made_localexternal = bv[4]
-        cit_made_nonlocalinternal = bv[5]
-        cit_made_nonlocalexternal = bv[6]
-        cit_made_other = bv[7]
-        cit_made_region_cnt = bv[8]
-        cit_made_distance_cnt = bv[9]
-        cit_made_local = bv[10]
-        cit_made_internal = bv[11]
-    
-        if p in fDict:
-            fv = fDict[p]
-        else:
-            fv = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-        cit_recd_total = fv[2]
-        cit_recd_self = int(fv[3]) + int(fv[5])
-        cit_recd_nonself = int(fv[4]) + int(fv[6]) + int(fv[7])
-    
-        baserow = [year, region, patents, pool, cit_made_total, cit_made_localinternal, cit_made_localexternal, cit_made_nonlocalinternal, cit_made_nonlocalexternal, cit_made_other, cit_made_local, cit_made_internal, cit_made_region_cnt, cit_made_distance_cnt, cit_recd_total, cit_recd_self, cit_recd_nonself]
-        writer.writerow(baserow+dummies)
-    
-    outputf.close()
     print("Ending with runno " + str(runno))
-exit()
+
+pDict = pDictLoad(patentsFile)
+outputPrefix = ""
+fDict = dict({})
+bDict = dict({})
+print("fDict is of size " + str(len(fDict)) + " bDict is of size " + str(len(bDict)))
+for pref in runPrefix[1:]:
+    forwardmapFile=pathPrefix+pref+forwardmapFileName
+    backwardmapFile=pathPrefix+pref+backwardmapFileName
+    print(pref)
+    outputPrefix = outputPrefix + pref
+    fDict = load(forwardmapFile, fDict)
+    bDict = load(backwardmapFile, bDict)
+    print("fDict is of size " + str(len(fDict)) + " bDict is of size " + str(len(bDict)))
+
+outputFile=pathPrefix+outputPrefix+outputFileName
+consolidate(pDict, fDict, bDict, outputFile)
