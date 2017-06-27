@@ -5,12 +5,23 @@ Created on Fri Dec  9 05:48:51 2016
 """
 
 import csv
+import sys
 from datetime import datetime
 import math
 from math import radians, cos, sin, asin, sqrt
 
+if (len(sys.argv) != 2):
+    print("Usage: " + sys.argv[0] + " <0-5>")
+    sys.exit()
+
+runVal = int(sys.argv[1])
+if runVal == 0:
+    runList = []
+else:
+    runList = [runVal]
+print(str(runVal))
+
 runPrefix = ['', 'a.', 'e.', 'o.', 't.', 'n.']
-runList = [1]
 pathPrefix = "/Users/aiyenggar/datafiles/patents/" 
 
 # 0-patent_id, 1-inventor_id, 2-region, 3-country_loc, 4-year, 5-date, 6-latitude, 7-longitude, 8-city_rawloc, 9-location_id
