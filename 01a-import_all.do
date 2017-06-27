@@ -37,6 +37,7 @@ import delimited `datadir'locationid_region.csv, varnames(1) encoding(UTF-8) cle
 rename id location_id
 save locationid_region.dta, replace
 
+local datadir ~/data/patentsview/
 import delimited `datadir'locationid_urban_areas.csv, varnames(1) encoding(UTF-8) clear
 rename id location_id
 replace city = subinstr(city, `"""',  "", .)
