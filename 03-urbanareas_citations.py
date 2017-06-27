@@ -583,19 +583,20 @@ for runno in runList:
 
     print("Ending with runno " + str(runno))
 
-pDict = pDictLoad(patentsFile)
-outputPrefix = ""
-fDict = dict({})
-bDict = dict({})
-print("fDict is of size " + str(len(fDict)) + " bDict is of size " + str(len(bDict)))
-for pref in runPrefix[1:]:
-    forwardmapFile=pathPrefix+pref+forwardmapFileName
-    backwardmapFile=pathPrefix+pref+backwardmapFileName
-    print(pref)
-    outputPrefix = outputPrefix + pref
-    fDict = load(forwardmapFile, fDict)
-    bDict = load(backwardmapFile, bDict)
+if (len(runList) == 0):
+    pDict = pDictLoad(patentsFile)
+    outputPrefix = ""
+    fDict = dict({})
+    bDict = dict({})
     print("fDict is of size " + str(len(fDict)) + " bDict is of size " + str(len(bDict)))
-
-outputFile=pathPrefix+outputPrefix+outputFileName
-consolidate(pDict, fDict, bDict, outputFile)
+    for pref in runPrefix[1:]:
+        forwardmapFile=pathPrefix+pref+forwardmapFileName
+        backwardmapFile=pathPrefix+pref+backwardmapFileName
+        print(pref)
+        outputPrefix = outputPrefix + pref
+        fDict = load(forwardmapFile, fDict)
+        bDict = load(backwardmapFile, bDict)
+        print("fDict is of size " + str(len(fDict)) + " bDict is of size " + str(len(bDict)))
+    
+    outputFile=pathPrefix+outputPrefix+outputFileName
+    consolidate(pDict, fDict, bDict, outputFile)
