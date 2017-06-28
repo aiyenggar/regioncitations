@@ -33,9 +33,6 @@ import delimited `datadir'patent_inventor.tsv, varnames(1) encoding(UTF-8) clear
 sort patent_id
 save patent_inventor.dta, replace
 
-import delimited `datadir'locationid_region.csv, varnames(1) encoding(UTF-8) clear
-rename id location_id
-save locationid_region.dta, replace
 
 local datadir ~/data/patentsview/
 import delimited `datadir'locationid_urban_areas.csv, varnames(1) encoding(UTF-8) clear
