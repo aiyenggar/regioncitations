@@ -44,7 +44,7 @@ label variable cit_made_other "Citations Made to [Other]"
 label variable cit_recd_total "Total Citations Received"
 label variable cit_recd_self "Self Citations Received"
 label variable cit_recd_nonself "Non-Self Citations Received"
-label variable lnpatents "Log (Num Patents)"
+label variable lnpatents "Log (Number of Patents)"
 label variable lnpool "Log (Patent Pool Size)"
 
 gen d2002=1 if year==2002
