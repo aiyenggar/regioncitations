@@ -1,0 +1,12 @@
+From patentsview.org (http://www.patentsview.org/download/)
+	1.	application.tsv for application date/application year
+	2.	uspatentcitation.tsv for citations
+	3.	rawassignee.tsv for assignee information
+	4.	rawinventor.tsv for inventor information
+	5.	location.tsv and rawlocation.tsv for location information
+	6.	patent_inventor.tsv for mapping of patents to inventors
+	7.	nber.tsv for HJT technology subcategories mapping
+
+From Natural Earth (Urban Centers)
+	1.	ne_10m_urban_areas_landscan
+
