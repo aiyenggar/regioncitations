@@ -3,6 +3,11 @@ local datadir ~/data/patentsview/
 local destdir ~/datafiles/patents/
 cd `destdir'
 
+import delimited `datadir'patent.tsv, varnames(1) encoding(UTF-8) clear
+keep id
+sort patent_id
+save patent.dta, replace
+
 import delimited `datadir'application.tsv, varnames(1) encoding(UTF-8) clear
 save application.dta, replace
 
