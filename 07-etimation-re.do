@@ -45,7 +45,7 @@ estadd local Sample "Non-U.S. Locations"
 est store model21
 
 
-esttab model1 model2 model3 model19 model20 model21 using `reportdir'a.e.o.t.n.model123192021.tex, ///
+esttab model1 model2 model3 model19 model20 model21 using `reportdir're.a.e.o.t.n.model123192021.tex, ///
 		title("Negative binomial regresssion analysis of invention quality for all citations \label{a.e.o.t.n.model123192021}") ///
 		label replace p(3) not nostar noomitted compress nogaps ///
 		drop (d* percent*) scalars("Groups" "Sample") addnotes("All models include random effects, year dummies and technology subcategory controls")
@@ -100,7 +100,7 @@ estadd local Sample "Non-U.S. Locations"
 est store model21
 
 
-esttab model1 model2 model3 model19 model20 model21 using `reportdir'e.model123192021.tex, ///
+esttab model1 model2 model3 model19 model20 model21 using `reportdir're.e.model123192021.tex, ///
 		title("Negative binomial regresssion analysis of invention quality for examiner citations  \label{e.model123192021}") ///
 		label replace p(3) not nostar noomitted compress nogaps ///
 		drop (d* percent*) scalars("Groups" "Sample") addnotes("All models include random effects, year dummies and technology subcategory controls")
@@ -155,7 +155,7 @@ estadd local Sample "Non-U.S. Locations"
 est store model21
 
 
-esttab model1 model2 model3 model19 model20 model21 using `reportdir'a.model123192021.tex, ///
+esttab model1 model2 model3 model19 model20 model21 using `reportdir're.a.model123192021.tex, ///
 		title("Negative binomial regresssion analysis of invention quality for applicant citations  \label{a.model123192021}") ///
 		label replace p(3) not nostar noomitted compress nogaps ///
 		drop (d* percent*) scalars("Groups" "Sample") addnotes("All models include random effects, year dummies and technology subcategory controls")
@@ -210,7 +210,7 @@ estadd local Sample "Non-U.S. Locations"
 est store model21
 
 
-esttab model1 model2 model3 model19 model20 model21 using `reportdir'o.model123192021.tex, ///
+esttab model1 model2 model3 model19 model20 model21 using `reportdir're.o.model123192021.tex, ///
 		title("Negative binomial regresssion analysis of invention quality for other citations \label{o.model123192021}") ///
 		label replace p(3) not nostar noomitted compress nogaps ///
 		drop (d* percent*) scalars("Groups" "Sample") addnotes("All models include random effects, year dummies and technology subcategory controls")
