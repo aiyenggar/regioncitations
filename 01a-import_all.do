@@ -3,6 +3,10 @@ local datadir ~/data/patentsview/
 local destdir ~/datafiles/patents/
 cd `destdir'
 
+import delimited `datadir'assignee.tsv, varnames(1) encoding(UTF-8) clear
+rename id assignee_id
+save assignee.dta, replace
+
 import delimited `datadir'patent.tsv, varnames(1) encoding(UTF-8) clear
 keep id
 sort patent_id
@@ -39,6 +43,10 @@ import delimited `datadir'patent_inventor.tsv, varnames(1) encoding(UTF-8) clear
 sort patent_id
 save patent_inventor.dta, replace
 
+local datadir ~/data/patentsview/
+import delimited `datadir'patent_assignee.tsv, varnames(1) encoding(UTF-8) clear
+sort patent_id
+save patent_assignee.dta, replace
 
 local datadir ~/data/patentsview/
 import delimited `datadir'locationid_urban_areas.csv, varnames(1) encoding(UTF-8) clear
