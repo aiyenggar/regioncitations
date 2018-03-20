@@ -1,3 +1,8 @@
+2018-03-20 Trying to redo this entirely in Python. 
+location.tsv has 133918 entries
+rawlocation.tsv has 21334737 entries
+ne_10m_urban_areas_landscan.shp has 6018 entries
+
 Iteration 6, Dated 2017-06-08 (Using Urban Areas alone)
 I take the natural earth urban centers data from http://www.naturalearthdata.com/downloads/10m-cultural-vectors/ with the specific link being
 http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/cultural/ne_10m_urban_areas_landscan.zip
