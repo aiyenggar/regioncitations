@@ -10,3 +10,5 @@ From patentsview.org (http://www.patentsview.org/download/)
 From Natural Earth (Urban Centers)
 	1.	ne_10m_urban_areas_landscan
 
+Using Pandas
+/Users/aiyenggar/intermediate-datafiles/patents/locationid_urbanareas.csv 
