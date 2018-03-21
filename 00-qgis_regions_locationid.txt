@@ -3,6 +3,34 @@ location.tsv has 133918 entries
 rawlocation.tsv has 21334737 entries
 ne_10m_urban_areas_landscan.shp has 6018 entries
 
+I downloaded all the 10m resolution files, and from within it pulled out those with ne_10m_urban_areas_landscan and put them in ~/data/4.0.0-urban-areas
+
+In QGIS - Create a Layer from a Delimited Text File, 
+Layer - Add Layer - Add Delimited Text Layer
+~/data/patentsview/location.tsv Let the X: Longitude and Y: Latitude be as default. Set CRS to WGS84 EPSG:4326 (was previously World Geodetic System 1984 IGNF:WBS84G)
+
+Open ne_10m_urban_areas_landscan.shp in Qgis
+
+Vector -> Data Management Tools -> Join Attributes by Location
+Target vector layer : location
+Join vector layer: ne_10m_urban_areas_landscan
+Geometric Predicate (intersects)
+Precision - Leave at 0
+Attribute Summary - Take attributes of the first located feature
+Statistics for summary - Delete all (and leave blank)
+Joined table - Keep all records (including non-matching target records)
+Output shapefile: ~/data/gis/merged.shp
+This will take one hour, then say yes to if you would like to add the layer to TOC. Choose the CRS as above. I save this as locationid_urban_areas.
+
+Open the attribute table, select all. Now go back to the map, right click on the layer and save as -> Format: Comma Separated Value [CSV] and save as intermediate-datafiles/patents/locationid_urbanareas.csv
+
+Started 12:40 AM
+Finished before 1:40 AM
+
+
+
+
+
 Iteration 6, Dated 2017-06-08 (Using Urban Areas alone)
 I take the natural earth urban centers data from http://www.naturalearthdata.com/downloads/10m-cultural-vectors/ with the specific link being
 http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/cultural/ne_10m_urban_areas_landscan.zip
