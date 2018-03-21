@@ -38,7 +38,13 @@ strlist = [file_locationid_region, file_application, file_rawlocation, file_rawi
 
 locationid_region = pd.read_csv(file_locationid_region, usecols = ['id', 'name_conve', 'city', 'country'], dtype={'id':str, 'name_conve':str, 'city':str, 'country':str})
 patent_inventor = pd.read_table(file_patent_inventor, usecols = ['patent_id', 'inventor_id'], dtype={'patent_id':str,'inventor_id':str})
+
 application = pd.read_table(file_application, usecols = ['patent_id', 'date'], dtype={'patent_id':str, 'date':str})
+# application.dtypes
+application['date'] = pd.to_datetime(application['date'], format='%Y-%m-%d', errors='coerce')
+application = application.dropna()
+application['year'] = pd.DatetimeIndex(application['date']).year
+
 rawlocation = pd.read_table(file_rawlocation, usecols = ['id', 'location_id'], dtype={'id':str, 'location_id':str})
 rawinventor = pd.read_table(file_rawinventor, usecols = ['patent_id', 'inventor_id', 'rawlocation_id', 'name_first', 'name_last'], dtype={'patent_id':str, 'inventor_id':str, 'rawlocation_id':str, 'name_first':str, 'name_last':str})
 rawassignee = pd.read_table(file_rawassignee, usecols = ['patent_id', 'assignee_id'], dtype={'patent_id':str, 'assignee_id':str})
@@ -58,11 +64,14 @@ r_uspatentcitation = csv.reader(f_uspatentcitation, delimiter='\t')
 for l_uspatentcitation in r_uspatentcitation:
     if r_uspatentcitation.line_num == 1:
         col_uspatentcitation = list(l_uspatentcitation)
-        print("Header: " + str(col_uspatentcitation))
+#        print("Header: " + str(col_uspatentcitation))
         continue
     uspatentcitation = pd.DataFrame([l_uspatentcitation], columns = col_uspatentcitation)
 #    uspatentcitation.loc[0] = list(l_uspatentcitation)
     uspatentcitation = uspatentcitation[['patent_id', 'citation_id', 'date', 'category']]
+    uspatentcitation['date'] = pd.to_datetime(uspatentcitation['date'], format='%Y-%m-%d', errors='coerce')
+    uspatentcitation['year'] = pd.DatetimeIndex(uspatentcitation['date']).year
+#    uspatentcitation['month'] = pd.DatetimeIndex(uspatentcitation['date']).month
     if r_uspatentcitation.line_num == 100:
         break
 
