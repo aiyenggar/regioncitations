@@ -7,7 +7,7 @@ Created on Wed Mar 21 11:55:30 2018
 """
 import sys
 import os
-import datetime.datetime
+from datetime import datetime
 import subprocess
 import csv
 import numpy as np
@@ -38,7 +38,7 @@ strlist = [file_locationid_region, file_application, file_rawlocation, file_rawi
 
 locationid_region = pd.read_csv(file_locationid_region, usecols = ['id', 'name_conve', 'city', 'country'], dtype={'id':str, 'name_conve':str, 'city':str, 'country':str})
 patent_inventor = pd.read_table(file_patent_inventor, usecols = ['patent_id', 'inventor_id'], dtype={'patent_id':str,'inventor_id':str})
-application = pd.read_table(file_application, usecols = ['patent_id', 'date'], dtype={'patent_id':str, 'date':datetime})
+application = pd.read_table(file_application, usecols = ['patent_id', 'date'], dtype={'patent_id':str, 'date':str})
 rawlocation = pd.read_table(file_rawlocation, usecols = ['id', 'location_id'], dtype={'id':str, 'location_id':str})
 rawinventor = pd.read_table(file_rawinventor, usecols = ['patent_id', 'inventor_id', 'rawlocation_id', 'name_first', 'name_last'], dtype={'patent_id':str, 'inventor_id':str, 'rawlocation_id':str, 'name_first':str, 'name_last':str})
 rawassignee = pd.read_table(file_rawassignee, usecols = ['patent_id', 'assignee_id'], dtype={'patent_id':str, 'assignee_id':str})
