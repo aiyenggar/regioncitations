@@ -26,16 +26,16 @@ interpath="/Users/aiyenggar/intermediate-datafiles/patents/"
 
 file_locationid_region= interpath + "locationid_urbanareas.csv"
 file_application = datapath + "application.tsv"
-#file_location = datapath + "location.tsv"
-file_rawlocation = datapath + "1rawlocation.tsv"
-file_rawinventor = datapath + "1rawinventor.tsv"
+file_location = datapath + "location.tsv"
+file_rawlocation = datapath + "rawlocation.tsv"
+file_rawinventor = datapath + "rawinventor.tsv"
 file_rawassignee = datapath + "rawassignee.tsv"
 file_patent_inventor = datapath + "patent_inventor.tsv"
 file_nber = datapath + "nber.tsv"
 file_uspc_current = datapath + "uspc_current.tsv"
 file_patent = datapath + "patent.onlyabstract.tsv"
 
-strlist = [file_locationid_region, file_application, file_rawlocation, file_rawinventor, file_rawassignee, file_patent_inventor, file_nber, file_uspc_current, file_patent]
+strlist = [file_locationid_region, file_application, file_location, file_rawlocation, file_rawinventor, file_rawassignee, file_patent_inventor, file_nber, file_uspc_current, file_patent]
 
 locationid_region = pd.read_csv(file_locationid_region, usecols = ['id', 'name_conve', 'city', 'country'], dtype={'id':str, 'name_conve':str, 'city':str, 'country':str})
 patent_inventor = pd.read_table(file_patent_inventor, usecols = ['patent_id', 'inventor_id'], dtype={'patent_id':str,'inventor_id':str})
@@ -46,6 +46,8 @@ application['date'] = pd.to_datetime(application['date'], format='%Y-%m-%d', err
 application = application.dropna()
 application['year'] = pd.DatetimeIndex(application['date']).year
 
+location = pd.read_table(file_location)
+
 rawlocation = pd.read_table(file_rawlocation, usecols = ['id', 'location_id'], dtype={'id':str, 'location_id':str})
 rawinventor = pd.read_table(file_rawinventor, usecols = ['patent_id', 'inventor_id', 'rawlocation_id', 'name_first', 'name_last'], dtype={'patent_id':str, 'inventor_id':str, 'rawlocation_id':str, 'name_first':str, 'name_last':str})
 rawassignee = pd.read_table(file_rawassignee, usecols = ['patent_id', 'assignee_id'], dtype={'patent_id':str, 'assignee_id':str})
@@ -53,7 +55,7 @@ nber = pd.read_table(file_nber, usecols = ['patent_id', 'category_id', 'subcateg
 uspc_current = pd.read_table(file_uspc_current, usecols = ['patent_id', 'mainclass_id', 'subclass_id', 'sequence'], dtype={'patent_id':str, 'mainclass_id':str, 'subclass_id':str, 'sequence':str})
 patent = pd.read_table(file_patent)
 
-pdlist = [locationid_region, application, rawlocation, rawinventor, rawassignee, patent_inventor, nber, uspc_current, patent]
+pdlist = [locationid_region, application, location, rawlocation, rawinventor, rawassignee, patent_inventor, nber, uspc_current, patent]
 #output = map(linetest, strlist, pdlist) # TODO Figure out how to get map to work
 for index in range(len(strlist)):
     linetest(strlist[index], pdlist[index])
