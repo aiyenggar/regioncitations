@@ -23,6 +23,7 @@ def linetest(strname, pdname):
 
 datapath="/Users/aiyenggar/data/20171226-patentsview/"
 interpath="/Users/aiyenggar/processed/patents/"
+file_dump = interpath + "dump.csv"
 
 file_locationid_region= interpath + "locationid_urbanareas.csv"
 file_application = datapath + "application.tsv"
@@ -54,7 +55,7 @@ rawlocation = pd.read_table(file_rawlocation, usecols = ['id', 'location_id'], d
 
 rawinventor = pd.read_table(file_rawinventor, usecols = ['patent_id', 'inventor_id', 'rawlocation_id', 'name_first', 'name_last'], dtype={'patent_id':str, 'inventor_id':str, 'rawlocation_id':str, 'name_first':str, 'name_last':str})
 
-rawassignee = pd.read_table(file_rawassignee, usecols = ['patent_id', 'assignee_id'], dtype={'patent_id':str, 'assignee_id':str})
+rawassignee = pd.read_table(file_rawassignee, usecols = ['patent_id', 'assignee_id', 'rawlocation_id', 'type', 'name_first', 'name_last', 'organization', 'sequence'], dtype={'patent_id':str, 'assignee_id':str, 'rawlocation_id':str, 'type':int, 'name_first':str, 'name_last':str, 'organization':str, 'sequence':int})
 
 nber = pd.read_table(file_nber, usecols = ['patent_id', 'category_id', 'subcategory_id'], dtype={'patent_id':str, 'category_id':int, 'subcategory_id':str})
 
@@ -93,8 +94,9 @@ for l_uspatentcitation in r_uspatentcitation:
     #    patent_valuelist = [citn.iloc[0]['citation_id'], citn.iloc[0]['patent_id']]
     #    rawlocation_valuelist =citn_rawinventor['rawlocation_id'].unique()
     #    locationid_valuelist = citn_rawlocation['location_id'].unique()
-
-    citn_rawinventor = rawinventor[rawinventor['patent_id'].isin([citn.iloc[0]['citation_id'], citn.iloc[0]['patent_id']])]
+    citn_patents = [citn.iloc[0]['citation_id'], citn.iloc[0]['patent_id']]
+    citn_rawinventor = rawinventor[rawinventor['patent_id'].isin(citn_patents)]
+    citn_rawassignee = rawassignee[rawassignee['patent_id'].isin(citn_patents)]
 
     citn_rawlocation = rawlocation[rawlocation['id'].isin(citn_rawinventor['rawlocation_id'])]
 
@@ -124,22 +126,25 @@ for l_uspatentcitation in r_uspatentcitation:
     citn = pd.merge(citn, cit_location, left_on='c_location_id', right_on='c_id', how='left')
     citn = citn.drop(['p_id', 'c_id'], axis=1)
 
-"""
-    Turning out to miss the location_id
-    citn = citn.set_index('p_location_id').join(pat_location.set_index('p_id'))
-    citn = citn.set_index('c_location_id').join(cit_location.set_index('c_id'))
-"""
-    # Get locationid for the rawlocation_id for the inventors above. Find out how to select pandas rows that match of many values
+# Bring in assignee information
+    pat_rawassignee = citn_rawassignee.rename(columns=lambda x: "pa_" + x)
+    cit_rawassignee = citn_rawassignee.rename(columns=lambda x: "ca_" + x)
 
-"""
-The following works for a one to one mapping. You can avoid a join. But in case you want to pull multiple fields then a join may become mandatory.
+    citn = pd.merge(citn, pat_rawassignee, left_on='patent_id', right_on='pa_patent_id', how='left')
+    # save the above and change column names of the inventor columns. Use this as the left table below
+    citn = pd.merge(citn, cit_rawassignee, left_on='citation_id', right_on='ca_patent_id', how='left')
 
-manip['p_location_id'] = manip.p_rawlocation_id.replace(citn_rawlocation.set_index('id')['location_id'])
-manip['c_location_id'] = manip.c_rawlocation_id.replace(citn_rawlocation.set_index('id')['location_id'])
-"""
-
+    citn.rename(index=str, columns={'date':'grant_date', 'year':'grant_year'},inplace=True)
     # From the location_id get the region name. patent -> inventor -> rawlocation -> location -> region
-    print(citn)
     if r_uspatentcitation.line_num == 2:
+        citn.to_csv(file_dump, mode='w', header=True)
+    elif r_uspatentcitation.line_num % 9 == 1:
+        citn.to_csv(file_dump, mode='a', header=False)
+    if r_uspatentcitation.line_num % 10 == 1:
+        print(str(r_uspatentcitation.line_num) + " citations done")
+
+
+    if r_uspatentcitation.line_num % 10 == 1:
         break
+
 
