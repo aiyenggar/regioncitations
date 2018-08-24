@@ -34,8 +34,7 @@ file_rawassignee = datapath + "rawassignee.tsv"
 file_patent_inventor = datapath + "patent_inventor.tsv"
 file_nber = datapath + "nber.tsv"
 file_uspc_current = datapath + "uspc_current.tsv"
-# awk -F"\t" '{$6=""; print}' ~/data/20180528-patentsview/patent.tsv > patent.noabstract.tsv
-file_patent = datapath + "patent.noabstract.tsv"
+file_patent = datapath + "cle.patent.tsv"
 
 strlist = [file_locationid_region, file_application, file_location, file_rawlocation, file_rawinventor, file_rawassignee, file_patent_inventor, file_nber, file_uspc_current, file_patent]
 
