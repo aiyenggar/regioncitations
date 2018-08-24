@@ -21,7 +21,7 @@ def linetest(strname, pdname):
     # TODO This function should highlight a PASS OR FAIL status
     return [pdlen, filelen]
 
-datapath="/Users/aiyenggar/data/20171226-patentsview/"
+datapath="/Users/aiyenggar/data/20180528-patentsview/"
 interpath="/Users/aiyenggar/processed/patents/"
 file_dump = interpath + "dump.csv"
 
@@ -34,7 +34,7 @@ file_rawassignee = datapath + "rawassignee.tsv"
 file_patent_inventor = datapath + "patent_inventor.tsv"
 file_nber = datapath + "nber.tsv"
 file_uspc_current = datapath + "uspc_current.tsv"
-# awk -F"\t" '{$6=""; print}' ~/data/20171226-patentsview/patent.tsv > patent.noabstract.tsv
+# awk -F"\t" '{$6=""; print}' ~/data/20180528-patentsview/patent.tsv > patent.noabstract.tsv
 file_patent = datapath + "patent.noabstract.tsv"
 
 strlist = [file_locationid_region, file_application, file_location, file_rawlocation, file_rawinventor, file_rawassignee, file_patent_inventor, file_nber, file_uspc_current, file_patent]
