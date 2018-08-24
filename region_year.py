@@ -15,9 +15,12 @@ import pandas as pd
 
 def linetest(strname, pdname):
     pipe = subprocess.Popen("wc -l " + strname, shell=True, stdout=subprocess.PIPE).stdout
-    filelen = pipe.read()
+    filelen = int(pipe.read().split()[0])
     pdlen = len(pdname)
-    print(str(pdlen) + " " + str(filelen))
+    status = "UNREAD LINES"
+    if filelen == pdlen + 1:
+        status = "MATCHED"
+    print(status + " Read " + str(pdlen) + ", " + str(filelen) +  " in " + strname)
     # TODO This function should highlight a PASS OR FAIL status
     return [pdlen, filelen]
 
@@ -45,7 +48,7 @@ patent_inventor = pd.read_table(file_patent_inventor, usecols = ['patent_id', 'i
 application = pd.read_table(file_application, usecols = ['patent_id', 'date'], dtype={'patent_id':str, 'date':str})
 # application.dtypes
 application['date'] = pd.to_datetime(application['date'], format='%Y-%m-%d', errors='coerce')
-application = application.dropna()
+#application = application.dropna()
 application['year'] = pd.DatetimeIndex(application['date']).year
 
 location = pd.read_table(file_location)
