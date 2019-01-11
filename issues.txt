@@ -1,0 +1,5 @@
+Raw Data
+What needs to be done with bad.location.tsv bad.rawinventor.tsv and bad.rawlocation.tsv
+
+Processing
+locationid_urbanareas has about 100 lines less than cle.location.tsv

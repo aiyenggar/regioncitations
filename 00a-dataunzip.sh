@@ -2,7 +2,7 @@ CURDIR=$PWD
 DATADIR=$HOME/data/20180528-patentsview
 DELDIR=$DATADIR/data
 UNZIPDIR=$DATADIR/data/20180528/bulk-downloads
-FILES="application location rawlocation rawinventor rawassignee patent_inventor nber uspc_current patent uspatentcitation"
+FILES="application assignee location rawlocation rawinventor rawassignee patent_inventor patent_assignee nber uspc_current patent uspatentcitation"
 for file in $FILES
 do
   cd $DATADIR

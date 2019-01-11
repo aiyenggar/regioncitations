@@ -15,9 +15,12 @@ import pandas as pd
 
 def linetest(strname, pdname):
     pipe = subprocess.Popen("wc -l " + strname, shell=True, stdout=subprocess.PIPE).stdout
-    filelen = pipe.read()
+    filelen = int(pipe.read().split()[0])
     pdlen = len(pdname)
-    print(str(pdlen) + " " + str(filelen))
+    status = "UNREAD LINES"
+    if filelen == pdlen + 1:
+        status = "MATCHED"
+    print(status + " Read " + str(pdlen) + ", " + str(filelen) +  " in " + strname)
     # TODO This function should highlight a PASS OR FAIL status
     return [pdlen, filelen]
 
@@ -27,15 +30,14 @@ file_dump = interpath + "dump.csv"
 
 file_locationid_region= interpath + "locationid_urbanareas.csv"
 file_application = datapath + "application.tsv"
-file_location = datapath + "location.tsv"
-file_rawlocation = datapath + "rawlocation.tsv"
-file_rawinventor = datapath + "rawinventor.tsv"
+file_location = datapath + "cle.location.tsv"
+file_rawlocation = datapath + "cle.rawlocation.tsv"
+file_rawinventor = datapath + "cle.rawinventor.tsv"
 file_rawassignee = datapath + "rawassignee.tsv"
 file_patent_inventor = datapath + "patent_inventor.tsv"
 file_nber = datapath + "nber.tsv"
 file_uspc_current = datapath + "uspc_current.tsv"
-# awk -F"\t" '{$6=""; print}' ~/data/20180528-patentsview/patent.tsv > patent.noabstract.tsv
-file_patent = datapath + "patent.noabstract.tsv"
+file_patent = datapath + "cle.patent.tsv"
 
 strlist = [file_locationid_region, file_application, file_location, file_rawlocation, file_rawinventor, file_rawassignee, file_patent_inventor, file_nber, file_uspc_current, file_patent]
 
@@ -46,7 +48,7 @@ patent_inventor = pd.read_table(file_patent_inventor, usecols = ['patent_id', 'i
 application = pd.read_table(file_application, usecols = ['patent_id', 'date'], dtype={'patent_id':str, 'date':str})
 # application.dtypes
 application['date'] = pd.to_datetime(application['date'], format='%Y-%m-%d', errors='coerce')
-application = application.dropna()
+#application = application.dropna()
 application['year'] = pd.DatetimeIndex(application['date']).year
 
 location = pd.read_table(file_location)

@@ -1,5 +1,5 @@
 set more off
-local datadir ~/data/patentsview/
+local datadir ~/data/20180528-patentsview/
 local destdir ~/datafiles/patents/
 cd `destdir'
 
@@ -8,10 +8,11 @@ rename id assignee_id
 save assignee.dta, replace
 
 import delimited `datadir'patent.tsv, varnames(1) encoding(UTF-8) clear
-keep id
+rename id patent_id
 sort patent_id
 save patent.dta, replace
 
+local datadir ~/data/20180528-patentsview/
 import delimited `datadir'application.tsv, varnames(1) encoding(UTF-8) clear
 save application.dta, replace
 
@@ -23,7 +24,7 @@ drop  if patent_id=="" & assignee_id==""
 //replace assignee_id=organization if assignee=="" & (type==2 | type==3)
 save rawassignee.dta, replace
 
-local datadir ~/data/patentsview/
+local datadir ~/data/20180528-patentsview/
 import delimited `datadir'rawinventor.tsv, varnames(1) encoding(UTF-8) clear
 sort patent_id sequence
 save rawinventor.dta, replace
@@ -43,12 +44,12 @@ import delimited `datadir'patent_inventor.tsv, varnames(1) encoding(UTF-8) clear
 sort patent_id
 save patent_inventor.dta, replace
 
-local datadir ~/data/patentsview/
+local datadir ~/data/20180528-patentsview/
 import delimited `datadir'patent_assignee.tsv, varnames(1) encoding(UTF-8) clear
 sort patent_id
 save patent_assignee.dta, replace
 
-local datadir ~/data/patentsview/
+local datadir ~/data/20180528-patentsview/
 import delimited `datadir'locationid_urban_areas.csv, varnames(1) encoding(UTF-8) clear
 rename id location_id
 replace city = subinstr(city, `"""',  "", .)

@@ -1,5 +1,7 @@
-2019-01-11 Consolidated instructions (Windows and Mac)
+2018-08-25 Generating on the 20180528 version of patents data
+I will use cle.location.tsv (128940) and cle.rawlocation.tsv (24991548)
 
+Started at 3:30 AM following the instructions from 2018-03-20 (I've changed files names to reflect the above). Completed 4:12 AM.
 
 2018-03-20 Trying to redo this entirely in Python. 
 location.tsv has 133918 entries
@@ -15,17 +17,17 @@ Layer - Add Layer - Add Delimited Text Layer
 Open ne_10m_urban_areas_landscan.shp in Qgis
 
 Vector -> Data Management Tools -> Join Attributes by Location
-Target vector layer : location
+Target vector layer : cle.location
 Join vector layer: ne_10m_urban_areas_landscan
 Geometric Predicate (intersects)
 Precision - Leave at 0
 Attribute Summary - Take attributes of the first located feature
 Statistics for summary - Delete all (and leave blank)
 Joined table - Keep all records (including non-matching target records)
-Output shapefile: ~/data/gis/merged.shp
+Output shapefile: /Users/aiyenggar/data/gis/20180528-4.0.0-ne_10m_urban_areas_landscan.shp
 This will take one hour, then say yes to if you would like to add the layer to TOC. Choose the CRS as above. I save this as locationid_urban_areas.
 
-Open the attribute table, select all. Now go back to the map, right click on the layer and save as -> Format: Comma Separated Value [CSV] and save as intermediate-datafiles/patents/locationid_urbanareas.csv
+Open the attribute table, select all. Now go back to the map, right click on the layer and save as -> Format: Comma Separated Value [CSV] and save as ~/processed/patents/locationid_urbanareas.csv
 
 Started 12:40 AM
 Finished before 1:40 AM
