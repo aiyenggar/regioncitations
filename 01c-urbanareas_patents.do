@@ -1,7 +1,7 @@
 cap log close
 log using knowledge-flows.log, append
 set more off
-local destdir ~/datafiles/patents/
+local destdir ~/processed/patents/
 
 use `destdir'rawinventor_urban_areas.dta, clear
 

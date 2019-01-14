@@ -1,5 +1,5 @@
 set more off
-local destdir ~/datafiles/patents/
+local destdir ~/processed/patents/
 cd `destdir'
 
 use `destdir'rawlocation.dta, clear

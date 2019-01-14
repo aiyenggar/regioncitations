@@ -1,8 +1,40 @@
 2019-01-11 Consolidated instructions (Windows and Mac)
 
-Download http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/cultural/ne_10m_urban_areas_landscan.zip
+Download http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/cultural/ne_10m_urban_areas_landscan.zip and from within it pulled out those with ne_10m_urban_areas_landscan and put them in ~/data/4.0.0-urban-areas
 
-Add Layer
+Open QGIS
+Layer - Add Layer - Add Delimited Text Layer
+~/data/patentsview/location.tsv Let the X: Longitude and Y: Latitude be as default. Set CRS to WGS84 EPSG:4326
+128948 lines in location.tsv
+128847 lines loaded
+
+Layer - Add Layer - Add Vector Layer and point it to ne_10m_urban_areas_landscan.shp for the Dataset and click Open. This has 6018 regions.
+
+Vector -> Data Management Tools -> Join Attributes by Location
+Target vector layer : location
+Join vector layer: ne_10m_urban_areas_landscan
+Geometric Predicate (intersects)
+Precision - Leave at 0
+Attribute Summary - Take attributes of the first located feature
+Statistics for summary - Delete all (and leave blank)
+Joined table - Keep all records (including non-matching target records)
+Output shapefile: /Users/aiyenggar/data/gis/20180528-4.0.0-ne_10m_urban_areas_landscan.shp
+
+Started at 2019-01-13 22:13. Finished at 2019-01-13 23:08. This typically takes one hour.
+
+Open the attribute table, select all. Now go back to the map, right click on the layer and save as -> Format: Comma Separated Value [CSV] and save as ~/processed/patents/locationid_urbanareas.csv
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 2018-08-25 Generating on the 20180528 version of patents data
