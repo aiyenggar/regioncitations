@@ -15,7 +15,7 @@ awk -F"\t" '{$1="";$5="";$7="";print}' uspatentcitation.tsv  > processed.uspaten
 # cat processed.location.tsv bad.location.tsv > location.tsv
 # cat processed.rawinventor.tsv bad.rawinventor.tsv > rawinventor.tsv
 # cat processed.rawlocation.tsv bad.rawlocation.tsv > rawlocation.tsv
-# cat processed.patent.tsv bad.patent.tsv > n.patent.tsv
+# There are about 6 lines in patent.tsv that have an unmatched ". In order to retain the order, use hexfiend to search for the specific patents in bad.patent.tsv and remove the problematic " from patent.tsv directly
 # the n.patent.tsv file will need post processing (below) after concatenation
 #awk -F"\t" '{$6=""; print}' $DATADIR/n.patent.tsv > $DATADIR/patent.tsv
 # n.patent.tsv which is the cleanedup version of the original can be moved to original
