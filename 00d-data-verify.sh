@@ -2,7 +2,7 @@
 CURDIR=$PWD
 DATADIR=$HOME/data/20180528-patentsview
 
-FILES="application assignee location rawlocation rawinventor rawassignee patent_inventor patent_assignee nber uspc_current patent uspatentcitation"
+FILES="application assignee location nber patent_assignee patent_inventor patent rawassignee rawinventor rawlocation uspatentcitation uspc_current"
 cd $DATADIR
 for file in $FILES
 do

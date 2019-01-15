@@ -56,14 +56,9 @@ save patent_inventor.dta, replace
 import delimited `datadir'patent.tsv, varnames(1) encoding(UTF-8) clear
 rename id patent_id
 sort patent_id
+save patentwithabstract.dta, replace
+drop abstract
 save patent.dta, replace
-
-/* Temporary - Delete later */
-set more off
-local datadir ~/data/20180528-patentsview/
-local destdir ~/processed/patents/
-cd `destdir'
-/* Delete till here */
 
 import delimited `datadir'rawassignee.tsv, varnames(1) encoding(UTF-8) clear
 drop  if patent_id=="" & assignee_id==""
@@ -81,6 +76,8 @@ compress city
 save rawlocation.dta, replace
 
 import delimited `datadir'uspatentcitation.tsv, varnames(1) encoding(UTF-8) clear
+save uspatentcitationfull.dta, replace
+drop uuid name country
 save uspatentcitation.dta, replace
 
 use `destdir'uspatentcitation.dta

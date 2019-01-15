@@ -1,24 +1,2 @@
 # 20180528-patentsview clean up steps
-DATADIR=$HOME/data/20180528-patentsview
-FILES="location.tsv patent.tsv rawlocation.tsv rawinventor.tsv"
-
-for file in $FILES
-do
-  awk -F\" 'NF % 2 == 0' $DATADIR/$file > $DATADIR/bad.$file
-done
-
-awk -F"\t" '{$1="";$5="";$7="";print}' uspatentcitation.tsv  > processed.uspatentcitation.tsv
-
-# I open each of the bad.$file manually and run :1,$s/"//g
-# then concatenate the processed.$file and bad.$file into $file after backing up $file into original folder
-
-# cat processed.location.tsv bad.location.tsv > location.tsv
-# cat processed.rawinventor.tsv bad.rawinventor.tsv > rawinventor.tsv
-# cat processed.rawlocation.tsv bad.rawlocation.tsv > rawlocation.tsv
-# There are about 6 lines in patent.tsv that have an unmatched ". In order to retain the order, use hexfiend to search for the specific patents in bad.patent.tsv and remove the problematic " from patent.tsv directly
-# the n.patent.tsv file will need post processing (below) after concatenation
-#awk -F"\t" '{$6=""; print}' $DATADIR/n.patent.tsv > $DATADIR/patent.tsv
-# n.patent.tsv which is the cleanedup version of the original can be moved to original
-
-# Important
-# About a 100 lines in location.tsv have matched quotes but they mess up with the lat long. So run :1,$s/"//g on location.tsv
+location.tsv patent.tsv rawlocation.tsv rawinventor.tsv uspatentcitation.tsv have lines with unmatched quotes. Look up bad.file generated in the earlier step, and manually correct for the unmatched double quotes, "", as well as misplaced tab spaces in the six patent.tsv entries - all using Hex Fiend
