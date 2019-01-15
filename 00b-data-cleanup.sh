@@ -2,11 +2,9 @@
 DATADIR=$HOME/data/20180528-patentsview
 FILES="location.tsv patent.tsv rawlocation.tsv rawinventor.tsv"
 
-
 for file in $FILES
 do
   awk -F\" 'NF % 2 == 0' $DATADIR/$file > $DATADIR/bad.$file
-  awk -F\" 'NF % 2 != 0' $DATADIR/$file > $DATADIR/processed.$file
 done
 
 awk -F"\t" '{$1="";$5="";$7="";print}' uspatentcitation.tsv  > processed.uspatentcitation.tsv
