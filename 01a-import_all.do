@@ -58,6 +58,13 @@ rename id patent_id
 sort patent_id
 save patent.dta, replace
 
+/* Temporary - Delete later */
+set more off
+local datadir ~/data/20180528-patentsview/
+local destdir ~/processed/patents/
+cd `destdir'
+/* Delete till here */
+
 import delimited `datadir'rawassignee.tsv, varnames(1) encoding(UTF-8) clear
 drop  if patent_id=="" & assignee_id==""
 save rawassignee.dta, replace
