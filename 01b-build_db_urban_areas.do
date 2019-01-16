@@ -9,7 +9,7 @@ rename state state_rawloc
 rename country country_rawloc
 rename latlong latlong_rawloc
 sort location_id
-merge m:1 location_id using `destdir'locationid_urban_areas.dta
+merge m:1 location_id using `destdir'locationid_urbanareas.dta
 
 rename name_conve region
 rename max_pop_al pop

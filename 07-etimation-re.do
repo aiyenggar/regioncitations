@@ -1,5 +1,5 @@
-local destdir /Users/aiyenggar/datafiles/patents/
-local reportdir /Users/aiyenggar/code/articles/qepaper/
+local destdir /Users/aiyenggar/processed/patents/
+local reportdir /Users/aiyenggar/code/articles/clusters201901/
 cd `reportdir'
 use `destdir'a.e.o.t.n.patents_by_urbanareas.dta, clear
 eststo clear
@@ -53,8 +53,8 @@ esttab model1 model2 model3 model19 model20 model21 using `reportdir're.a.e.o.t.
 		
 		
 // Examiner citations only
-local destdir /Users/aiyenggar/datafiles/patents/
-local reportdir /Users/aiyenggar/code/articles/qepaper/
+local destdir /Users/aiyenggar/processed/patents/
+local reportdir /Users/aiyenggar/code/articles/clusters201901/
 cd `reportdir'
 use `destdir'e.patents_by_urbanareas.dta, clear
 eststo clear
@@ -108,8 +108,8 @@ esttab model1 model2 model3 model19 model20 model21 using `reportdir're.e.model1
 		
 		
 // Applicant citations only
-local destdir /Users/aiyenggar/datafiles/patents/
-local reportdir /Users/aiyenggar/code/articles/qepaper/
+local destdir /Users/aiyenggar/processed/patents/
+local reportdir /Users/aiyenggar/code/articles/clusters201901/
 cd `reportdir'
 use `destdir'a.patents_by_urbanareas.dta, clear
 eststo clear
@@ -163,8 +163,8 @@ esttab model1 model2 model3 model19 model20 model21 using `reportdir're.a.model1
 		
 		
 // Other citations only
-local destdir /Users/aiyenggar/datafiles/patents/
-local reportdir /Users/aiyenggar/code/articles/qepaper/
+local destdir /Users/aiyenggar/processed/patents/
+local reportdir /Users/aiyenggar/code/articles/clusters201901/
 cd `reportdir'
 use `destdir'o.patents_by_urbanareas.dta, clear
 eststo clear

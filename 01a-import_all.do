@@ -5,7 +5,7 @@ cd `destdir'
 
 /*
  Number of lines in each of the input files (for later comparison with .dta file)
-  128948 locationid_urbanareas.tsv
+  129759 locationid_urbanareas.tsv
  6647700 application.tsv
   389247 assignee.tsv
   128948 location.tsv
@@ -22,11 +22,11 @@ cd `destdir'
 
 // Import the locationid urban_areas mapping generated through the QGIS spatial join
 import delimited `destdir'locationid_urbanareas.csv, varnames(1) encoding(UTF-8) clear
-rename id location_id
-replace city = subinstr(city, `"""',  "", .)
-replace city = substr(city, 1, 32)
-compress city
+rename location_i location_id
 drop x y
+rename name_conve urban_center
+rename max_pop_al population
+rename max_areakm areakm
 sort location_id
 save locationid_urbanareas.dta, replace
 
@@ -67,13 +67,6 @@ save rawassignee.dta, replace
 import delimited `datadir'rawinventor.tsv, varnames(1) encoding(UTF-8) clear
 sort patent_id sequence
 save rawinventor.dta, replace
-
-import delimited `datadir'rawlocation.tsv, varnames(1) encoding(UTF-8) clear
-sort id
-replace city = subinstr(city, `"""',  "", .)
-replace city = substr(city, 1, 32)
-compress city
-save rawlocation.dta, replace
 
 import delimited `datadir'uspatentcitation.tsv, varnames(1) encoding(UTF-8) clear
 save uspatentcitationfull.dta, replace

@@ -1,7 +1,7 @@
 cap log close
 
 set more off
-local destdir /Users/aiyenggar/datafiles/patents/
+local destdir /Users/aiyenggar/processed/patents/
 cd `destdir'
 log using knowledge-flows.log, append
 
@@ -149,3 +149,33 @@ saveold `destdir'a.patents_by_urbanareas_stata12.dta, replace version(12)
 export delimited using `destdir'a.patents_by_urbanareas.csv, replace
 
 log close
+
+
+/*
+---- begin statacode ----
+   clear
+   cd "/Users/Stata/ProjectX/"
+   local filelist: dir "." files "*.dta", respectcase
+   local num=0
+   local appendlist
+   /* work on every file and temp-save it */
+   foreach file of local filelist {
+       use "`file'"
+       tempfile file`++num'
+       display as text in smcl  "working on file number {it:`num'}..."
+       /* you could also -do- an external do-file here; note that this
+do file should not -use- or -save- anything, this already happened!
+       collapse <...>
+       */
+       display as text in smcl  "... finished working on file number
+{it:`num'}"
+       save `file`num''
+   }
+   /* concatenate files */
+   forvalues filenum=1/`num' {
+       if `filenum'==1 use `file`filenum''
+       else local appendlist: list appendlist | file`filenum'
+   }
+   append using `appendlist'
+---- end statacode ----
+*/
