@@ -24,7 +24,7 @@ cd `destdir'
 import delimited `destdir'locationid_urbanareas.csv, varnames(1) encoding(UTF-8) clear
 rename location_i location_id
 drop x y
-rename name_conve urban_center
+rename name_conve urban_area
 rename max_pop_al population
 rename max_areakm areakm
 sort location_id
