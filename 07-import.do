@@ -32,6 +32,7 @@ save locationid_urbanareas.dta, replace
 
 // Import cleaned/raw files from patentsview
 import delimited `datadir'application.tsv, varnames(1) encoding(UTF-8) clear
+sort patent_id
 save application.dta, replace
 
 import delimited `datadir'assignee.tsv, varnames(1) encoding(UTF-8) clear

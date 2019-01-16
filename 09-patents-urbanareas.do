@@ -3,7 +3,7 @@ log using knowledge-flows.log, append
 set more off
 local destdir ~/processed/patents/
 
-use `destdir'rawinventor_urban_areas.dta, clear
+use `destdir'rawinventor_urbanareas.dta, clear
 
 sort region
 egen iregion = group(region)
@@ -17,7 +17,8 @@ bysort patent_id: egen defined_regions = sum(rflag)
 
 sort patent_id iregion
 bysort patent_id iregion: gen patent_region_index=_n
-/* Keep only entry per patent region (this may not be so because of multiple inventors from the same location on the same patent) */
+/* Keep only entry per patent region (this may not be so because of 
+multiple inventors from the same location on the same patent) */
 keep if patent_region_index == 1
 drop inventor_id patent_region_index
 
