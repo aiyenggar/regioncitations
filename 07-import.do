@@ -44,6 +44,7 @@ import delimited `datadir'location.tsv, varnames(1) encoding(UTF-8) clear
 save location.dta, replace
 
 import delimited `datadir'nber.tsv, varnames(1) encoding(UTF-8) clear
+sort patent_id
 save `destdir'nber.dta, replace
 
 import delimited `datadir'patent_assignee.tsv, varnames(1) encoding(UTF-8) clear
