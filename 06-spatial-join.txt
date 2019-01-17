@@ -4,18 +4,18 @@ Download http://www.naturalearthdata.com/http//www.naturalearthdata.com/download
 
 Open QGIS
 Layer - Add Layer - Add Delimited Text Layer
-~/processed/patents/locationid_spatialjoin.csv Let the X: Longitude and Y: Latitude be as default. Set CRS to WGS84 EPSG:4326
-129759 lines in file including header
-129758 lines loaded
+~/processed/patents/spatialjoin.csv Let the X: Longitude and Y: Latitude be as default. Set CRS to WGS84 EPSG:4326
+127783 lines in file including header
+127782 lines loaded
 
 Layer - Add Layer - Add Vector Layer and point it to ne_10m_urban_areas_landscan.shp for the Dataset and click Open. This has 6018 regions.
 Delete all but three  fields: name_conve, max_pop_al, min_areakm. Save the file in the gis folder as date-urbanareas.shp. Now remove the ne_10m_urban_areas_landscan.shp and load date-urbanareas.shp which has only the three fields we are interested in.
 
 Vector -> Data Management Tools -> Join Attributes by Location
-Target vector layer : location
+Target vector layer : spatialjoin
 Join vector layer: ne_10m_urban_areas_landscan
 Geometric Predicate (intersects)
-Precision - Leave at 0
+Precision - Leave at 0.00000
 Attribute Summary - Take attributes of the first located feature
 Statistics for summary - Delete all (and leave blank)
 Joined table - Keep all records (including non-matching target records)
@@ -23,7 +23,7 @@ Output shapefile: /Users/aiyenggar/data/gis/20180528-4.0.0-ne_10m_urban_areas_la
 
 Started at 2019-01-13 22:13. Finished at 2019-01-13 23:08. This typically takes one hour.
 
-Open the attribute table, select all. Now go back to the map, right click on the layer and save as -> Format: Comma Separated Value [CSV] and save as /Users/aiyenggar/processed/patents/locationid_urbanareas.csv
+Open the attribute table, select all. Now go back to the map, right click on the layer and save as -> Format: Comma Separated Value [CSV] and save as /Users/aiyenggar/processed/patents/latlong_urbanarea.csv
 
 
 

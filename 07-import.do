@@ -5,7 +5,7 @@ cd `destdir'
 
 /*
  Number of lines in each of the input files (for later comparison with .dta file)
-  129759 locationid_urbanareas.tsv
+  127783 latlong_urbanareas.tsv
  6647700 application.tsv
   389247 assignee.tsv
   128948 location.tsv
@@ -15,29 +15,20 @@ cd `destdir'
  15752164 patent_inventor.tsv
  5903412 rawassignee.tsv
  15752111 rawinventor.tsv
- 24991550 rawlocation.tsv
+ 24991550 rawlocation.tsv (24,987,652 not missing latitude or longitude)
  94726691 uspatentcitation.tsv
  22880878 uspc_current.tsv
 */
 
-// Import the latlong urban_areas mapping generated through the QGIS spatial join
-import delimited `destdir'latlong_urbanareas.csv, varnames(1) encoding(UTF-8) clear
+// Import the latlong_urbanareas mapping generated through the QGIS spatial join
+import delimited `destdir'latlong_urbanarea.csv, varnames(1) encoding(UTF-8) clear
 drop x y
 rename name_conve urban_area
 rename max_pop_al population
 rename max_areakm areakm
-sort latlong1
-save latlong_urbanareas.dta, replace
+sort latlong
+save latlong_urbanarea.dta, replace
 
-// Import the locationid urban_areas mapping generated through the QGIS spatial join
-import delimited `destdir'locationid_urbanareas.csv, varnames(1) encoding(UTF-8) clear
-rename location_i location_id
-drop x y
-rename name_conve urban_area
-rename max_pop_al population
-rename max_areakm areakm
-sort location_id
-save locationid_urbanareas.dta, replace
 
 // Import cleaned/raw files from patentsview
 import delimited `datadir'application.tsv, varnames(1) encoding(UTF-8) clear
@@ -49,7 +40,6 @@ rename id assignee_id
 save assignee.dta, replace
 
 import delimited `datadir'location.tsv, varnames(1) encoding(UTF-8) clear
-//replace city = subinstr(city, `"""',  "", .)
 save location.dta, replace
 
 import delimited `datadir'nber.tsv, varnames(1) encoding(UTF-8) clear
@@ -72,7 +62,6 @@ drop abstract
 save patent.dta, replace
 
 import delimited `datadir'rawassignee.tsv, varnames(1) encoding(UTF-8) clear
-drop  if patent_id=="" & assignee_id==""
 save rawassignee.dta, replace
 
 import delimited `datadir'rawinventor.tsv, varnames(1) encoding(UTF-8) clear

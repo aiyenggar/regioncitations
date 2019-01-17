@@ -2,114 +2,74 @@ set more off
 local destdir ~/processed/patents/
 cd `destdir'
 
+
 use `destdir'rawlocation.dta, clear
-sort latlong1
-merge m:1 latlong1 using `destdir'latlong_urbanareas.dta, keep(match master) nogen
+sort latlong
+merge m:1 latlong using `destdir'latlong_urbanarea.dta, keep(match master) nogen
 order rawlocation_id urban_area latitude longitude
 sort rawlocation_id
-save `destdir'rawlocation_urbanareas.dta, replace
-export delimited using `destdir'rawlocation_urbanareas.csv, replace
+save `destdir'rawlocation_urbanarea.dta, replace
 
-
-/*
-use `destdir'rawlocation.dta, clear
-rename id rawlocation_id
-rename city city_rawloc
-rename state state_rawloc
-rename country country_rawloc
-rename latlong latlong_rawloc
-sort location_id
-merge m:1 location_id using `destdir'locationid_urbanareas.dta
-
-order rawlocation_id location_id urban_area city_rawloc state_rawloc country_rawloc latitude longitude
-drop _merge
-replace country_rawloc="JP" if country_rawloc=="JA"
-sort rawlocation_id
-save `destdir'rawlocation_urbanareas.dta, replace
-export delimited using `destdir'rawlocation_urbanareas.csv, replace
-*/
-
-/* 
-The following is not the best way to capture the country since this data 
-comes from rawlocation and there are observed instances of it being incorrect.
-This would be better done by bringing the country information 
-from the urban areas data
-
-
-use `destdir'rawlocation_urbanareas.dta, clear
-drop if missing(urban_area)
-keep urban_area country_rawloc
-bysort urban_area: keep if _n == 1
-keep urban_area country_rawloc 
-rename country_rawloc country2
-save urban_area.country2.dta, replace
-*/
 
 use `destdir'rawinventor.dta, clear
-sort rawlocation_id
-drop if missing(rawlocation_id) | rawlocation_id=="NULL" 
-/* 287 rows have an empty rawlocation_id and 1 row has rawlocation_id as NULL */
-/* 15,751,822 of the initial 15,752,110 remain */
-merge 1:1 rawlocation_id using `destdir'rawlocation_urbanareas.dta, keep(match master) nogen
-/* All entries are matched, leaving 15,751,822 matched entries */
-rename sequence inventorseq
+/* We start with 15,752,110 observations */
 merge m:1 patent_id using `destdir'application.dta, keep(match master) nogen
-/* All entries are matched, leaving 15,751,822 matched entries */
+/* 1 observatoin has patent_id as NULL leaving 15,752,109 matched entries */
+drop if patent_id=="NULL"
 gen appl_date = date(date,"YMD")
 gen year=year(appl_date)
 rename number application_id
-drop id series_code country uuid
-order year patent_id inventor_id urban_area 
-sort patent_id
-keep patent_id inventor_id urban_area year date latitude* longitude* latlong* 
-
-gen latitude01=round(latitude,.01)
-gen longitude01=round(longitude,.01)
-gen latlong01=string(latitude01)+","+string(longitude01)
-bysort latlong01: gen index01 = _n
-bysort latlong01: gen count01 = _N
+keep patent_id inventor_id rawlocation_id year sequence
+rename sequence inventorseq
+sort rawlocation_id
+drop if missing(rawlocation_id)
+/* 287 observations have an empty rawlocation_id  */
+/* 15,751,822 of the initial 15,752,109 remain */
+merge 1:1 rawlocation_id using `destdir'rawlocation_urbanarea.dta, keep(match master) nogen
+/* 3562 rawlocation_id go unmatched, leaving 15,748,260 matched entries */
+/* We retain all 15,751,822 observations including the unmatched */
+drop location_id latlong rawlocation_id
+gen latlong01=string(round(latitude,.01))+","+string(round(longitude,.01)) 
 bysort latlong01 (urban_area) : gen urban_area2 = urban_area[_N]
-
-drop latlong
-rename latlong1 latlong
-gen latitude1=round(latitude,.1)
-gen longitude1=round(longitude,.1)
-gen latlong1=string(latitude1)+","+string(longitude1)
-bysort latlong1: gen index1 = _n
-bysort latlong1: gen count1 = _N
+gen latlong1=string(round(latitude,.1))+","+string(round(longitude,.1))
 bysort latlong1 (urban_area2) : gen urban_area3 = urban_area2[_N]
+order year patent_id inventor_id urban_area* 
+sort patent_id
+save `destdir'patent_inventor_urbanarea.dta, replace
+export delimited using `destdir'patent_inventor_urbanarea.csv, replace
 
-save `destdir'rawinventor_urbanareas.dta, replace
-export delimited using `destdir'rawinventor_urbanareas.csv, replace
 
 use `destdir'rawassignee.dta, clear
 gen assignee = organization if !missing(organization)
 replace assignee = name_first + " " + name_last if missing(assignee)
+replace assignee = substr(assignee, 1, 48)
+compress assignee
 drop name_first name_last organization
 rename sequence assigneeseq
 rename type assigneetype
+drop uuid
 /* We start with 5,903,411 entries */
+merge m:1 patent_id using `destdir'application.dta, keep(match master) nogen
+/* All entries are matched, leaving 5,903,411 matched entries */
+gen appl_date = date(date,"YMD")
+gen year=year(appl_date)
+rename number application_id
+keep year patent_id assignee_id assignee assigneetype assigneeseq rawlocation_id
 sort rawlocation_id
 drop if missing(rawlocation_id) | rawlocation_id=="NULL"
 /* 7,707 rows have an empty rawlocation_id or rawlocation_id as NULL*/
 /* 5,895,704 of the initial 5,903,411 remain */
-merge 1:1 rawlocation_id using `destdir'rawlocation_urbanareas.dta, keep(match master) nogen
-/* All entries are matched, leaving 5,895,704 matched entries */
-drop uuid
-merge m:1 patent_id using `destdir'application.dta, keep(match master) nogen
-/* All entries are matched, leaving 5,895,704 matched entries */
-gen appl_date = date(date,"YMD")
-gen year=year(appl_date)
-rename number application_id
-drop id series_code country date 
-order year patent_id assignee_id urban_area assignee
+merge 1:1 rawlocation_id using `destdir'rawlocation_urbanarea.dta, keep(match master) nogen
+/* 335 entries are not matched, but all 5,895,704 entries are retained */
+drop rawlocation_id location_id latlong
+gen latlong01=string(round(latitude,.01))+","+string(round(longitude,.01)) 
+bysort latlong01 (urban_area) : gen urban_area2 = urban_area[_N]
+gen latlong1=string(round(latitude,.1))+","+string(round(longitude,.1))
+bysort latlong1 (urban_area2) : gen urban_area3 = urban_area2[_N]
+order year patent_id assignee_id urban_area*
 sort patent_id
-replace assignee = substr(assignee, 1, 48)
-compress assignee
-keep patent_id assignee_id urban_area country_rawloc year assigneetype assignee assigneeseq
-order patent_id assignee_id urban_area country_rawloc
-save `destdir'rawassignee_urbanareas.dta, replace
-export delimited using `destdir'rawassignee_urbanareas.csv, replace
+save `destdir'assignee_urbanarea.dta, replace
+export delimited using `destdir'assignee_urbanarea.csv, replace
 
 /* 
  tab assigneetype if year > 2000
@@ -162,25 +122,3 @@ assigneetyp |
 	  
 */
 
-
-// drop if missing(longitude) | missing(latitude)
-/*
-gen latitude001=round(latitude,.001)
-gen longitude001=round(longitude,.001)
-gen latitude01=round(latitude,.01)
-gen longitude01=round(longitude,.01)
-gen latitude1=round(latitude,.1)
-gen longitude1=round(longitude,.1)
-
-gen latlong001=string(latitude001)+","+string(longitude001)
-gen latlong01=string(latitude01)+","+string(longitude01)
-gen latlong1=string(latitude1)+","+string(longitude1)
-
-bysort latlong001: gen index001 = _n
-bysort latlong01: gen index01 = _n
-bysort latlong1: gen index1 = _n
-
-count if index1==1 /* 53325 */
-count if index01==1 /* 111106 */
-count if index001==1 /* 117367 */
-*/
