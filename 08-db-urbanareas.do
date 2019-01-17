@@ -62,9 +62,23 @@ drop id series_code country uuid
 order year patent_id inventor_id urban_area 
 sort patent_id
 keep patent_id inventor_id urban_area year date latitude* longitude* latlong* 
+
+gen latitude01=round(latitude,.01)
+gen longitude01=round(longitude,.01)
+gen latlong01=string(latitude01)+","+string(longitude01)
+bysort latlong01: gen index01 = _n
+bysort latlong01: gen count01 = _N
+bysort latlong01 (urban_area) : gen urban_area2 = urban_area[_N]
+
+drop latlong
+rename latlong1 latlong
+gen latitude1=round(latitude,.1)
+gen longitude1=round(longitude,.1)
+gen latlong1=string(latitude1)+","+string(longitude1)
 bysort latlong1: gen index1 = _n
 bysort latlong1: gen count1 = _N
-bysort latlong1 (urban_area) : gen urban_area2 = urban_area[_N]
+bysort latlong1 (urban_area2) : gen urban_area3 = urban_area2[_N]
+
 save `destdir'rawinventor_urbanareas.dta, replace
 export delimited using `destdir'rawinventor_urbanareas.csv, replace
 
