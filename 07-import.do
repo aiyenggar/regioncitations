@@ -20,6 +20,15 @@ cd `destdir'
  22880878 uspc_current.tsv
 */
 
+// Import the latlong urban_areas mapping generated through the QGIS spatial join
+import delimited `destdir'latlong_urbanareas.csv, varnames(1) encoding(UTF-8) clear
+drop x y
+rename name_conve urban_area
+rename max_pop_al population
+rename max_areakm areakm
+sort latlong1
+save latlong_urbanareas.dta, replace
+
 // Import the locationid urban_areas mapping generated through the QGIS spatial join
 import delimited `destdir'locationid_urbanareas.csv, varnames(1) encoding(UTF-8) clear
 rename location_i location_id

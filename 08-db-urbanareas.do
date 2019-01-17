@@ -3,6 +3,16 @@ local destdir ~/processed/patents/
 cd `destdir'
 
 use `destdir'rawlocation.dta, clear
+sort latlong1
+merge m:1 latlong1 using `destdir'latlong_urbanareas.dta, keep(match master) nogen
+order rawlocation_id urban_area latitude longitude
+sort rawlocation_id
+save `destdir'rawlocation_urbanareas.dta, replace
+export delimited using `destdir'rawlocation_urbanareas.csv, replace
+
+
+/*
+use `destdir'rawlocation.dta, clear
 rename id rawlocation_id
 rename city city_rawloc
 rename state state_rawloc
@@ -17,13 +27,14 @@ replace country_rawloc="JP" if country_rawloc=="JA"
 sort rawlocation_id
 save `destdir'rawlocation_urbanareas.dta, replace
 export delimited using `destdir'rawlocation_urbanareas.csv, replace
+*/
 
 /* 
 The following is not the best way to capture the country since this data 
 comes from rawlocation and there are observed instances of it being incorrect.
 This would be better done by bringing the country information 
 from the urban areas data
-*/
+
 
 use `destdir'rawlocation_urbanareas.dta, clear
 drop if missing(urban_area)
@@ -32,6 +43,7 @@ bysort urban_area: keep if _n == 1
 keep urban_area country_rawloc 
 rename country_rawloc country2
 save urban_area.country2.dta, replace
+*/
 
 use `destdir'rawinventor.dta, clear
 sort rawlocation_id
@@ -47,10 +59,12 @@ gen appl_date = date(date,"YMD")
 gen year=year(appl_date)
 rename number application_id
 drop id series_code country uuid
-order year patent_id inventor_id urban_area country_rawloc 
+order year patent_id inventor_id urban_area 
 sort patent_id
-keep patent_id inventor_id urban_area country_rawloc year date latitude longitude city_rawloc location_id 
-order patent_id inventor_id urban_area country_rawloc year date latitude longitude city_rawloc location_id
+keep patent_id inventor_id urban_area year date latitude* longitude* latlong* 
+bysort latlong1: gen index1 = _n
+bysort latlong1: gen count1 = _N
+bysort latlong1 (urban_area) : gen urban_area2 = urban_area[_N]
 save `destdir'rawinventor_urbanareas.dta, replace
 export delimited using `destdir'rawinventor_urbanareas.csv, replace
 
@@ -134,3 +148,25 @@ assigneetyp |
 	  
 */
 
+
+// drop if missing(longitude) | missing(latitude)
+/*
+gen latitude001=round(latitude,.001)
+gen longitude001=round(longitude,.001)
+gen latitude01=round(latitude,.01)
+gen longitude01=round(longitude,.01)
+gen latitude1=round(latitude,.1)
+gen longitude1=round(longitude,.1)
+
+gen latlong001=string(latitude001)+","+string(longitude001)
+gen latlong01=string(latitude01)+","+string(longitude01)
+gen latlong1=string(latitude1)+","+string(longitude1)
+
+bysort latlong001: gen index001 = _n
+bysort latlong01: gen index01 = _n
+bysort latlong1: gen index1 = _n
+
+count if index1==1 /* 53325 */
+count if index01==1 /* 111106 */
+count if index001==1 /* 117367 */
+*/
