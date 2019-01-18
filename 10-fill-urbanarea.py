@@ -6,12 +6,6 @@ Created on Fri Jan 18 08:44:34 2019
 @author: aiyenggar
 """
 
-import sys
-import os
-from datetime import datetime
-import subprocess
-import csv
-import numpy as np
 import pandas as pd
 import geopy.distance
 
