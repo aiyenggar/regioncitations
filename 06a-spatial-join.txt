@@ -25,6 +25,8 @@ Started at 2019-01-13 22:13. Finished at 2019-01-13 23:08. This typically takes 
 
 Open the attribute table, select all. Now go back to the map, right click on the layer and save as -> Format: Comma Separated Value [CSV] and save as /Users/aiyenggar/processed/patents/latlong_urbanarea.csv
 
+Rename name_conve as urban_area, rename max_pop_al as population and rename max_areakm as areakm
+
 
 
 

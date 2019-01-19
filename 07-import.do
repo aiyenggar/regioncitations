@@ -20,15 +20,22 @@ cd `destdir'
  22880878 uspc_current.tsv
 */
 
-// Import the latlong_urbanareas mapping generated through the QGIS spatial join
-import delimited `destdir'latlong_urbanarea.csv, varnames(1) encoding(UTF-8) clear
-drop x y
-rename name_conve urban_area
-rename max_pop_al population
-rename max_areakm areakm
+/* Import the latlong to urbanarea mapping generated through the 
+QGIS spatial join and filling for nearby locations */
+import delimited `destdir'filled_urbanarea.csv, varnames(1) encoding(ISO-8859-1) clear
+gen urban_area2 = urban_area
+replace urban_area2 = near_urbanarea if missing(urban_area) & mindist < 60.01
+gen distance = mindist if missing(urban_area) & mindist < 60.01
+summ distance
+/*
+    Variable |        Obs        Mean    Std. Dev.       Min        Max
+-------------+---------------------------------------------------------
+    distance |     77,916    22.55609    14.29296        .09      60.01
+*/
+order urban_area urban_area2 distance latlong
+drop v1 latitude longitude mindist near_latlong near_urbanarea
 sort latlong
 save latlong_urbanarea.dta, replace
-
 
 // Import cleaned/raw files from patentsview
 import delimited `datadir'application.tsv, varnames(1) encoding(UTF-8) clear

@@ -32,25 +32,8 @@ for mindex, masterow in master.iterrows():
                 latlong_urbanarea.loc[nindex,'mindist'] = dist
                 latlong_urbanarea.loc[nindex,'near_latlong'] = masterow['latlong']
                 latlong_urbanarea.loc[nindex,'near_urbanarea'] = masterow['urban_area']
-    if (mindex%59 == 0):
-        print(str(mindex))
-        latlong_urbanarea.to_csv(file_filled_urbanarea)  
-latlong_urbanarea.to_csv(file_filled_urbanarea)
-
-'''   
-    for findex, fitrow in latlong_urbanarea.iterrows():
-        if (pd.isnull(fitrow['urban_area'])):
-            if ((fitrow['latitude'] - masterow['latitude']) > 0.4):
-                break
-            r=(fitrow['latitude'], fitrow['longitude'])
-            dist = round(geopy.distance.geodesic(l,r).km,2)
-            if (dist < fitrow['mindist']):
-                latlong_urbanarea.loc[findex,'mindist'] = dist
-                latlong_urbanarea.loc[findex,'near_latlong'] = masterow['latlong']
-                latlong_urbanarea.loc[findex,'near_urbanarea'] = masterow['urban_area']
-    if (mindex%59 == 0):
+    if (mindex%100 == 0):
         print(str(mindex))
         latlong_urbanarea.to_csv(file_filled_urbanarea)
 latlong_urbanarea.to_csv(file_filled_urbanarea)
-'''
 

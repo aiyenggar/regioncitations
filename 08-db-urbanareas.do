@@ -2,19 +2,17 @@ set more off
 local destdir ~/processed/patents/
 cd `destdir'
 
-
 use `destdir'rawlocation.dta, clear
 sort latlong
 merge m:1 latlong using `destdir'latlong_urbanarea.dta, keep(match master) nogen
-order rawlocation_id urban_area latitude longitude
+order rawlocation_id urban_area* distance latitude longitude
 sort rawlocation_id
 save `destdir'rawlocation_urbanarea.dta, replace
-
 
 use `destdir'rawinventor.dta, clear
 /* We start with 15,752,110 observations */
 merge m:1 patent_id using `destdir'application.dta, keep(match master) nogen
-/* 1 observatoin has patent_id as NULL leaving 15,752,109 matched entries */
+/* 1 observation has patent_id as NULL leaving 15,752,109 matched entries */
 drop if patent_id=="NULL"
 gen appl_date = date(date,"YMD")
 gen year=year(appl_date)
@@ -29,10 +27,12 @@ merge 1:1 rawlocation_id using `destdir'rawlocation_urbanarea.dta, keep(match ma
 /* 3562 rawlocation_id go unmatched, leaving 15,748,260 matched entries */
 /* We retain all 15,751,822 observations including the unmatched */
 drop location_id latlong rawlocation_id
+/*
 gen latlong01=string(round(latitude,.01))+","+string(round(longitude,.01)) 
 bysort latlong01 (urban_area) : gen urban_area2 = urban_area[_N]
 gen latlong1=string(round(latitude,.1))+","+string(round(longitude,.1))
 bysort latlong1 (urban_area2) : gen urban_area3 = urban_area2[_N]
+*/
 order year patent_id inventor_id urban_area* 
 sort patent_id
 save `destdir'patent_inventor_urbanarea.dta, replace
@@ -62,10 +62,12 @@ drop if missing(rawlocation_id) | rawlocation_id=="NULL"
 merge 1:1 rawlocation_id using `destdir'rawlocation_urbanarea.dta, keep(match master) nogen
 /* 335 entries are not matched, but all 5,895,704 entries are retained */
 drop rawlocation_id location_id latlong
+/*
 gen latlong01=string(round(latitude,.01))+","+string(round(longitude,.01)) 
 bysort latlong01 (urban_area) : gen urban_area2 = urban_area[_N]
 gen latlong1=string(round(latitude,.1))+","+string(round(longitude,.1))
 bysort latlong1 (urban_area2) : gen urban_area3 = urban_area2[_N]
+*/
 order year patent_id assignee_id urban_area*
 sort patent_id
 save `destdir'assignee_urbanarea.dta, replace
