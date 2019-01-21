@@ -2,6 +2,23 @@ set more off
 local destdir ~/processed/patents/
 cd `destdir'
 
+use `destdir'uspc_current.dta, clear
+/* We start with 22,880,877 observations, primarily because most 
+   patents have multiple class assignments. */
+keep if sequence == 0
+drop sequence
+/* 6,610,258 patents remain */
+sort mainclass_id
+rename mainclass_id class
+rename subclass_id subclass
+merge m:1 class using `destdir'nber_class_match.dta
+/* 5,108,545 of the 6,610,258 entries are matched */
+/* class 287 723 903 930 935 968 976 977 984 987 are found in no patents */
+keep if _merge == 1 | _merge == 3
+drop _merge
+sort patent_id
+save `destdir'patent_technology_classification.dta, replace
+
 use `destdir'rawlocation.dta, clear
 sort latlong
 merge m:1 latlong using `destdir'latlong_urbanarea.dta, keep(match master) nogen
@@ -70,8 +87,8 @@ bysort latlong1 (urban_area2) : gen urban_area3 = urban_area2[_N]
 */
 order year patent_id assignee_id urban_area*
 sort patent_id
-save `destdir'assignee_urbanarea.dta, replace
-export delimited using `destdir'assignee_urbanarea.csv, replace
+save `destdir'patent_assignee_urbanarea.dta, replace
+export delimited using `destdir'patent_assignee_urbanarea.csv, replace
 
 /* 
  tab assigneetype if year > 2000

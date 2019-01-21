@@ -110,3 +110,7 @@ restore
 keep if category == "NULL"
 save n.uspatentcitation.dta, replace
 export delimited using n.uspatentcitation.csv, replace
+
+import delimited `datadir'uspc_current.tsv, varnames(1) encoding(UTF-8) clear
+drop uuid
+save uspc_current.dta, replace
