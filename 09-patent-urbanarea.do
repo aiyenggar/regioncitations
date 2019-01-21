@@ -66,7 +66,6 @@ keep if patent_region_index == 1 | patent_city_index == 1
  We are now left with 9,170,120 observations */
 drop inventor_id inventorseq patent_region_index patent_city_index 
 save patent.urbanarea.dta, replace
-// Add any patent level information here
 
 merge m:1 patent_id using `destdir'patent_technology_classification.dta, keep(match master) nogen
 /* 55,657 observations are not matched and 9,114,463 are matched 

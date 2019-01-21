@@ -22,13 +22,14 @@ else:
 print(str(runVal))
 
 runPrefix = ['', 'a.', 'e.', 'o.', 't.', 'n.']
-pathPrefix = "/Users/aiyenggar/datafiles/patents/" 
+pathPrefix = "/Users/aiyenggar/processed/patents/" 
 
 # 0-patent_id, 1-inventor_id, 2-region, 3-country_loc, 4-year, 5-date, 6-latitude, 7-longitude, 8-city_rawloc, 9-location_id
-keysFile1=pathPrefix+"rawinventor_urbanareas.csv"
+# year,patent_id,inventor_id,urban_area,urban_area2,inventorseq,distance,latitude,longitude,city,state,country
+keysFile1=pathPrefix+"patent_inventor_urbanarea.csv"
 
 # 0-patent_id, 1-assignee_id 2-region, 3-country_loc
-keysFile2=pathPrefix+"rawassignee_urbanareas.csv"
+keysFile2=pathPrefix+"patent_assignee_urbanarea.csv"
 
 #0-country2, 1-country, 2-ipr_score
 keysFile3=pathPrefix+"country2.country.ipr_score.csv"
@@ -46,8 +47,8 @@ logFileName="log.csv"
 citationsFileName="citations.year.csv"
 geoFileName="geodistance.csv"
 
-pheader=list(["region","year","patent_count","pool_patent_count","cat1","cat2","cat3","cat4","cat5","cat6","cat7","subcat11","subcat12","subcat13","subcat14","subcat15","subcat19","subcat21","subcat22","subcat23","subcat24","subcat25","subcat31","subcat32","subcat33","subcat39","subcat41","subcat42","subcat43","subcat44","subcat45","subcat46","subcat49","subcat51","subcat52","subcat53","subcat54","subcat55","subcat59","subcat61","subcat62","subcat63","subcat64","subcat65","subcat66","subcat67","subcat68","subcat69","subcat70","dcat1","dcat2","dcat3","dcat4","dcat5","dcat6","dcat7","dsubcat11","dsubcat12","dsubcat13","dsubcat14","dsubcat15","dsubcat19","dsubcat21","dsubcat22","dsubcat23","dsubcat24","dsubcat25","dsubcat31","dsubcat32","dsubcat33","dsubcat39","dsubcat41","dsubcat42","dsubcat43","dsubcat44","dsubcat45","dsubcat46","dsubcat49","dsubcat51","dsubcat52","dsubcat53","dsubcat54","dsubcat55","dsubcat59","dsubcat61","dsubcat62","dsubcat63","dsubcat64","dsubcat65","dsubcat66","dsubcat67","dsubcat68","dsubcat69","dsubcat70"])
-patentsFile=pathPrefix+"urbanareas.year.csv"
+pheader=list(["urban_area2","year","patent_count","pool_patent_count","cat1","cat2","cat3","cat4","cat5","cat6","cat7","subcat11","subcat12","subcat13","subcat14","subcat15","subcat19","subcat21","subcat22","subcat23","subcat24","subcat25","subcat31","subcat32","subcat33","subcat39","subcat41","subcat42","subcat43","subcat44","subcat45","subcat46","subcat49","subcat51","subcat52","subcat53","subcat54","subcat55","subcat59","subcat61","subcat62","subcat63","subcat64","subcat65","subcat66","subcat67","subcat68","subcat69","subcat70","dcat1","dcat2","dcat3","dcat4","dcat5","dcat6","dcat7","dsubcat11","dsubcat12","dsubcat13","dsubcat14","dsubcat15","dsubcat19","dsubcat21","dsubcat22","dsubcat23","dsubcat24","dsubcat25","dsubcat31","dsubcat32","dsubcat33","dsubcat39","dsubcat41","dsubcat42","dsubcat43","dsubcat44","dsubcat45","dsubcat46","dsubcat49","dsubcat51","dsubcat52","dsubcat53","dsubcat54","dsubcat55","dsubcat59","dsubcat61","dsubcat62","dsubcat63","dsubcat64","dsubcat65","dsubcat66","dsubcat67","dsubcat68","dsubcat69","dsubcat70","mean_share_urban_area2","mean_invention_weight","mean_inventor_count","urban_area","distance","latitude","longitude","dup_patent_count","country","city","state","index_urbanarea2","patent_region_count","inventor_count","ua2_patentinventor_total","share_urban_area2","latlong1","icity","city_year_count","patent_city_count","geo_count","geo_strength","class","subclass","nber_cat","nber_subcat","rate12","pool_dup_patent_count","yrank","poolyrank","patent_count_year","running_patent_count","running_ratio"])
+patentsFile=pathPrefix+"urbanarea.year.csv"
     
 outputheader=["year", "region", "patents", "pool", "cit_made_total", "cit_made_localinternal", "cit_made_localexternal", "cit_made_nonlocalinternal", "cit_made_nonlocalexternal", "cit_made_other", "cit_made_local", "cit_made_internal", "cit_made_region_cnt", "cit_made_distance_cnt", "cit_recd_total", "cit_recd_self", "cit_recd_nonself"]
 outputFileName="citations.urbanareas.year.csv"
