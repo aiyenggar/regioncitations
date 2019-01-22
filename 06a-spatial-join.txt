@@ -1,3 +1,6 @@
+2019-01-22 Moved over to ArcGIS
+ArcGIS allows a one-to-many spatial join. We use that on the join between ~/processed/patents/spatialjoin.csv (to be converted to .shp) and ne_10m_urban_areas_landscan to generate one-many-latlong-urbanarea.shp and eventually one-many-latlong-urbanarea.csv
+
 2019-01-11 Consolidated instructions (Windows and Mac)
 
 Download http://www.naturalearthdata.com/http//www.naturalearthdata.com/download/10m/cultural/ne_10m_urban_areas_landscan.zip and from within it pulled out those with ne_10m_urban_areas_landscan and put them in ~/data/4.0.0-urban-areas

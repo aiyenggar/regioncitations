@@ -14,6 +14,9 @@ rename subclass_id subclass
 merge m:1 class using `destdir'nber_class_match.dta
 /* 5,108,545 of the 6,610,258 entries are matched */
 /* class 287 723 903 930 935 968 976 977 984 987 are found in no patents */
+/* Provide a new catergory (8) and subcategory (81) for all design patents */
+replace cat=8 if (strpos(class,"D")==1 & strpos(subclass,"D")==1 & missing(cat))
+replace subcat=81 if (strpos(class,"D")==1 & strpos(subclass,"D")==1 & missing(subcat))
 keep if _merge == 1 | _merge == 3
 drop _merge
 sort patent_id
@@ -22,7 +25,7 @@ save `destdir'patent_technology_classification.dta, replace
 use `destdir'rawlocation.dta, clear
 sort latlong
 merge m:1 latlong using `destdir'latlong_urbanarea.dta, keep(match master) nogen
-order rawlocation_id urban_area* distance latitude longitude
+order rawlocation_id urban_area* latitude longitude
 sort rawlocation_id
 save `destdir'rawlocation_urbanarea.dta, replace
 
