@@ -10,16 +10,10 @@ local filename `now'-citation-`year_start'-`year_end'
 export delimited using `filename'.csv, replace
 
 use `destdir'patent_inventor_urbanarea.dta, clear
-keep if year >= `year_start' & year <= `year_end'
-tab year
 sort year patent_id
-local filename `now'-inventor-`year_start'-`year_end'
-export delimited `filename'.csv, replace
+export delimited `now'-inventor.csv, replace
 
 use `destdir'patent_assignee_urbanarea.dta, clear
-keep if year >= `year_start' & year <= `year_end'
-tab year
 sort year patent_id
-local filename `now'-assignee-`year_start'-`year_end'
-export delimited `filename'.csv, replace
+export delimited `now'-assignee.csv, replace
 
