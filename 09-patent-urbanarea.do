@@ -3,6 +3,9 @@ log using "/Users/aiyenggar/Google Drive/log/knowledge-flows.log", append
 set more off
 local destdir ~/processed/patents/
 
+/* Do this analysis over three loops. ua1 as urban_area, 
+  ua1+ua2 as urban_area, and ua1+ua2+ua3 as urban_area */
+
 use `destdir'patent_inventor_urbanarea.dta, clear
 /* We start with 15,751,822 entries */
 sort urban_area
@@ -93,7 +96,7 @@ foreach l of local subcatlev {
 }
 
 
-/* We dropp those observations missing urbanarea */
+/* We drop those observations missing urbanarea */
 drop if missing(index_urbanarea)
 /* Without the nber step, 3,462,342 observations deleted and 6,695,613 remain */
 bysort index_urbanarea year: gen patent_count=_N

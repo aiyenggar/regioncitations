@@ -60,13 +60,49 @@ save rawinventor.dta, replace
 
 import delimited `datadir'uspatentcitation.tsv, varnames(1) encoding(UTF-8) clear
 save uspatentcitationfull.dta, replace
+
+use uspatentcitationfull.dta
 drop uuid name country
 save uspatentcitation.dta, replace
 
-use `destdir'uspatentcitation.dta
-export delimited using uspatentcitation.csv, replace
+use uspatentcitation.dta
+egen citation_type=group(category)
+/* 
+group(categ |
+       ory) |      Freq.     Percent        Cum.
+------------+-----------------------------------
+NULL      1 | 21,863,086       23.08       23.08
+applicant 2 | 27,250,149       28.77       51.85
+examiner  3 | 20,169,593       21.29       73.14
+other     4 | 25,441,800       26.86      100.00
+third party5|      2,062        0.00      100.00
+------------+-----------------------------------
+      Total | 94,726,690      100.00
+*/
 
+drop category date
+sort patent_id
+merge m:1 patent_id using `destdir'application.dta, keep(match master) nogen
+
+gen application_date = date(date,"YMD") /* 185 missing */
+gen application_year=year(application_date) /* 185 missing */
+drop id series_code number country date
+order application_year patent_id citation_id citation_type sequence
+save citation.dta, replace
+/* Very interesting to note that the number of examiner citations has remained
+   static over several years while the number of applicant citations has shot up */
+   
+keep if application_year >= 2001
+save citation2001.dta, replace
+
+keep if citation_type == 2
+sort application_year patent_id
+save applicant_citation2001.dta, replace
+export delimited using applicant_citation2001.csv, replace
+
+use uspatentcitation.dta
 preserve
+
 keep if category == "cited by applicant"
 save a.uspatentcitation.dta, replace
 export delimited using a.uspatentcitation.csv, replace
