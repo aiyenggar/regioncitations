@@ -134,14 +134,15 @@ sreader = csv.reader(searchf)
 t1 = 0
 t2 = 0
 t3 = 0
+status_line = 0
 for citation in sreader:
     """ Timing """
     start = time.time()
     if sreader.line_num == 1:
         continue
     year = int(citation[0])
-    patent_id = citation[1]
-    citation_id = citation[2]
+    patent_id = citation[1].strip() # to remove leading and trailing spaces
+    citation_id = citation[2].strip() # to remove leading and trailing spaces
     type_citation = int(citation[3]) # 1 Null, 2 Applicant, 3 Examiner, 4 Other, 5 Third Party
     seq_citation = int(citation[4])
     kind_citation = citation[5] # B1, A etc
@@ -227,8 +228,9 @@ for citation in sreader:
     acc_fwd_cit = update(acc_fwd_cit, fc_dict, [0,0,0,0,0])
     acc_back_cit = update(acc_back_cit, bc_dict, [0,0,0,0,0])
 
-    if sreader.line_num%500000 == 0:
+    if sreader.line_num > status_line + 3500000:
         print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + " Total = " + str(sreader.line_num) + " InvErr = " + str(inventor_error_lines) + " AssErr = " + str(assignee_error_lines) + " t1 = " + str(round(t1,2)))
+        status_line = sreader.line_num
         dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
         dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
         dump(invErrorFileName, inventor_missing_dict, ["patent_id", "num_lines"], False)
