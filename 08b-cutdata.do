@@ -20,7 +20,6 @@ tostring ua, generate(ualist)
 bysort patent_id: replace ualist = ualist[_n-1] + "," + ualist if _n > 1
 bysort patent_id: keep if _n == _N
 drop inventor_id ua
-local now : display %tdCYND daily("$S_DATE", "DMY")
 save `now'-inventor.dta, replace
 
 use `destdir'patent_assignee_urbanarea.dta, clear
@@ -29,18 +28,17 @@ tostring assignee_numid, generate(assigneelist)
 bysort patent_id: replace assigneelist = assigneelist[_n-1] + "," + assigneelist if _n > 1
 bysort patent_id: keep if _n == _N
 drop assignee_numid assignee
-local now : display %tdCYND daily("$S_DATE", "DMY")
 save `now'-assignee.dta, replace
 
-local now : display %tdCYND daily("$S_DATE", "DMY")
 merge 1:1 patent_id using `now'-inventor.dta
-save `now'-patent_consolidated-all.dta
-
-keep if _merge==3
+save `now'-patent_consolidated-all.dta, replace
 drop _merge
 export delimited `now'-patent_list_location_assignee.csv, replace
 
-local now : display %tdCYND daily("$S_DATE", "DMY")
 use `now'-patent_consolidated-all.dta, clear
 drop if _merge==3
-save `now'-patent_missing.dta
+save `now'-patent_missing.dta, replace
+export delimited `now'-patent_missing.csv, replace
+
+/* We are missing assignee information for 941,175 patents (_merge==2) */
+/* We are missing inventor information for 594 patents (_merge==1) */

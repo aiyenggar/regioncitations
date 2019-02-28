@@ -17,11 +17,8 @@ from time import gmtime, strftime
 
 pathPrefix = "/Users/aiyenggar/processed/patents/"
 
-# year,patent_id,inventor_id,ua1,ua2,ua3,inventorseq,country,latlongid,latitude,longitude
-keysFile1=pathPrefix+"20190227-inventor.csv"
-
-# year,patent_id,assignee_numid,ua1,ua2,ua3,assigneetype,assigneeseq,assignee,country,latlongid,latitude,longitude
-keysFile2=pathPrefix+"20190227-assignee.csv"
+# patent_id,assigneelist,ualist
+keysFile1=pathPrefix+"20190228-patent_list_location_assignee.csv"
 
 # application_year,patent_id,citation_id,citation_type,sequence,kind,application_date
 searchFileName=pathPrefix+"20190227-citation-2001-2018.csv"
@@ -38,7 +35,8 @@ bc_outputheader=["ua", "year", "bq1", "bq2", "bq3", "bq4", "bq5"]
 fc_outputFileName=pathPrefix+"forward_citations.csv"
 bc_outputFileName=pathPrefix+"backward_citations.csv"
 
-errorFileName=pathPrefix+"error_patents.csv"
+invErrorFileName=pathPrefix+"inventor_error_patents.csv"
+assErrorFileName=pathPrefix+"assignee_error_patents.csv"
 
 def haversine(lon1, lat1, lon2, lat2):
     """
@@ -67,7 +65,7 @@ def dump(fName, dictionary, header, tolist):
             l = list(key)
             r = list(dictionary[key])
         else:
-            l = [str(key)]
+            l = [key]
             r = [str(dictionary[key])]
         mapwriter.writerow(l+r)
     mapf.close()
@@ -107,27 +105,28 @@ def update(master_dictionary, updates_dict, default):
         master_dictionary[keys] = master
     return master_dictionary
 
+def adderr(dic, key):
+    if key not in dic:
+        dic[key] = 1
+    else:
+        dic[key] += 1
+    return dic
+
 # read keysFile1
 print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + " Reading " + keysFile1)
-df_inventor = pd.read_csv(keysFile1, usecols = ['patent_id','inventor_id','ua1','ua2','ua3','latitude','longitude'], dtype={'patent_id':str,'inventor_id':str,'ua1':int,'ua2':int,'ua3':int,'latitude':float,'longitude':float})
-
-# read keysFile2
-print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + " Reading " + keysFile2)
-df_assignee = pd.read_csv(keysFile2, usecols = ['patent_id','assignee_numid', 'assigneeseq'], dtype={'patent_id':str,'assignee_numid':int, 'assigneeseq':int})
+inventor_dict = pd.read_csv(keysFile1, usecols = ['patent_id','ualist'], dtype={'patent_id':str,'ualist':str}, index_col='patent_id').to_dict()
+assignee_dict = pd.read_csv(keysFile1, usecols = ['patent_id','assigneelist'], dtype={'patent_id':str,'assigneelist':str}, index_col='patent_id').to_dict()
+print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + "Finished Reading " + keysFile1)
 
 # initialize hashtable
-conditions10 = [ df_inventor['ua1'] >= 0, df_inventor['ua2'] >= 0, df_inventor['ua3'] >= 0 ]
-choices10 = [ df_inventor['ua1'], df_inventor['ua2'], df_inventor['ua3'] ]
-df_inventor['ua'] = np.select(conditions10, choices10, default=-1)
-df_inventor['ualist'] = df_inventor['ua'].apply(lambda x: [x])
-df_inventor = df_inventor[['patent_id', 'ualist']]
-df_inventor = df_inventor.groupby('patent_id').agg({'ualist':'sum'})
-
 acc_fwd_cit = {}
 acc_back_cit = {}
 counter = 0
-error_lines = 0
-missing_dict = {}
+inventor_error_lines = 0
+assignee_error_lines = 0
+inventor_missing_dict = {}
+assignee_missing_dict = {}
+
 # loop through citations
 print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + " Starting with citations")
 searchf = open(searchFileName, 'r', encoding='utf-8')
@@ -136,6 +135,8 @@ t1 = 0
 t2 = 0
 t3 = 0
 for citation in sreader:
+    """ Timing """
+    start = time.time()
     if sreader.line_num == 1:
         continue
     year = int(citation[0])
@@ -143,57 +144,100 @@ for citation in sreader:
     citation_id = citation[2]
 
     try:
-        """ Timing """
-        start = time.time()
-        p_loc = pd.Series(df_inventor.loc[patent_id]['ua'])
-        end = time.time()
-        t1 += end - start
-
-        """ Timing """
-        start = time.time()
-        c_loc = pd.Series(df_inventor.loc[citation_id]['ua'])
-        end = time.time()
-        t2 += end - start
-
-        """ Timing """
-        start = time.time()
-        p_ass = pd.Series(df_assignee.loc[patent_id]['assignee_numid'])
-        c_ass = pd.Series(df_assignee.loc[citation_id]['assignee_numid'])
-        end = time.time()
-        t3 += end - start
-    except:
-        error_lines += 1
-        missingkey = str(sys.exc_info()[1]).split('[')[1].split(']')[0]
-        if missingkey not in missing_dict:
-            missing_dict[missingkey] = 1
+        tmplist = inventor_dict['ualist'][patent_id]
+        if tmplist != tmplist:
+            inventor_error_lines += 1
+            inventor_missing_dict = adderr(inventor_missing_dict, patent_id)
+            p_loc = ['-3']
         else:
-            missing_dict[missingkey] += 1
-        continue
+            p_loc = tmplist.split(',')
+    except KeyError:
+        inventor_error_lines += 1
+        inventor_missing_dict = adderr(inventor_missing_dict, str(sys.exc_info()[1]).split('\'')[1])
+        continue # Cannot go on
+    except:
+        print(str(sys.exc_info()[0]) + " PATENT -> " + str(sys.exc_info()[1]))
+        inventor_error_lines += 1
+        continue # Cannot go on
+
+    try:
+        tmplist = inventor_dict['ualist'][citation_id]
+        if tmplist != tmplist:
+            inventor_error_lines += 1
+            inventor_missing_dict = adderr(inventor_missing_dict, citation_id)
+            c_loc = ['-3']
+        else:
+            c_loc = tmplist.split(',')
+    except KeyError:
+        inventor_error_lines += 1
+        inventor_missing_dict = adderr(inventor_missing_dict, str(sys.exc_info()[1]).split('\'')[1])
+        continue # Cannot go on
+    except:
+        print(str(sys.exc_info()[0]) + " CITATION -> " + citation_id + " >> " + str(sys.exc_info()[1]))
+        inventor_error_lines += 1
+        continue # Cannot go on
+
+    try:
+        tmplist = assignee_dict['assigneelist'][patent_id]
+        if tmplist != tmplist:
+            assignee_error_lines += 1
+            assignee_missing_dict = adderr(assignee_missing_dict, patent_id)
+            p_ass = ['-3']
+        else:
+            p_ass = tmplist.split(',')
+    except:
+        print(str(sys.exc_info()[0]) + " PASS -> " + str(sys.exc_info()[1]))
+        assignee_error_lines += 1
+        assignee_missing_dict = adderr(assignee_missing_dict, str(sys.exc_info()[1]).split('\'')[1])
+        p_ass = ['-4']
+        # Go on, do not quit
+
+    try:
+        tmplist = assignee_dict['assigneelist'][citation_id]
+        if tmplist != tmplist:
+            assignee_error_lines += 1
+            assignee_missing_dict = adderr(assignee_missing_dict, citation_id)
+            c_ass = ['-3']
+        else:
+            c_ass = tmplist.split(',')
+    except:
+        print(str(sys.exc_info()[0]) + " CASS -> " + citation_id + " >> " + str(sys.exc_info()[1]))
+        assignee_error_lines += 1
+        assignee_missing_dict = adderr(assignee_missing_dict, str(sys.exc_info()[1]).split('\'')[1])
+        c_ass = ['-4']
+        # Go on, do not quit
+
     fc_dict = {}
     bc_dict = {}
 
-    for i1, iprow in p_loc.iteritems():
-        for i2, icrow in c_loc.iteritems():
-            for i3, aprow in p_ass.iteritems():
-                for i4, acrow in c_ass.iteritems():
-#                    print(patent_id + " ( " + str(aprow) + " ) " +  " : " + " ( " + str(iprow) + " ) -> " + citation_id + " ( " + str(acrow) + " ) " + " : " + " ( " + str(icrow) + " )")
-                    fc_dict = assign_flow(fc_dict, year, iprow, icrow, aprow, acrow)
-                    bc_dict = assign_flow(bc_dict, year, icrow, iprow, acrow, aprow)
+    for iprow in p_loc:
+        for icrow in c_loc:
+            for aprow in p_ass:
+                for acrow in c_ass:
+                    """
+                    if (int(aprow) < -1 or int(acrow) < -1 or int(iprow) < -1 or int(icrow) < -1):
+                        print(patent_id + " ( " + aprow + " ) " +  " : " + " ( " + iprow + " ) -> " + citation_id + " ( " + acrow + " ) " + " : " + " ( " + icrow + " )")
+                    """
+                    fc_dict = assign_flow(fc_dict, year, int(iprow), int(icrow), int(aprow), int(acrow))
+                    bc_dict = assign_flow(bc_dict, year, int(icrow), int(iprow), int(acrow), int(aprow))
 
     acc_fwd_cit = update(acc_fwd_cit, fc_dict, [0,0,0,0,0])
     acc_back_cit = update(acc_back_cit, bc_dict, [0,0,0,0,0])
 
-    if sreader.line_num%50 == 0:
-        print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + " lines read = " + str(sreader.line_num) + " error lines = " + str(error_lines) + " t1 = " + str(round(t1,2)) + ", t2 = " + str(round(t2,2)) + ", t3 = " + str(round(t3,2)))
+    if sreader.line_num%50000 == 0:
+        print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + " Total = " + str(sreader.line_num) + " InvErr = " + str(inventor_error_lines) + " AssErr = " + str(assignee_error_lines) + " t1 = " + str(round(t1,2)))
         dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
         dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
-        dump(errorFileName, missing_dict, ["patent_id", "num_lines"], False)
+        dump(invErrorFileName, inventor_missing_dict, ["patent_id", "num_lines"], False)
+        dump(assErrorFileName, assignee_missing_dict, ["patent_id", "num_lines"], False)
         counter += 1
-        if counter > 1:
+        if counter < 0:
             break
-
+    end = time.time()
+    t1 += end - start
 
 # dump final output
 dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
 dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
-dump(errorFileName, missing_dict, ["patent_id", "num_lines"], False)
+dump(invErrorFileName, inventor_missing_dict, ["patent_id", "num_lines"], False)
+dump(assErrorFileName, assignee_missing_dict, ["patent_id", "num_lines"], False)
