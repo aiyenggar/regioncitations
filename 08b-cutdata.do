@@ -1,4 +1,4 @@
-local year_start 2001
+local year_start 1976
 local year_end 2018
 local destdir ~/processed/patents/
 local now : display %tdCYND daily("$S_DATE", "DMY")

@@ -21,7 +21,7 @@ pathPrefix = "/Users/aiyenggar/processed/patents/"
 keysFile1=pathPrefix+"20190228-patent_list_location_assignee.csv"
 
 # application_year,patent_id,citation_id,citation_type,sequence,kind,application_date
-searchFileName=pathPrefix+"20190227-citation-2001-2018.csv"
+searchFileName=pathPrefix+"20190228-citation-1976-2018.csv"
 
 # Within Cluster, Within Firm: q1
 # Within Cluster, Outside Frim: q2
@@ -142,6 +142,9 @@ for citation in sreader:
     year = int(citation[0])
     patent_id = citation[1]
     citation_id = citation[2]
+    type_citation = int(citation[3]) # 1 Null, 2 Applicant, 3 Examiner, 4 Other, 5 Third Party
+    seq_citation = int(citation[4])
+    kind_citation = citation[5] # B1, A etc
 
     try:
         tmplist = inventor_dict['ualist'][patent_id]
@@ -224,7 +227,7 @@ for citation in sreader:
     acc_fwd_cit = update(acc_fwd_cit, fc_dict, [0,0,0,0,0])
     acc_back_cit = update(acc_back_cit, bc_dict, [0,0,0,0,0])
 
-    if sreader.line_num%50000 == 0:
+    if sreader.line_num%500000 == 0:
         print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + " Total = " + str(sreader.line_num) + " InvErr = " + str(inventor_error_lines) + " AssErr = " + str(assignee_error_lines) + " t1 = " + str(round(t1,2)))
         dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
         dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)

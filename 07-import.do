@@ -91,44 +91,6 @@ order application_year patent_id citation_id citation_type sequence
 save citation.dta, replace
 /* Very interesting to note that the number of examiner citations has remained
    static over several years while the number of applicant citations has shot up */
-   
-keep if application_year >= 2001
-save citation2001.dta, replace
-
-keep if citation_type == 2
-sort application_year patent_id
-save applicant_citation2001.dta, replace
-export delimited using applicant_citation2001.csv, replace
-
-use uspatentcitation.dta
-preserve
-
-keep if category == "cited by applicant"
-save a.uspatentcitation.dta, replace
-export delimited using a.uspatentcitation.csv, replace
-
-restore
-preserve
-keep if category == "cited by examiner"
-save e.uspatentcitation.dta, replace
-export delimited using e.uspatentcitation.csv, replace
-
-restore
-preserve
-keep if category == "cited by other"
-save o.uspatentcitation.dta, replace
-export delimited using o.uspatentcitation.csv, replace
-
-restore
-preserve
-keep if category == "cited by third party"
-save t.uspatentcitation.dta, replace
-export delimited using t.uspatentcitation.csv, replace
-
-restore
-keep if category == "NULL"
-save n.uspatentcitation.dta, replace
-export delimited using n.uspatentcitation.csv, replace
 
 import delimited `datadir'uspc_current.tsv, varnames(1) encoding(UTF-8) clear
 drop uuid

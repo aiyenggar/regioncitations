@@ -1,5 +1,3 @@
-cap log close
-log using "/Users/aiyenggar/Google Drive/log/knowledge-flows.log", append
 set more off
 local destdir ~/processed/patents/
 
@@ -128,23 +126,4 @@ gen running_ratio = running_patent_count / patent_count_year
 
 sort urban_area year pool_patent_count
 order urban_area year patent_count pool_patent_count cat* subcat* dcat* dsubcat* mean_*  latitude longitude
-
-save urbanarea.year.dta, replace
-export delimited using `destdir'urbanarea.year.csv, replace
-
-log close
-
-// br if (!missing(rate12) & rate12 >= 200.0)
-/*
-
-tsset index_urbanarea year, yearly
-gen mean12 = L11.patent_count + L10.patent_count + L9.patent_count + L8.patent_count + L7.patent_count + L6.patent_count + L5.patent_count + L4.patent_count + L3.patent_count + L2.patent_count + L1.patent_count + patent_count
-replace mean12=mean12/12
-
-
-gen sum5 = L5.patent_region_count + L4.patent_region_count + L3.patent_region_count + L2.patent_region_count + L1.patent_region_count
-gen rate3 = (patent_region_count*100)/sum3
-egen yrank3 = rank(-rate3), by(year)
-gen rate5 = (patent_region_count*100)/sum5
-egen yrank5 = rank(-rate5), by(year)
-*/
+save `destdir'ua_year_patents.dta, replace
