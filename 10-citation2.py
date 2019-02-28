@@ -5,12 +5,14 @@ Created on Wed Feb  27 05:48:51 2019
 """
 
 import csv
+import sys
 from datetime import datetime
 import math
 from math import radians, cos, sin, asin, sqrt
 import csv
 import numpy as np
 import pandas as pd
+import time
 from time import gmtime, strftime
 
 pathPrefix = "/Users/aiyenggar/processed/patents/"
@@ -36,6 +38,7 @@ bc_outputheader=["ua", "year", "bq1", "bq2", "bq3", "bq4", "bq5"]
 fc_outputFileName=pathPrefix+"forward_citations.csv"
 bc_outputFileName=pathPrefix+"backward_citations.csv"
 
+errorFileName=pathPrefix+"error_patents.csv"
 
 def haversine(lon1, lat1, lon2, lat2):
     """
@@ -55,13 +58,17 @@ def haversine(lon1, lat1, lon2, lat2):
     km = 6367 * c
     return km
 
-def dump(fName, dictionary, header):
+def dump(fName, dictionary, header, tolist):
     mapf = open(fName, 'w', encoding='utf-8')
     mapwriter = csv.writer(mapf)
     mapwriter.writerow(header)
     for key in dictionary:
-        l = list(key)
-        r = list(dictionary[key])
+        if tolist:
+            l = list(key)
+            r = list(dictionary[key])
+        else:
+            l = [str(key)]
+            r = [str(dictionary[key])]
         mapwriter.writerow(l+r)
     mapf.close()
     return
@@ -106,16 +113,28 @@ df_inventor = pd.read_csv(keysFile1, usecols = ['patent_id','inventor_id','ua1',
 
 # read keysFile2
 print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + " Reading " + keysFile2)
-df_assignee = pd.read_csv(keysFile2, usecols = ['patent_id','assignee_numid'], dtype={'patent_id':str,'assignee_numid':int})
+df_assignee = pd.read_csv(keysFile2, usecols = ['patent_id','assignee_numid', 'assigneeseq'], dtype={'patent_id':str,'assignee_numid':int, 'assigneeseq':int})
 
 # initialize hashtable
+conditions10 = [ df_inventor['ua1'] >= 0, df_inventor['ua2'] >= 0, df_inventor['ua3'] >= 0 ]
+choices10 = [ df_inventor['ua1'], df_inventor['ua2'], df_inventor['ua3'] ]
+df_inventor['ua'] = np.select(conditions10, choices10, default=-1)
+df_inventor['ualist'] = df_inventor['ua'].apply(lambda x: [x])
+df_inventor = df_inventor[['patent_id', 'ualist']]
+df_inventor = df_inventor.groupby('patent_id').agg({'ualist':'sum'})
+
 acc_fwd_cit = {}
 acc_back_cit = {}
 counter = 0
+error_lines = 0
+missing_dict = {}
 # loop through citations
 print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + " Starting with citations")
 searchf = open(searchFileName, 'r', encoding='utf-8')
 sreader = csv.reader(searchf)
+t1 = 0
+t2 = 0
+t3 = 0
 for citation in sreader:
     if sreader.line_num == 1:
         continue
@@ -123,43 +142,58 @@ for citation in sreader:
     patent_id = citation[1]
     citation_id = citation[2]
 
-    df_ip = df_inventor[df_inventor['patent_id']==patent_id]
-    df_ic = df_inventor[df_inventor['patent_id']==citation_id]
-    df_ap = df_assignee[df_assignee['patent_id']==patent_id]
-    df_ac = df_assignee[df_assignee['patent_id']==citation_id]
+    try:
+        """ Timing """
+        start = time.time()
+        p_loc = pd.Series(df_inventor.loc[patent_id]['ua'])
+        end = time.time()
+        t1 += end - start
 
+        """ Timing """
+        start = time.time()
+        c_loc = pd.Series(df_inventor.loc[citation_id]['ua'])
+        end = time.time()
+        t2 += end - start
+
+        """ Timing """
+        start = time.time()
+        p_ass = pd.Series(df_assignee.loc[patent_id]['assignee_numid'])
+        c_ass = pd.Series(df_assignee.loc[citation_id]['assignee_numid'])
+        end = time.time()
+        t3 += end - start
+    except:
+        error_lines += 1
+        missingkey = str(sys.exc_info()[1]).split('[')[1].split(']')[0]
+        if missingkey not in missing_dict:
+            missing_dict[missingkey] = 1
+        else:
+            missing_dict[missingkey] += 1
+        continue
     fc_dict = {}
     bc_dict = {}
-    for iprow in df_ip.itertuples():
-        for icrow in df_ic.itertuples():
-            for aprow in df_ap.itertuples():
-                for acrow in df_ac.itertuples():
-                    ip_loc = iprow[3]
-                    if ip_loc < 0:
-                        ip_loc = iprow[4]
-                        if ip_loc < 0:
-                            ip_loc = iprow[5]
 
-                    ic_loc = icrow[3]
-                    if ic_loc < 0:
-                        ic_loc = icrow[4]
-                        if ic_loc < 0:
-                            ic_loc = icrow[5]
-#                    print(patent_id + " ( " + str(aprow[2]) + " ) " +  " : " + iprow[2] + " ( " + str(ip_loc) + " ) -> " + citation_id + " ( " + str(acrow[2]) + " ) " + " : " + icrow[2] + " ( " + str(ic_loc) + " )")
-                    ap = aprow[2]
-                    ac = acrow[2]
-
-                    fc_dict = assign_flow(fc_dict, year, ip_loc, ic_loc, ap, ac)
-                    bc_dict = assign_flow(bc_dict, year, ic_loc, ip_loc, ac, ap)
+    for i1, iprow in p_loc.iteritems():
+        for i2, icrow in c_loc.iteritems():
+            for i3, aprow in p_ass.iteritems():
+                for i4, acrow in c_ass.iteritems():
+#                    print(patent_id + " ( " + str(aprow) + " ) " +  " : " + " ( " + str(iprow) + " ) -> " + citation_id + " ( " + str(acrow) + " ) " + " : " + " ( " + str(icrow) + " )")
+                    fc_dict = assign_flow(fc_dict, year, iprow, icrow, aprow, acrow)
+                    bc_dict = assign_flow(bc_dict, year, icrow, iprow, acrow, aprow)
 
     acc_fwd_cit = update(acc_fwd_cit, fc_dict, [0,0,0,0,0])
     acc_back_cit = update(acc_back_cit, bc_dict, [0,0,0,0,0])
 
     if sreader.line_num%50 == 0:
-        print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + " " + str(sreader.line_num) + " lines read")
-        dump(fc_outputFileName, acc_fwd_cit, fc_outputheader)
-        dump(bc_outputFileName, acc_back_cit, bc_outputheader)
+        print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + " lines read = " + str(sreader.line_num) + " error lines = " + str(error_lines) + " t1 = " + str(round(t1,2)) + ", t2 = " + str(round(t2,2)) + ", t3 = " + str(round(t3,2)))
+        dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
+        dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
+        dump(errorFileName, missing_dict, ["patent_id", "num_lines"], False)
+        counter += 1
+        if counter > 1:
+            break
+
 
 # dump final output
-dump(fc_outputFileName, acc_fwd_cit, fc_outputheader)
-dump(bc_outputFileName, acc_back_cit, bc_outputheader)
+dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
+dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
+dump(errorFileName, missing_dict, ["patent_id", "num_lines"], False)
