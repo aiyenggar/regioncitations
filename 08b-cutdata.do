@@ -9,14 +9,16 @@ sort application_year patent_id
 local filename `now'-citation-`year_start'-`year_end'
 export delimited using `filename'.csv, replace
 
+/* The urban area attribution strategy goes here, also used in 09-patent-urbanarea.do */
 use `destdir'patent_inventor_urbanarea.dta, clear
 gen ua = ua1 if ua1 >= 0
 replace ua = ua2 if missing(ua) & ua2 >= 0
 replace ua = ua3 if missing(ua) & ua3 >= 0
 replace ua = -1 if missing(ua)
+save `now'-patent.dta, replace
+
 keep patent_id inventor_id ua
 tostring ua, generate(ualist)
-
 bysort patent_id: replace ualist = ualist[_n-1] + "," + ualist if _n > 1
 bysort patent_id: keep if _n == _N
 drop inventor_id ua

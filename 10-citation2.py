@@ -113,10 +113,10 @@ def adderr(dic, key):
     return dic
 
 # read keysFile1
-print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + " Reading " + keysFile1)
+print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + " Start Reading " + keysFile1)
 inventor_dict = pd.read_csv(keysFile1, usecols = ['patent_id','ualist'], dtype={'patent_id':str,'ualist':str}, index_col='patent_id').to_dict()
 assignee_dict = pd.read_csv(keysFile1, usecols = ['patent_id','assigneelist'], dtype={'patent_id':str,'assigneelist':str}, index_col='patent_id').to_dict()
-print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + "Finished Reading " + keysFile1)
+print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + " Done Reading " + keysFile1)
 
 # initialize hashtable
 acc_fwd_cit = {}
@@ -128,7 +128,7 @@ inventor_missing_dict = {}
 assignee_missing_dict = {}
 
 # loop through citations
-print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + " Starting with citations")
+print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + " Processing Citations")
 searchf = open(searchFileName, 'r', encoding='utf-8')
 sreader = csv.reader(searchf)
 t1 = 0
@@ -228,8 +228,8 @@ for citation in sreader:
     acc_fwd_cit = update(acc_fwd_cit, fc_dict, [0,0,0,0,0])
     acc_back_cit = update(acc_back_cit, bc_dict, [0,0,0,0,0])
 
-    if sreader.line_num > status_line + 3500000:
-        print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + " Total = " + str(sreader.line_num) + " InvErr = " + str(inventor_error_lines) + " AssErr = " + str(assignee_error_lines) + " t1 = " + str(round(t1,2)))
+    if sreader.line_num >= status_line + 3500000:
+        print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + " Processed = " + str(sreader.line_num) + " InvErr = " + str(inventor_error_lines) + " AssErr = " + str(assignee_error_lines) + " t1 = " + str(round(t1,2)))
         status_line = sreader.line_num
         dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
         dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
@@ -246,3 +246,4 @@ dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
 dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
 dump(invErrorFileName, inventor_missing_dict, ["patent_id", "num_lines"], False)
 dump(assErrorFileName, assignee_missing_dict, ["patent_id", "num_lines"], False)
+/* 2019-02-28 21:42:18 Total = 91000027 InvErr = 16235262 AssErr = 17894175 t1 = 7272.67 */
