@@ -40,9 +40,10 @@ label variable lnpatents "Log (Number of Patents)"
 gen lnpool = ln(1 + pat_pool)
 label variable lnpool "Log (Patent Pool Size)"
 gen cit_made_total=fq1+fq2+fq3+fq4+fq5
-label variable cit_made_total "Total Citations Made"
+label variable cit_made_total "Total Citation Flows"
 gen lncit_made_total=ln(1 + cit_made_total)
-label variable lncit_made_total "Log (Total Citations Made)"
+label variable lncit_made_total "Log (Total Citation Flows)"
+
 
 /* Dependent Variables */
 gen cit_recd_total=bq1+bq2+bq3+bq4+bq5
@@ -74,5 +75,13 @@ foreach var of varlist cat* subcat* {
 
 order year urban_area uaid *recd* *made* lnpatents lnpool d1* d2* percent*
 local now : display %tdCYND daily("$S_DATE", "DMY")
-local model "M-01" /* M-01	GEOBOUND-NEAREST	DISTEST-OFF	FLOWCNT-ACCUMULATE	FLOWCAT-ALL */
+local model "M-03"
 save `destdir'`now'-`model'-urbanarea-year-estimation.dta
+
+/* 
+
+M-01	GEOBOUND-NEAREST	DISTEST-OFF	FLOWCNT-ACCUMULATE	FLOWCAT-ALL
+M-02	GEOBOUND-NEAREST	DISTEST-OFF	FLOWCNT-ACCUMULATE	FLOWCAT-ALL 1. Added Country 2. Collapsed Citations Received 3. Dropped other
+M-03	GEOBOUND-NEAREST	DISTEST-OFF	FLOWCNT-ACCUMULATE	FLOWCAT-ALL 1. Added Country 2. Collapsed Citations Received 
+
+*/

@@ -15,6 +15,8 @@ import pandas as pd
 import time
 from time import gmtime, strftime
 
+#backwardCitationsConfig="Expanded"
+backwardCitationsConfig="Pure-Collapsed"
 pathPrefix = "/Users/aiyenggar/processed/patents/"
 
 # patent_id,assigneelist,ualist
@@ -91,6 +93,22 @@ def assign_flow(dictionary, fo_year, focal_location, other_location, focal_assig
                     prior[3] += 1
                 else:
                     prior[2] += 1
+        dictionary[key] = prior
+    return dictionary
+
+def assign_flow2(dictionary, fo_year, focal_location, other_location): #flow within location is marked on quadrant 2, and flow outside location is marked on quadrant 3
+    if focal_location >= 0:
+        key = tuple([focal_location, fo_year])
+        prior = [0, 0, 0, 0, 0]
+        if key in dictionary:
+            prior = dictionary[key]
+        if (other_location < 0):
+            prior[4] = 1
+        else:
+            if focal_location == other_location:
+                prior[1] = 1
+            else:
+                prior[2] = 1
         dictionary[key] = prior
     return dictionary
 
@@ -223,10 +241,16 @@ for citation in sreader:
                         print(patent_id + " ( " + aprow + " ) " +  " : " + " ( " + iprow + " ) -> " + citation_id + " ( " + acrow + " ) " + " : " + " ( " + icrow + " )")
                     """
                     fc_dict = assign_flow(fc_dict, year, int(iprow), int(icrow), int(aprow), int(acrow))
-                    bc_dict = assign_flow(bc_dict, year, int(icrow), int(iprow), int(acrow), int(aprow))
+                    if (backwardCitationsConfig == "Expanded"): # count expanded citations received
+                        bc_dict = assign_flow(bc_dict, year, int(icrow), int(iprow), int(acrow), int(aprow))
+                    elif (backwardCitationsConfig == "Pure-Collapsed"): # count pure citations received
+                         bc_dict = assign_flow2(bc_dict, year, int(icrow), int(iprow))
+                    else:
+                        print("Undefined backwardCitationsConfig")
+                        exit()
 
     acc_fwd_cit = update(acc_fwd_cit, fc_dict, [0,0,0,0,0])
-    acc_back_cit = update(acc_back_cit, bc_dict, [0,0,0,0,0])
+    acc_back_cit = update(acc_back_cit, bc_dict, [0,0,0,0,0]) 
 
     if sreader.line_num >= status_line + 3500000:
         print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + " Processed = " + str(sreader.line_num) + " InvErr = " + str(inventor_error_lines) + " AssErr = " + str(assignee_error_lines) + " t1 = " + str(round(t1,2)))
@@ -246,4 +270,4 @@ dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
 dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
 dump(invErrorFileName, inventor_missing_dict, ["patent_id", "num_lines"], False)
 dump(assErrorFileName, assignee_missing_dict, ["patent_id", "num_lines"], False)
-/* 2019-02-28 21:42:18 Total = 91000027 InvErr = 16235262 AssErr = 17894175 t1 = 7272.67 */
+# 2019-02-28 21:42:18 Total = 91000027 InvErr = 16235262 AssErr = 17894175 t1 = 7272.67
