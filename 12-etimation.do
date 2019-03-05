@@ -1,7 +1,8 @@
 local destdir /Users/aiyenggar/processed/patents/
 local reportdir /Users/aiyenggar/code/articles/kf-results/
 
-use `destdir'20190304-M-03-urbanarea-year-estimation.dta, clear
+use `destdir'20190305-M-03-urbanarea-year-estimation.dta, clear
+keep if citation_type==100
 eststo clear
 xtset uaid year
 cd `reportdir'
@@ -13,7 +14,7 @@ local yearmax = 2013
 
 // DV is Total Citations Received
 local submodelprefix "Total"
-xtnbreg cit_recd_total  rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal   lncit_made_total lnpatents lnpool d`dyearstart'-d`yearmax' percentsubcat* if (year>=`yearmin' & year<=`yearmax'), i(uaid) fe
+xtnbreg cit_recd_total  rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_other lnpool d`dyearstart'-d`yearmax' percentsubcat* if (year>=`yearmin' & year<=`yearmax'), i(uaid) fe
 estadd local Groups `e(N_g)'
 estadd local Sample "All Locations"
 est store model1

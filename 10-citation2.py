@@ -32,8 +32,8 @@ searchFileName=pathPrefix+"20190228-citation-1976-2018.csv"
 # Not determinable: q5
 
 
-fc_outputheader=["ua", "year", "fq1", "fq2", "fq3", "fq4", "fq5"]
-bc_outputheader=["ua", "year", "bq1", "bq2", "bq3", "bq4", "bq5"]
+fc_outputheader=["uaid", "year", "citation_type", "fq1", "fq2", "fq3", "fq4", "fq5"]
+bc_outputheader=["uaid", "year", "citation_type", "bq1", "bq2", "bq3", "bq4", "bq5"]
 fc_outputFileName=pathPrefix+"forward_citations.csv"
 bc_outputFileName=pathPrefix+"backward_citations.csv"
 
@@ -73,9 +73,9 @@ def dump(fName, dictionary, header, tolist):
     mapf.close()
     return
 
-def assign_flow(dictionary, fo_year, focal_location, other_location, focal_assignee, other_assignee):
+def assign_flow(dictionary, fo_year, citationtype, focal_location, other_location, focal_assignee, other_assignee):
     if focal_location >= 0:
-        key = tuple([focal_location, fo_year])
+        key = tuple([focal_location, fo_year, citationtype])
         prior = [0, 0, 0, 0, 0]
         if key in dictionary:
             prior = dictionary[key]
@@ -96,19 +96,19 @@ def assign_flow(dictionary, fo_year, focal_location, other_location, focal_assig
         dictionary[key] = prior
     return dictionary
 
-def assign_flow2(dictionary, fo_year, focal_location, other_location): #flow within location is marked on quadrant 2, and flow outside location is marked on quadrant 3
+def assign_flow2(dictionary, fo_year, citationtype, focal_location, focal_assignee, other_assignee): #flow within assignee is marked on quadrant 1, and flow outside assignee is marked on quadrant 2
     if focal_location >= 0:
-        key = tuple([focal_location, fo_year])
+        key = tuple([focal_location, fo_year, citationtype])
         prior = [0, 0, 0, 0, 0]
         if key in dictionary:
             prior = dictionary[key]
-        if (other_location < 0):
-            prior[4] = 1
+        if (focal_assignee < 0 or other_assignee < 0):
+            prior[4] = 1 # quadrant 5
         else:
-            if focal_location == other_location:
-                prior[1] = 1
+            if focal_assignee == other_assignee:
+                prior[0] = 1 # quadrant 1
             else:
-                prior[2] = 1
+                prior[1] = 1 # quadrant 2
         dictionary[key] = prior
     return dictionary
 
@@ -232,19 +232,19 @@ for citation in sreader:
     fc_dict = {}
     bc_dict = {}
 
-    for iprow in p_loc:
-        for icrow in c_loc:
-            for aprow in p_ass:
-                for acrow in c_ass:
+    for patloc in p_loc:
+        for citloc in c_loc:
+            for patass in p_ass:
+                for citass in c_ass:
                     """
-                    if (int(aprow) < -1 or int(acrow) < -1 or int(iprow) < -1 or int(icrow) < -1):
-                        print(patent_id + " ( " + aprow + " ) " +  " : " + " ( " + iprow + " ) -> " + citation_id + " ( " + acrow + " ) " + " : " + " ( " + icrow + " )")
+                    if (int(patass) < -1 or int(citass) < -1 or int(patloc) < -1 or int(citloc) < -1):
+                        print(patent_id + " ( " + patass + " ) " +  " : " + " ( " + patloc + " ) -> " + citation_id + " ( " + citass + " ) " + " : " + " ( " + citloc + " )")
                     """
-                    fc_dict = assign_flow(fc_dict, year, int(iprow), int(icrow), int(aprow), int(acrow))
+                    fc_dict = assign_flow(fc_dict, year, type_citation, int(patloc), int(citloc), int(patass), int(citass))
                     if (backwardCitationsConfig == "Expanded"): # count expanded citations received
-                        bc_dict = assign_flow(bc_dict, year, int(icrow), int(iprow), int(acrow), int(aprow))
+                        bc_dict = assign_flow(bc_dict, year, type_citation, int(citloc), int(patloc), int(citass), int(patass))
                     elif (backwardCitationsConfig == "Pure-Collapsed"): # count pure citations received
-                         bc_dict = assign_flow2(bc_dict, year, int(icrow), int(iprow))
+                         bc_dict = assign_flow2(bc_dict, year, type_citation, int(citloc), int(citass), int(patass))
                     else:
                         print("Undefined backwardCitationsConfig")
                         exit()

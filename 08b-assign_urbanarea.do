@@ -1,13 +1,9 @@
-local year_start 1976
-local year_end 2018
 local destdir ~/processed/patents/
 local now : display %tdCYND daily("$S_DATE", "DMY")
 
 use `destdir'citation.dta, clear
-keep if application_year >= `year_start' & application_year <= `year_end'
 sort application_year patent_id
-local filename `now'-citation-`year_start'-`year_end'
-export delimited using `filename'.csv, replace
+export delimited using `now'-citation.csv, replace
 
 /* The urban area attribution strategy goes here, also used in 09-patent-urbanarea.do */
 use `destdir'patent_inventor_urbanarea.dta, clear
