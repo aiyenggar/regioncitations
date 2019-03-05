@@ -2,7 +2,7 @@ local destdir /Users/aiyenggar/processed/patents/
 local reportdir /Users/aiyenggar/code/articles/kf-results/
 
 use `destdir'20190305-M-03-urbanarea-year-estimation.dta, clear
-keep if citation_type==100
+keep if citation_type==100 & country=="US"
 eststo clear
 xtset uaid year
 cd `reportdir'
