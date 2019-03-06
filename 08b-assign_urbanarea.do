@@ -1,42 +1,42 @@
-local destdir ~/processed/patents/
-local now : display %tdCYND daily("$S_DATE", "DMY")
+global destdir ~/processed/patents/
+global date : display %tdCYND daily("$S_DATE", "DMY")
 
-use `destdir'citation.dta, clear
+use ${destdir}citation.dta, clear
 sort application_year patent_id
-export delimited using `now'-citation.csv, replace
+export delimited using ${date}-citation.csv, replace
 
-/* The urban area attribution strategy goes here, also used in 09-patent-urbanarea.do */
-use `destdir'patent_inventor_urbanarea.dta, clear
-gen ua = ua1 if ua1 >= 0
-replace ua = ua2 if missing(ua) & ua2 >= 0
-replace ua = ua3 if missing(ua) & ua3 >= 0
-replace ua = -1 if missing(ua)
-save `now'-patent.dta, replace
-
-keep patent_id inventor_id ua
-tostring ua, generate(ualist)
-bysort patent_id: replace ualist = ualist[_n-1] + "," + ualist if _n > 1
-bysort patent_id: keep if _n == _N
-drop inventor_id ua
-save `now'-inventor.dta, replace
-
-use `destdir'patent_assignee_urbanarea.dta, clear
+use ${destdir}patent_assignee_urbanarea.dta, clear
 keep patent_id assignee_numid assignee
 tostring assignee_numid, generate(assigneelist)
 bysort patent_id: replace assigneelist = assigneelist[_n-1] + "," + assigneelist if _n > 1
 bysort patent_id: keep if _n == _N
 drop assignee_numid assignee
-save `now'-assignee.dta, replace
+save ${date}-assignee.dta, replace
+	
+global uacut "ua1 ua2 ua3"
+foreach uastr in $uacut {
+	di "Beginning `uastr'"
+	/* The urban area attribution strategy goes here, also used in 09-patent-urbanarea.do */
+	use ${destdir}patent_inventor_urbanarea.dta, clear
+	gen uaid = `uastr'
+	save ${date}-`uastr'-patent.dta, replace
 
-merge 1:1 patent_id using `now'-inventor.dta
-save `now'-patent_consolidated-all.dta, replace
-drop _merge
-export delimited `now'-patent_list_location_assignee.csv, replace
+	keep patent_id inventor_id uaid latlongid
+	tostring uaid, generate(ualist)
+	bysort patent_id: replace ualist = ualist[_n-1] + "," + ualist if _n > 1
 
-use `now'-patent_consolidated-all.dta, clear
-drop if _merge==3
-save `now'-patent_missing.dta, replace
-export delimited `now'-patent_missing.csv, replace
+	tostring latlongid, generate(latlonglist)
+	bysort patent_id: replace latlonglist = latlonglist[_n-1] + "," + latlonglist if _n > 1
 
-/* We are missing assignee information for 941,175 patents (_merge==2) */
-/* We are missing inventor information for 594 patents (_merge==1) */
+	bysort patent_id: keep if _n == _N
+	drop inventor_id uaid latlongid
+	save ${date}-`uastr'-inventor.dta, replace
+
+	use ${date}-assignee.dta
+	merge 1:1 patent_id using ${date}-`uastr'-inventor.dta
+	drop _merge
+	export delimited ${date}-`uastr'-patent_list_location_assignee.csv, replace
+
+	/* We are missing assignee information for 941,175 patents (_merge==2) */
+	/* We are missing inventor information for 594 patents (_merge==1) */
+}

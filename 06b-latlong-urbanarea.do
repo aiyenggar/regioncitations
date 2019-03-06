@@ -1,5 +1,4 @@
 set more off
-local datadir ~/data/20180528-patentsview/
 local destdir ~/processed/patents/
 cd `destdir'
 
@@ -15,6 +14,7 @@ drop join_count
 save `destdir'one-many-latlong-urbanarea.dta, replace
 
 bysort uaid: keep if _n==1
+drop if uaid < 0
 keep urban_area population areakm uaid
 export delimited using `destdir'uaid.csv, replace
 save `destdir'uaid.dta, replace
@@ -31,6 +31,6 @@ bysort latlong: keep if _n==_N /* We map to the urbanarea largest in area */
 sort latlongid
 rename uaid ua1
 keep latlongid ua1 latitude longitude
-save `destdir'latlong_urbanarea_1.dta, replace
+save `destdir'latlong_urbanarea_1.dta, replace /* both the dta and the csv are used */
 export delimited using latlong_urbanarea_1.csv, replace
 

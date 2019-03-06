@@ -1,0 +1,8 @@
+path to patentsview files in 05-rawlocation.do
+many-to-one spatial join with largest area selection in 
+backwardCitationsConfig in 10-citation2.py
+
+
+30 Km Treshold:
+0.3 lat long box in 06c-fill-urban-area.py
+

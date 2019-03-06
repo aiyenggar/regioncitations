@@ -54,16 +54,12 @@ replace latlongid = -2 if _merge==1
 drop if _merge == 2 /* from using */
 /* We retain all 15,751,822 observations but set ua1, ua2, ua3 to -2 for the unmatched */
 drop  _merge rawlocation_id
-replace ua2 = -1 if missing(ua2)
-replace ua3 = -1 if missing(ua3)
-
 order year patent_id inventor_id ua* 
 sort patent_id
 save `destdir'patent_inventor_urbanarea.dta, replace
-
-/* Of 15,751,822 patent-inventor observations, 4,310,505 are missing ua1, and
-	2,032,338 are missing both ua1 and ua2 
-	1,317,142 are missing ua1, ua2 and ua3 */
+count if ua1 < 0 /* 4,314,067 of 15,751,822 */
+count if ua2 < 0 /* 2,035,898 of 15,751,822 */
+count if ua3 < 0 /* 1,320,707 of 15,751,822 */
 tab year if ua1 <= -1 & ua2 <= -1 & ua3 <= -1
 /*
 . tab year if ua1 <= -1 & ua2 <= -1 & ua3 <= -1
@@ -178,9 +174,7 @@ replace latlongid = -2 if _merge==1
 drop if _merge == 2 /* from using */
 drop _merge rawlocation_id
 egen assignee_numid = group(assignee_id) if strlen(assignee_id) > 0
-replace ua2 = -1 if missing(ua2)
-replace ua3 = -1 if missing(ua3)
-save `destdir'patent_assignee_urbanarea.dta, replace
+save `destdir'temp_patent_assignee_urbanarea.dta, replace
 
 bysort assignee_numid: gen patent_count=_N if !missing(assignee_numid)
 bysort assignee_numid: keep if _n == 1 | missing(assignee_numid)
@@ -188,17 +182,17 @@ gsort - patent_count
 keep assignee_numid assignee_id assignee country patent_count
 save `destdir'assignee_id.dta, replace
 
-use `destdir'patent_assignee_urbanarea.dta, clear
+use `destdir'temp_patent_assignee_urbanarea.dta, clear
 drop assignee_id /* assignee_numid will do the job for the comparisons */
 order year patent_id assignee_numid ua*
 sort patent_id
 replace assignee_numid = -1 if missing(assignee_numid)
 save `destdir'patent_assignee_urbanarea.dta, replace
+count if ua1 < 0 /* 1,169,210 of 5,895,704 */
+count if ua2 < 0 /* 566,024 of 5,895,704 */
+count if ua3 < 0 /* 418,176 of 5,895,704 */
 tab year if ua1 <= -1 & ua2 <= -1 & ua3 <= -1
 
-/* Of 5,895,704 patent-assignee observations, 1,168,875 are missing ua1, and
-	565,810 are missing both ua1 and ua2 
-	417,840 are missing ua1, ua2 and ua3 */
 /*
 . tab year if ua1 <= -1 & ua2 <= -1 & ua3 <= -1
 

@@ -19,6 +19,7 @@ from time import gmtime, strftime
 backwardCitationsConfig="Pure-Collapsed"
 pathPrefix = "/Users/aiyenggar/processed/patents/"
 
+# the below file needs to be augmented to include a list of latlongid, so whenever uaid is -1, one may fall back onto the latlongid to then calculate the actual distance
 # patent_id,assigneelist,ualist
 keysFile1=pathPrefix+"20190228-patent_list_location_assignee.csv"
 
@@ -250,7 +251,7 @@ for citation in sreader:
                         exit()
 
     acc_fwd_cit = update(acc_fwd_cit, fc_dict, [0,0,0,0,0])
-    acc_back_cit = update(acc_back_cit, bc_dict, [0,0,0,0,0]) 
+    acc_back_cit = update(acc_back_cit, bc_dict, [0,0,0,0,0])
 
     if sreader.line_num >= status_line + 3500000:
         print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + " Processed = " + str(sreader.line_num) + " InvErr = " + str(inventor_error_lines) + " AssErr = " + str(assignee_error_lines) + " t1 = " + str(round(t1,2)))

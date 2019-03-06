@@ -1,46 +1,42 @@
 set more off
-local datadir ~/data/20180528-patentsview/
 local destdir ~/processed/patents/
 cd `destdir'
 
 import delimited `destdir'latlong_urbanarea_2.csv, encoding(ISO-8859-1)clear
 keep if distance < 30.01
 bysort l_latlongid: gen near_points=_N
-rename r_latlongid latlongid
+rename r_latlongid latlongid /* this fields is known to be mapped on to an urban area */
 sort latlongid
-merge m:1 latlongid using latlong_urbanarea_1.dta
-keep if _merge==3
-drop _merge latitude longitude
+merge m:1 latlongid using latlong_urbanarea_1.dta, keep(match master) nogen
+drop latitude longitude
 
 by l_latlongid ua1, sort: gen nvals = _n == 1
 by l_latlongid: replace nvals = sum(nvals)
 by l_latlongid: replace nvals = nvals[_N]
 
-/* You could take a dump at this point for further analysis */
 sort l_latlongid distance
-by l_latlongid: gen index = _n
-keep if index == 1
+by l_latlongid: keep if _n == 1
+
 gen ua3 = ua1 if nvals > 1
 gen ua2 = ua1 if nvals == 1
-label var ua2 "ID of unique Urban Area within 30km"
-label var ua3 "ID of closest Urban Area within 30km"
+label var ua2 "UAID of unique urban area within 30km"
+label var ua3 "UAID of closest urban area within 30km"
 keep l_latlongid ua2 ua3
 order l_latlongid ua2 ua3
 rename l_latlongid latlongid
-
-export delimited using `destdir'nearby.csv, replace
 save `destdir'nearby.dta, replace
 
 use `destdir'latlong_urbanarea_1.dta, clear
+label var ua1 "urban area id of perfect match"
 merge 1:1 latlongid using nearby.dta, keep(match master) nogen
-
-save `destdir'latlong_urbanarea.dta, replace
+order latlongid latitude longitude ua1 ua2 ua3
+sort latlongid
+replace ua2 = ua1 if missing(ua2)
+label var ua2 "UAID of perfect match or of unique urban area within 30km"
+replace ua3 = ua2 if missing(ua3)
+label var ua3 "UAID of perfect match or of closest urban area within 30km"
+save `destdir'latlong_urbanarea.dta, replace /* both dta and csv are used. csv during processing of citations */
 export delimited using latlong_urbanarea.csv, replace
-
-/* 
-	32580 of 127782 fall within ua1. 
-	40568 fall within ua2 (being within 30km from exactly 1 urban area)
-	51910 lie within 30km from 1 or more urban areas, 11342 of which are within
-		30km of more than 1 urban area
-	Total of 73148 locations (ua1 and ua2)
-*/
+count if ua1 != -1 /* 32580 of 127782 */
+count if ua2 != -1 /* 73149 of 127782 */
+count if ua3 != -1 /* 84490 of 127782 */
