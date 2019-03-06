@@ -61,6 +61,10 @@ merge m:1 ua year using `destdir'ua_year_patents.dta, keep(match master) nogen
 rename ua uaid
 order year urban_area uaid pat_cnt pat_pool inv_cnt avg_ua_share fq* 
 
+label variable cit_recd_total "Total Citations Received"
+label variable cit_recd_self "Self Citations Received"
+label variable cit_recd_nonself "Non-self Citations Received"
+
 /* Generating variables that will be used in the estimation */
 
 gen lnpatents = ln(pat_cnt)
