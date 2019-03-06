@@ -17,14 +17,17 @@ from time import gmtime, strftime
 
 #backwardCitationsConfig="Expanded"
 backwardCitationsConfig="Pure-Collapsed"
+fileDatePrefix="20190306"
+urbanareaConfig="ua1"
+calculateCitationDistance=True
+outputPrefix = fileDatePrefix + "-" + urbanareaConfig + "-" + "CalcDist-" + str(calculateCitationDistance)
 pathPrefix = "/Users/aiyenggar/processed/patents/"
 
 # the below file needs to be augmented to include a list of latlongid, so whenever uaid is -1, one may fall back onto the latlongid to then calculate the actual distance
 # patent_id,assigneelist,ualist
-keysFile1=pathPrefix+"20190228-patent_list_location_assignee.csv"
-
+keysFile1=pathPrefix + fileDatePrefix + "-" + urbanareaConfig + "-" + "-patent_list_location_assignee.csv"
 # application_year,patent_id,citation_id,citation_type,sequence,kind,application_date
-searchFileName=pathPrefix+"20190228-citation-1976-2018.csv"
+searchFileName=pathPrefix + fileDatePrefix + "-citation.csv"
 
 # Within Cluster, Within Firm: q1
 # Within Cluster, Outside Frim: q2
@@ -32,14 +35,13 @@ searchFileName=pathPrefix+"20190228-citation-1976-2018.csv"
 # Outside Cluster, Within Firm: q4
 # Not determinable: q5
 
-
 fc_outputheader=["uaid", "year", "citation_type", "fq1", "fq2", "fq3", "fq4", "fq5"]
 bc_outputheader=["uaid", "year", "citation_type", "bq1", "bq2", "bq3", "bq4", "bq5"]
-fc_outputFileName=pathPrefix+"forward_citations.csv"
-bc_outputFileName=pathPrefix+"backward_citations.csv"
+fc_outputFileName=pathPrefix + outputPrefix + "-forward_citations.csv"
+bc_outputFileName=pathPrefix + outputPrefix + "-backward_citations.csv"
 
-invErrorFileName=pathPrefix+"inventor_error_patents.csv"
-assErrorFileName=pathPrefix+"assignee_error_patents.csv"
+invErrorFileName=pathPrefix + outputPrefix + "-errinv.csv"
+assErrorFileName=pathPrefix + outputPrefix + "-errass.csv"
 
 def haversine(lon1, lat1, lon2, lat2):
     """
