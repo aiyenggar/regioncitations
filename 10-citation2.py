@@ -21,6 +21,7 @@ distanceTreshold=30.01
 degreeTreshold=0.3 # to set the bounding box based on latitude and longitude
 outputPrefix = fileDatePrefix + "-" + urbanareaConfig + "-" + "CalcDist" + str(calculateCitationDistance)
 pathPrefix = "/Users/aiyenggar/processed/patents/"
+validLargest = sys.maxsize
 
 attributeErrorValue=['-2']
 keyErrorValue=['-3']
@@ -47,24 +48,6 @@ bc_outputFileName=pathPrefix + outputPrefix + "-backward_citations.csv"
 invErrorFileName=pathPrefix + outputPrefix + "-ErrInv.csv"
 assErrorFileName=pathPrefix + outputPrefix + "-ErrAss.csv"
 
-def haversine(lon1, lat1, lon2, lat2):
-    """
-    Calculate the great circle distance between two points
-    on the earth (specified in decimal degrees)
-    """
-    try:
-        # convert decimal degrees to radians
-        lon1, lat1, lon2, lat2 = map(radians, [float(lon1), float(lat1), float(lon2), float(lat2)])
-    except ValueError:
-        return 63670
-    # haversine formula
-    dlon = lon2 - lon1
-    dlat = lat2 - lat1
-    a = sin(dlat/2)**2 + cos(lat1) * cos(lat2) * sin(dlon/2)**2
-    c = 2 * asin(sqrt(a))
-    km = 6367 * c
-    return km
-
 def dump(fName, dictionary, header, tolist):
     mapf = open(fName, 'w', encoding='utf-8')
     mapwriter = csv.writer(mapf)
@@ -80,8 +63,8 @@ def dump(fName, dictionary, header, tolist):
     mapf.close()
     return
 
-def assign_flow(dictionary, fo_year, citationtype, focal_location, other_location, focal_assignee, other_assignee):
-    if focal_location >= 0:
+def assign_flow(dictionary, fo_year, citationtype, focal_location, other_location, focal_assignee, other_assignee, avoid):
+    if (focal_location >= 0) and (focal_location != avoid):
         key = tuple([focal_location, fo_year, citationtype])
         prior = [0, 0, 0, 0, 0]
         if key in dictionary:
@@ -103,8 +86,8 @@ def assign_flow(dictionary, fo_year, citationtype, focal_location, other_locatio
         dictionary[key] = prior
     return dictionary
 
-def assign_flow2(dictionary, fo_year, citationtype, focal_location, focal_assignee, other_assignee): #flow within assignee is marked on quadrant 1, and flow outside assignee is marked on quadrant 2
-    if focal_location >= 0:
+def assign_flow2(dictionary, fo_year, citationtype, focal_location, focal_assignee, other_assignee, avoid): #flow within assignee is marked on quadrant 1, and flow outside assignee is marked on quadrant 2
+    if (focal_location >= 0) and (focal_location != avoid):
         key = tuple([focal_location, fo_year, citationtype])
         prior = [0, 0, 0, 0, 0]
         if key in dictionary:
@@ -198,11 +181,14 @@ exp_citation4 = 0 # Number of expanded citations where patent inventor location,
 exp_citation5 = 0 # Number of expanded citations that qualify for distance calculation intervention
 exp_citation6 = 0 # Number of expanded citations where distance is obtained from the hash table
 exp_citation7 = 0 # Number of expanded citations where distance calculation was forced
-exp_citation8 = 0 # Number of expanded citations where the bounding box avoided the need for distance calculation
-exp_citation9 = 0 # Number of expanded citations where calculating distance assigns citation as local
-exp_citation10 = 0 # Number of expanded citations where calculating distance assigns citation as non-local
-exp_citation11 = 0 # Number of expanded citations where calculating distance was not possible or where doing so was simply unnecesary
-exp_citation12 = 0 # Number of expanded citations where forward citations were processed
+exp_citation8a = 0 # Number of expanded citations where the bounding box avoided the need for distance calculation, but outside the treshold is determined without knowledge of exact distance
+exp_citation8b = 0 # Number of expanded citations where either the latlong of atleast one side is unavailable, and therefore distance is not calculated
+exp_citation9a = 0 # Number of expanded citations where calculating distance assigns citation as local (change made to patent location)
+exp_citation9b = 0 # Number of expanded citations where calculating distance assigns citation as local (change made to citation location)
+exp_citation10a = 0 # Number of expanded citations where calculating distance assigns citation as non-local (change made to patent location)
+exp_citation10b = 0 # Number of expanded citations where calculating distance assigns citation as non-local (change made to citation location)
+exp_citation11 = 0 # Number of expanded citations where distance was not calculated despite being set to be calculated
+exp_citation12 = 0 # Number of expanded citations where calculateCitationDistance is true but where exactly one location is not undefined, so distance calculations cannot be used
 
 for citation in sreader:
     """ Timing """
@@ -314,51 +300,66 @@ for citation in sreader:
 
                     #print(patent_id + " ( " + str(patass) + " ) " +  " : " + " ( " + str(patloc) + " ) -> " + citation_id + " ( " + str(citass) + " ) " + " : " + " ( " + str(citloc) + " )")
 
-                    if ((calculateCitationDistance == True) and (patloc >= 0) and (citloc < 0)): # this is when intervention is possible
-                        exp_citation5 += 1
-                        patllid = int(p_latlongid[pind])
-                        citllid = int(c_latlongid[cind])
-                        dist = sys.maxsize
-                        if (patllid >= 0) and (citllid >= 0):
-                            if tuple([patllid,citllid]) in distances_dict['distance']:
-                                exp_citation6 += 1
-                                dist = distances_dict['distance'][tuple([patllid, citllid])]
-                            elif tuple([citllid,patllid]) in distances_dict['distance']:
-                                exp_citation6 += 1
-                                dist = distances_dict['distance'][tuple([citllid, patllid])]
+                    if (calculateCitationDistance == True): # this is when intervention is possible
+                        if ((patloc >= 0) and (citloc < 0)) or ((patloc < 0) and (citloc >= 0)):
+                            if patloc < 0:
+                                ch = 0
                             else:
-                                # We do not expect surprises since negative llid's are already if'd out
-                                l_lat = latlong_dict['latitude'][patllid]
-                                l_long = latlong_dict['longitude'][patllid]
-                                r_lat = latlong_dict['latitude'][citllid]
-                                r_long = latlong_dict['longitude'][citllid]
-                                if (l_lat < r_lat + degreeTreshold) and (l_lat > r_lat - degreeTreshold) and (l_long < r_long + degreeTreshold) and (l_long > r_long - degreeTreshold):
-                                    exp_citation7 += 1
-                                    #dist = haversine(l_lat, l_long, r_lat, r_long)
-                                    dist = round(geopy.distance.geodesic((l_lat, l_long),(r_lat, r_long)).km,2)
-                                    distances_dict['distance'][tuple([patllid,citllid])] = dist
+                                ch = 1
+                            exp_citation5 += 1
+                            patllid = int(p_latlongid[pind])
+                            citllid = int(c_latlongid[cind])
+                            dist = validLargest
+                            if (patllid >= 0) and (citllid >= 0):
+                                if tuple([patllid,citllid]) in distances_dict['distance']:
+                                    exp_citation6 += 1
+                                    dist = distances_dict['distance'][tuple([patllid, citllid])]
+                                elif tuple([citllid,patllid]) in distances_dict['distance']:
+                                    exp_citation6 += 1
+                                    dist = distances_dict['distance'][tuple([citllid, patllid])]
                                 else:
-                                    exp_citation8 += 1
-
-                        if dist < sys.maxsize:
-                            if dist < distanceTreshold:
-                                exp_citation9 += 1
-                                assumedcitloc = patloc
+                                    # We do not expect surprises since negative llid's are already if'd out
+                                    l_lat = latlong_dict['latitude'][patllid]
+                                    l_long = latlong_dict['longitude'][patllid]
+                                    r_lat = latlong_dict['latitude'][citllid]
+                                    r_long = latlong_dict['longitude'][citllid]
+                                    if (l_lat < r_lat + degreeTreshold) and (l_lat > r_lat - degreeTreshold) and (l_long < r_long + degreeTreshold) and (l_long > r_long - degreeTreshold):
+                                        exp_citation7 += 1
+                                        #dist = haversine(l_lat, l_long, r_lat, r_long)
+                                        dist = round(geopy.distance.geodesic((l_lat, l_long),(r_lat, r_long)).km,2)
+                                        distances_dict['distance'][tuple([patllid,citllid])] = dist
+                                    else:
+                                        exp_citation8a += 1
+                                        dist = distanceTreshold * 2 # just some value larger than the threshold, but not as high as validLargest. To indicate non local.
                             else:
-                                exp_citation10 += 1
-                                assumedcitloc = sys.maxsize # something that is different from patloc but not any other loc either
-                            fc_dict = assign_flow(fc_dict, year, type_citation, patloc, assumedcitloc, patass, citass)
-                        else: # We could not (lat long not available) or did not (obviously too far) calculate distance
-                            exp_citation11 += 1
-                            fc_dict = assign_flow(fc_dict, year, type_citation, patloc, citloc, patass, citass)
-                    else: # no distance calculation
-                        exp_citation12 += 1
-                        fc_dict = assign_flow(fc_dict, year, type_citation, patloc, citloc, patass, citass)
+                                exp_citation8b += 1
+
+                            if dist < validLargest:
+                                if dist < distanceTreshold:
+                                    if ch == 0:
+                                        exp_citation9a += 1
+                                        patloc = citloc
+                                    elif ch == 1:
+                                        exp_citation9b += 1
+                                        citloc = patloc
+                                else:
+                                    if ch == 0:
+                                        exp_citation10a += 1
+                                        patloc = validLargest # something that is different from citloc but not any other loc either
+                                    elif ch == 1:
+                                        exp_citation10b += 1
+                                        citloc = validLargest # something that is different from patloc but not any other loc either
+                            else:
+                                exp_citation11 += 1 # distance was not set, same as exp_citation8b
+                        else:
+                            exp_citation12 += 1
+
+                    fc_dict = assign_flow(fc_dict, year, type_citation, patloc, citloc, patass, citass, validLargest)
 
                     if (backwardCitationsConfig == "Expanded"): # count expanded citations received
-                        bc_dict = assign_flow(bc_dict, year, type_citation, citloc, patloc, citass, patass)
+                        bc_dict = assign_flow(bc_dict, year, type_citation, citloc, patloc, citass, patass, validLargest)
                     elif (backwardCitationsConfig == "Pure-Collapsed"): # count pure citations received
-                         bc_dict = assign_flow2(bc_dict, year, type_citation, citloc, citass, patass)
+                         bc_dict = assign_flow2(bc_dict, year, type_citation, citloc, citass, patass, validLargest)
                     else:
                         print("Undefined backwardCitationsConfig")
                         exit()
@@ -367,7 +368,7 @@ for citation in sreader:
     acc_back_cit = update(acc_back_cit, bc_dict, [0,0,0,0,0])
 
     if sreader.line_num >= status_line + 375000:
-        print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1a, raw_citation1b, raw_citation1c, raw_citation2a, raw_citation2b, raw_citation2c, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4, exp_citation12]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8, exp_citation9, exp_citation10, exp_citation11]) + " t1 = " + str(round(t1,2)))
+        print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1a, raw_citation1b, raw_citation1c, raw_citation2a, raw_citation2b, raw_citation2c, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8a, exp_citation8b, exp_citation9a, exp_citation9b, exp_citation10a, exp_citation10b, exp_citation11, exp_citation12]) + " t1 = " + str(round(t1,2)))
         status_line = sreader.line_num
         dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
         dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
@@ -380,7 +381,7 @@ for citation in sreader:
     t1 += end - start
 
 # dump final output
-print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1a, raw_citation1b, raw_citation1c, raw_citation2a, raw_citation2b, raw_citation2c, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4, exp_citation12]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8, exp_citation9, exp_citation10, exp_citation11]) + " t1 = " + str(round(t1,2)))
+print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1a, raw_citation1b, raw_citation1c, raw_citation2a, raw_citation2b, raw_citation2c, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8a, exp_citation8b, exp_citation9a, exp_citation9b, exp_citation10a, exp_citation10b, exp_citation11, exp_citation12]) + " t1 = " + str(round(t1,2)))
 dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
 dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
 dump(invErrorFileName, inventor_missing_dict, ["patent_id", "error", "num_lines"], False)
