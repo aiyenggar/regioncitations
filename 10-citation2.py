@@ -147,14 +147,25 @@ print(time.strftime("%Y-%m-%d %H:%M:%S") + " Reading Inventor Latlong")
 inv_latlongid_dict = pd.read_csv(keysFile1, usecols = ['patent_id','latlonglist'], dtype={'patent_id':str,'latlonglist':str}, index_col='patent_id').to_dict()
 if calculateCitationDistance:
     print(time.strftime("%Y-%m-%d %H:%M:%S") + " Reading Pre-calculated Distances")
-    distances_dict = pd.read_csv(distancesFile, usecols = ['l_latlongid','r_latlongid','distance'], dtype={'l_latlongid':int,'r_latlongid':int,'distance':float}, index_col=['l_latlongid', 'r_latlongid']).to_dict()
+#    distances_dict = pd.read_csv(distancesFile, usecols = ['l_latlongid','r_latlongid','distance'], dtype={'l_latlongid':int,'r_latlongid':int,'distance':float}, index_col=['l_latlongid', 'r_latlongid']).to_dict()
+    dist_df = pd.read_csv(distancesFile, usecols = ['l_latlongid','r_latlongid','distance'], dtype={'l_latlongid':int,'r_latlongid':int,'distance':float})
+    dist_df.sort_values(by=['l_latlongid','r_latlongid'], inplace=True)
+    dist_df['lr']=list(zip(dist_df.l_latlongid, dist_df.r_latlongid))
+    dist_df.drop(columns=['l_latlongid','r_latlongid'], inplace=True)
+    dist_df.set_index('lr', inplace=True)
+    distances_dict = dist_df.to_dict()
     print(time.strftime("%Y-%m-%d %H:%M:%S") + " Reading Latlongid to Latitude, Longitude Mapping")
+
     latlong_dict = pd.read_csv(latlongFile, usecols = ['latlongid','latitude','longitude'], dtype={'latlongid':int,'latitude':float,'longitude':float}, index_col='latlongid').to_dict()
     # also read the other two files
 else:
     distances_dict = None
     latlong_dict = None
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Done Reading ")
+
+# force calculation of all distances
+#distances_dict = {}
+#distances_dict['distance'] = {}
 
 # initialize hashtable
 acc_fwd_cit = {}
@@ -191,6 +202,7 @@ exp_citation8 = 0 # Number of expanded citations where the bounding box avoided 
 exp_citation9 = 0 # Number of expanded citations where calculating distance assigns citation as local
 exp_citation10 = 0 # Number of expanded citations where calculating distance assigns citation as non-local
 exp_citation11 = 0 # Number of expanded citations where calculating distance was not possible or where doing so was simply unnecesary
+exp_citation12 = 0 # Number of expanded citations where forward citations were processed
 
 for citation in sreader:
     """ Timing """
@@ -322,8 +334,8 @@ for citation in sreader:
                                 r_long = latlong_dict['longitude'][citllid]
                                 if (l_lat < r_lat + degreeTreshold) and (l_lat > r_lat - degreeTreshold) and (l_long < r_long + degreeTreshold) and (l_long > r_long - degreeTreshold):
                                     exp_citation7 += 1
-                                    dist = haversine(l_lat, l_long, r_lat, r_long)
-                                    #dist = round(geopy.distance.geodesic((l_lat, l_long),(r_lat, r_long)).km,2)
+                                    #dist = haversine(l_lat, l_long, r_lat, r_long)
+                                    dist = round(geopy.distance.geodesic((l_lat, l_long),(r_lat, r_long)).km,2)
                                     distances_dict['distance'][tuple([patllid,citllid])] = dist
                                 else:
                                     exp_citation8 += 1
@@ -340,6 +352,7 @@ for citation in sreader:
                             exp_citation11 += 1
                             fc_dict = assign_flow(fc_dict, year, type_citation, patloc, citloc, patass, citass)
                     else: # no distance calculation
+                        exp_citation12 += 1
                         fc_dict = assign_flow(fc_dict, year, type_citation, patloc, citloc, patass, citass)
 
                     if (backwardCitationsConfig == "Expanded"): # count expanded citations received
@@ -354,7 +367,7 @@ for citation in sreader:
     acc_back_cit = update(acc_back_cit, bc_dict, [0,0,0,0,0])
 
     if sreader.line_num >= status_line + 375000:
-        print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1a, raw_citation1b, raw_citation1c, raw_citation2a, raw_citation2b, raw_citation2c, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8, exp_citation9, exp_citation10, exp_citation11]) + " t1 = " + str(round(t1,2)))
+        print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1a, raw_citation1b, raw_citation1c, raw_citation2a, raw_citation2b, raw_citation2c, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4, exp_citation12]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8, exp_citation9, exp_citation10, exp_citation11]) + " t1 = " + str(round(t1,2)))
         status_line = sreader.line_num
         dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
         dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
@@ -367,7 +380,7 @@ for citation in sreader:
     t1 += end - start
 
 # dump final output
-print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1a, raw_citation1b, raw_citation1c, raw_citation2a, raw_citation2b, raw_citation2c, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8, exp_citation9, exp_citation10, exp_citation11]) + " t1 = " + str(round(t1,2)))
+print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1a, raw_citation1b, raw_citation1c, raw_citation2a, raw_citation2b, raw_citation2c, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4, exp_citation12]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8, exp_citation9, exp_citation10, exp_citation11]) + " t1 = " + str(round(t1,2)))
 dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
 dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
 dump(invErrorFileName, inventor_missing_dict, ["patent_id", "error", "num_lines"], False)
