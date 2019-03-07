@@ -195,7 +195,10 @@ for citation in sreader:
     start = time.time()
     if sreader.line_num == 1:
         continue
-    year = int(citation[0])
+    try:
+        year = int(citation[0])
+    except ValueError:
+        continue
     patent_id = citation[1].strip() # to remove leading and trailing spaces
     citation_id = citation[2].strip() # to remove leading and trailing spaces
     type_citation = int(citation[3]) # 1 Null, 2 Applicant, 3 Examiner, 4 Other, 5 Third Party
