@@ -25,6 +25,10 @@ degreeTreshold=0.3 # to set the bounding box based on latitude and longitude
 outputPrefix = fileDatePrefix + "-" + urbanareaConfig + "-" + "CalcDist" + str(calculateCitationDistance)
 pathPrefix = "/Users/aiyenggar/processed/patents/"
 
+attributeErrorValue=['-2']
+keyErrorValue=['-3']
+defaultErrorValue=['-4']
+
 # the below file needs to be augmented to include a list of latlongid, so whenever uaid is -1, one may fall back onto the latlongid to then calculate the actual distance
 # patent_id,assigneelist,latlonglist,ualist
 keysFile1=pathPrefix + fileDatePrefix + "-" + urbanareaConfig + "-patent_list_location_assignee.csv"
@@ -129,11 +133,12 @@ def update(master_dictionary, updates_dict, default):
         master_dictionary[keys] = master
     return master_dictionary
 
-def adderr(dic, key):
-    if key not in dic:
-        dic[key] = 1
+def adderr(dic, key, desc):
+    conskey = tuple([key, desc])
+    if conskey not in dic:
+        dic[conskey] = 1
     else:
-        dic[key] += 1
+        dic[conskey] += 1
     return dic
 
 # read keysFile1
@@ -171,8 +176,12 @@ t2 = 0
 t3 = 0
 status_line = 0
 # raw_citation0 is the value of sreader.line_num at the end
-raw_citation1 = 0 # Number of raw citations (not expanded) that have inventor location problems
-raw_citation2 = 0 # Number of raw citations (not expanded) that have assignee problems
+raw_citation1a = 0 # Number of raw citations (not expanded) that have AttributeError on inventor location (nan)
+raw_citation1b = 0 # Number of raw citations (not expanded) that have KeyError on inventor location (no entry for that patent-id)
+raw_citation1c = 0 # Number of raw citations (not expanded) that have other inventor location problems
+raw_citation2a = 0 # Number of raw citations (not expanded) that have AttributeError on assignee
+raw_citation2b = 0 # Number of raw citations (not expanded) that have KeyError on assignee
+raw_citation2c = 0 # Number of raw citations (not expanded) that have other assignee problems
 raw_citation3 = 0 # Number of raw citations that come for processing after parsing of location and assignee
 exp_citation1 = 0 # Number of expanded citations seen
 exp_citation2 = 0 # Number of expanded citations where patent inventor location and citation inventor location are both defined
@@ -196,65 +205,76 @@ for citation in sreader:
     type_citation = int(citation[3]) # 1 Null, 2 Applicant, 3 Examiner, 4 Other, 5 Third Party
     seq_citation = int(citation[4])
     kind_citation = citation[5] # B1, A etc
-
+    p_latlongid = defaultErrorValue
     try:
         p_latlongid = inv_latlongid_dict['latlonglist'][patent_id].split(',')
         p_loc = inv_uaid_dict['ualist'][patent_id].split(',')
-    except (KeyError, AttributeError):
-        raw_citation1 += 1
-        inventor_missing_dict = adderr(inventor_missing_dict, patent_id) # str(sys.exc_info()[1]).split('\'')[1]
-        continue # Cannot go on
+    except AttributeError:
+        raw_citation1a += 1
+        inventor_missing_dict = adderr(inventor_missing_dict, patent_id, attributeErrorValue[0]) # str(sys.exc_info()[1]).split('\'')[1]
+        p_loc = attributeErrorValue
+    except KeyError:
+        raw_citation1b += 1
+        inventor_missing_dict = adderr(inventor_missing_dict, patent_id, keyErrorValue[0])
+        p_loc = keyErrorValue
     except:
         print(str(sys.exc_info()[0]) + " PATENT -> " + str(sys.exc_info()[1]))
-        raw_citation1 += 1
-        continue # Cannot go on
+        raw_citation1c += 1
+        p_loc = defaultErrorValue
 
+    c_latlongid = defaultErrorValue
     try:
         c_latlongid = inv_latlongid_dict['latlonglist'][citation_id].split(',')
         c_loc = inv_uaid_dict['ualist'][citation_id].split(',')
-    except (KeyError, AttributeError):
-        raw_citation1 += 1
-        inventor_missing_dict = adderr(inventor_missing_dict, citation_id) # str(sys.exc_info()[1]).split('\'')[1]
-        continue # Cannot go on
+    except AttributeError:
+        if p_loc != attributeErrorValue:
+            raw_citation1a += 1 # Avoid double counting the same line for the same error
+        inventor_missing_dict = adderr(inventor_missing_dict, citation_id, attributeErrorValue[0])
+        c_loc = attributeErrorValue
+    except KeyError:
+        if p_loc != keyErrorValue:
+            raw_citation1b += 1 # Avoid double counting the same line for the same error
+        inventor_missing_dict = adderr(inventor_missing_dict, citation_id, keyErrorValue[0])
+        c_loc = keyErrorValue
     except:
         print(str(sys.exc_info()[0]) + " CITATION -> " + citation_id + " >> " + str(sys.exc_info()[1]))
-        raw_citation1 += 1
-        continue # Cannot go on
+        raw_citation1c += 1
+        c_loc = defaultErrorValue
 
-    assignee_error = False
     try:
         p_ass = assignee_dict['assigneelist'][patent_id].split(',')
     except AttributeError:
         # we assume the value would have returned nan, implying a missing assignee field
-        p_ass = ['-2']
+        raw_citation2a += 1
+        assignee_missing_dict = adderr(assignee_missing_dict, patent_id, attributeErrorValue[0])
+        p_ass = attributeErrorValue
     except KeyError:
-            assignee_error = True
-            assignee_missing_dict = adderr(assignee_missing_dict, patent_id)
-            p_ass = ['-3']
+        raw_citation2b += 1
+        assignee_missing_dict = adderr(assignee_missing_dict, patent_id, keyErrorValue[0])
+        p_ass = keyErrorValue
     except:
+        raw_citation2c += 1
         print(str(sys.exc_info()[0]) + " PASS -> " + patent_id + " " + str(sys.exc_info()[1]))
-        assignee_error = True
-        assignee_missing_dict = adderr(assignee_missing_dict, str(sys.exc_info()[1]).split('\'')[1])
-        p_ass = ['-4']
-        # Go on, do not quit
+        p_ass = defaultErrorValue
 
     try:
         c_ass = assignee_dict['assigneelist'][citation_id].split(',')
     except AttributeError:
         # we assume the value would have returned nan, implying a missing assignee field
-        c_ass = ['-2']
+        if p_ass != attributeErrorValue:
+            raw_citation2a += 1
+        assignee_missing_dict = adderr(assignee_missing_dict, citation_id, attributeErrorValue[0])
+        c_ass = attributeErrorValue
     except KeyError:
-        assignee_error = True
-        assignee_missing_dict = adderr(assignee_missing_dict, citation_id)
-        c_ass = ['-3']
+        if p_ass != keyErrorValue:
+            raw_citation2b += 1
+        assignee_missing_dict = adderr(assignee_missing_dict, citation_id, keyErrorValue[0])
+        c_ass = keyErrorValue
     except:
+        if p_ass != defaultErrorValue:
+            raw_citation2c += 1
         print(str(sys.exc_info()[0]) + " CASS -> " + citation_id + " >> " + str(sys.exc_info()[1]))
-        assignee_error = True
-        assignee_missing_dict = adderr(assignee_missing_dict, str(sys.exc_info()[1]).split('\'')[1])
-        c_ass = ['-4']
-        # Go on, do not quit
-    if assignee_error:
-        raw_citation2 += 1
+        c_ass = defaultErrorValue
 
     raw_citation3 += 1
     fc_dict = {}
@@ -288,24 +308,26 @@ for citation in sreader:
                         exp_citation5 += 1
                         patllid = int(p_latlongid[pind])
                         citllid = int(c_latlongid[cind])
-                        dist = sys.maxsize
-                        if tuple([patllid,citllid]) in distances_dict:
-                            exp_citation6 += 1
-                            dist = distances_dict['distance'][tuple([patllid, citllid])]
-                        elif tuple([citllid,patllid]) in distances_dict:
-                            exp_citation6 += 1
-                            dist = distances_dict['distance'][tuple([citllid, patllid])]
-                        else:
-                            l_lat = latlong_dict['latitude'][patllid]
-                            l_long = latlong_dict['longitude'][patllid]
-                            r_lat = latlong_dict['latitude'][citllid]
-                            r_long = latlong_dict['longitude'][citllid]
-                            if (l_lat < r_lat + degreeTreshold) & (l_lat > r_lat - degreeTreshold) & (l_long < r_long + degreeTreshold) & (l_long > r_long - degreeTreshold):
-                                exp_citation7 += 1
-                                dist = haversine(l_lat, l_long, r_lat, r_long)
-                                distances_dict['distance'][tuple([patllid,citllid])] = dist
+                        if (patllid >= 0 & citllid >= 0):
+                            dist = sys.maxsize
+                            if tuple([patllid,citllid]) in distances_dict:
+                                exp_citation6 += 1
+                                dist = distances_dict['distance'][tuple([patllid, citllid])]
+                            elif tuple([citllid,patllid]) in distances_dict:
+                                exp_citation6 += 1
+                                dist = distances_dict['distance'][tuple([citllid, patllid])]
                             else:
-                                exp_citation8 += 1
+                                # We do not expect surprises since negative llid's are already if'd out
+                                l_lat = latlong_dict['latitude'][patllid]
+                                l_long = latlong_dict['longitude'][patllid]
+                                r_lat = latlong_dict['latitude'][citllid]
+                                r_long = latlong_dict['longitude'][citllid]
+                                if (l_lat < r_lat + degreeTreshold) & (l_lat > r_lat - degreeTreshold) & (l_long < r_long + degreeTreshold) & (l_long > r_long - degreeTreshold):
+                                    exp_citation7 += 1
+                                    dist = haversine(l_lat, l_long, r_lat, r_long)
+                                    distances_dict['distance'][tuple([patllid,citllid])] = dist
+                                else:
+                                    exp_citation8 += 1
 
                         if dist < distanceTreshold:
                             exp_citation9 += 1
@@ -329,12 +351,12 @@ for citation in sreader:
     acc_back_cit = update(acc_back_cit, bc_dict, [0,0,0,0,0])
 
     if sreader.line_num >= status_line + 375000:
-        print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1, raw_citation2, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8, exp_citation9, exp_citation10]) + " t1 = " + str(round(t1,2)))
+        print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1a, raw_citation1b, raw_citation1c, raw_citation2a, raw_citation2b, raw_citation2c, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8, exp_citation9, exp_citation10]) + " t1 = " + str(round(t1,2)))
         status_line = sreader.line_num
         dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
         dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
-        dump(invErrorFileName, inventor_missing_dict, ["patent_id", "num_lines"], False)
-        dump(assErrorFileName, assignee_missing_dict, ["patent_id", "num_lines"], False)
+        dump(invErrorFileName, inventor_missing_dict, ["patent_id", "error", "num_lines"], False)
+        dump(assErrorFileName, assignee_missing_dict, ["patent_id", "error", "num_lines"], False)
         counter += 1
         if counter < 0:
             break
@@ -342,9 +364,9 @@ for citation in sreader:
     t1 += end - start
 
 # dump final output
-print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1, raw_citation2, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8, exp_citation9, exp_citation10]) + " t1 = " + str(round(t1,2)))
+print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1a, raw_citation1b, raw_citation1c, raw_citation2a, raw_citation2b, raw_citation2c, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8, exp_citation9, exp_citation10]) + " t1 = " + str(round(t1,2)))
 dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
 dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
-dump(invErrorFileName, inventor_missing_dict, ["patent_id", "num_lines"], False)
-dump(assErrorFileName, assignee_missing_dict, ["patent_id", "num_lines"], False)
+dump(invErrorFileName, inventor_missing_dict, ["patent_id", "error", "num_lines"], False)
+dump(assErrorFileName, assignee_missing_dict, ["patent_id", "error", "num_lines"], False)
 # 2019-02-28 21:42:18 Total = 91000027 InvErr = 16235262 AssErr = 17894175 t1 = 7272.67
