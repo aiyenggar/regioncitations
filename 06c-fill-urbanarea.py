@@ -43,7 +43,7 @@ for mindex, masterow in master.iterrows():
     b = masterow['longitude']
     l=(a,b)
 
-    for nindex, nrow in latlong_urbanarea[(latlong_urbanarea['ua1'] == -1) & (latlong_urbanarea['latitude'] < a + treshold) & (latlong_urbanarea['latitude'] > a - treshold) & (latlong_urbanarea['longitude'] < b + treshold) & (latlong_urbanarea['longitude'] > b - treshold)].iterrows():
+    for nindex, nrow in latlong_urbanarea[(latlong_urbanarea['ua1'] == -1) and (latlong_urbanarea['latitude'] < a + treshold) and (latlong_urbanarea['latitude'] > a - treshold) and (latlong_urbanarea['longitude'] < b + treshold) and (latlong_urbanarea['longitude'] > b - treshold)].iterrows():
         r=(nrow['latitude'], nrow['longitude'])
         dist = round(geopy.distance.geodesic(l,r).km,2)
         writer.writerow([nrow['latlongid'], masterow['latlongid'], dist])

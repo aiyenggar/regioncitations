@@ -6,14 +6,11 @@ Created on Wed Feb  27 05:48:51 2019
 
 import csv
 import sys
-from datetime import datetime
-import math
 from math import radians, cos, sin, asin, sqrt
-import csv
 import numpy as np
 import pandas as pd
 import time
-from time import gmtime, strftime
+import geopy.distance
 
 #backwardCitationsConfig="Expanded"
 backwardCitationsConfig="Pure-Collapsed"
@@ -77,7 +74,7 @@ def dump(fName, dictionary, header, tolist):
             l = list(key)
             r = list(dictionary[key])
         else:
-            l = [key]
+            l = [key[0],key[1]]
             r = [str(dictionary[key])]
         mapwriter.writerow(l+r)
     mapf.close()
@@ -89,7 +86,7 @@ def assign_flow(dictionary, fo_year, citationtype, focal_location, other_locatio
         prior = [0, 0, 0, 0, 0]
         if key in dictionary:
             prior = dictionary[key]
-        if (focal_assignee < 0 or other_location < 0 or other_assignee < 0):
+        if (focal_assignee < 0) or (other_location < 0) or (other_assignee < 0):
             prior[4] += 1
         else:
             # Guaranteed that each of focal_location, other_location, focal_assignee, other_assignee are valid
@@ -112,7 +109,7 @@ def assign_flow2(dictionary, fo_year, citationtype, focal_location, focal_assign
         prior = [0, 0, 0, 0, 0]
         if key in dictionary:
             prior = dictionary[key]
-        if (focal_assignee < 0 or other_assignee < 0):
+        if (focal_assignee < 0) or (other_assignee < 0):
             prior[4] = 1 # quadrant 5
         else:
             if focal_assignee == other_assignee:
@@ -155,7 +152,8 @@ if calculateCitationDistance:
     latlong_dict = pd.read_csv(latlongFile, usecols = ['latlongid','latitude','longitude'], dtype={'latlongid':int,'latitude':float,'longitude':float}, index_col='latlongid').to_dict()
     # also read the other two files
 else:
-    inv_latlongid_dict = None
+    distances_dict = None
+    latlong_dict = None
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Done Reading ")
 
 # initialize hashtable
@@ -165,7 +163,6 @@ counter = 0
 
 inventor_missing_dict = {}
 assignee_missing_dict = {}
-
 
 # loop through citations
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Processing Citations")
@@ -193,6 +190,7 @@ exp_citation7 = 0 # Number of expanded citations where distance calculation was 
 exp_citation8 = 0 # Number of expanded citations where the bounding box avoided the need for distance calculation
 exp_citation9 = 0 # Number of expanded citations where calculating distance assigns citation as local
 exp_citation10 = 0 # Number of expanded citations where calculating distance assigns citation as non-local
+exp_citation11 = 0 # Number of expanded citations where calculating distance was not possible or where doing so was simply unnecesary
 
 for citation in sreader:
     """ Timing """
@@ -291,29 +289,29 @@ for citation in sreader:
                     citass = int(c_ass[acind])
                     f1 = False
                     f2 = False
-                    if (patloc >= 0 & citloc >= 0):
+                    if (patloc >= 0) and (citloc >= 0):
                         exp_citation2 += 1
                         f1 = True
 
-                    if (patass >= 0 & citass >= 0):
+                    if (patass >= 0) and (citass >= 0):
                         exp_citation3 += 1
                         f2 = True
 
-                    if (f1 & f2):
+                    if (f1 == True) and (f2 == True):
                         exp_citation4 += 1
 
                     #print(patent_id + " ( " + str(patass) + " ) " +  " : " + " ( " + str(patloc) + " ) -> " + citation_id + " ( " + str(citass) + " ) " + " : " + " ( " + str(citloc) + " )")
 
-                    if calculateCitationDistance & patloc >= 0 & citloc < 0: # this is when intervention is possible
+                    if ((calculateCitationDistance == True) and (patloc >= 0) and (citloc < 0)): # this is when intervention is possible
                         exp_citation5 += 1
                         patllid = int(p_latlongid[pind])
                         citllid = int(c_latlongid[cind])
-                        if (patllid >= 0 & citllid >= 0):
-                            dist = sys.maxsize
-                            if tuple([patllid,citllid]) in distances_dict:
+                        dist = sys.maxsize
+                        if (patllid >= 0) and (citllid >= 0):
+                            if tuple([patllid,citllid]) in distances_dict['distance']:
                                 exp_citation6 += 1
                                 dist = distances_dict['distance'][tuple([patllid, citllid])]
-                            elif tuple([citllid,patllid]) in distances_dict:
+                            elif tuple([citllid,patllid]) in distances_dict['distance']:
                                 exp_citation6 += 1
                                 dist = distances_dict['distance'][tuple([citllid, patllid])]
                             else:
@@ -322,20 +320,25 @@ for citation in sreader:
                                 l_long = latlong_dict['longitude'][patllid]
                                 r_lat = latlong_dict['latitude'][citllid]
                                 r_long = latlong_dict['longitude'][citllid]
-                                if (l_lat < r_lat + degreeTreshold) & (l_lat > r_lat - degreeTreshold) & (l_long < r_long + degreeTreshold) & (l_long > r_long - degreeTreshold):
+                                if (l_lat < r_lat + degreeTreshold) and (l_lat > r_lat - degreeTreshold) and (l_long < r_long + degreeTreshold) and (l_long > r_long - degreeTreshold):
                                     exp_citation7 += 1
                                     dist = haversine(l_lat, l_long, r_lat, r_long)
+                                    #dist = round(geopy.distance.geodesic((l_lat, l_long),(r_lat, r_long)).km,2)
                                     distances_dict['distance'][tuple([patllid,citllid])] = dist
                                 else:
                                     exp_citation8 += 1
 
-                        if dist < distanceTreshold:
-                            exp_citation9 += 1
-                            assumedcitloc = patloc
-                        else:
-                            exp_citation10 += 1
-                            assumedcitloc = sys.maxsize # something that is different from patloc but not any other loc either
-                        fc_dict = assign_flow(fc_dict, year, type_citation, patloc, assumedcitloc, patass, citass)
+                        if dist < sys.maxsize:
+                            if dist < distanceTreshold:
+                                exp_citation9 += 1
+                                assumedcitloc = patloc
+                            else:
+                                exp_citation10 += 1
+                                assumedcitloc = sys.maxsize # something that is different from patloc but not any other loc either
+                            fc_dict = assign_flow(fc_dict, year, type_citation, patloc, assumedcitloc, patass, citass)
+                        else: # We could not (lat long not available) or did not (obviously too far) calculate distance
+                            exp_citation11 += 1
+                            fc_dict = assign_flow(fc_dict, year, type_citation, patloc, citloc, patass, citass)
                     else: # no distance calculation
                         fc_dict = assign_flow(fc_dict, year, type_citation, patloc, citloc, patass, citass)
 
@@ -351,7 +354,7 @@ for citation in sreader:
     acc_back_cit = update(acc_back_cit, bc_dict, [0,0,0,0,0])
 
     if sreader.line_num >= status_line + 375000:
-        print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1a, raw_citation1b, raw_citation1c, raw_citation2a, raw_citation2b, raw_citation2c, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8, exp_citation9, exp_citation10]) + " t1 = " + str(round(t1,2)))
+        print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1a, raw_citation1b, raw_citation1c, raw_citation2a, raw_citation2b, raw_citation2c, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8, exp_citation9, exp_citation10, exp_citation11]) + " t1 = " + str(round(t1,2)))
         status_line = sreader.line_num
         dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
         dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
@@ -364,7 +367,7 @@ for citation in sreader:
     t1 += end - start
 
 # dump final output
-print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1a, raw_citation1b, raw_citation1c, raw_citation2a, raw_citation2b, raw_citation2c, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8, exp_citation9, exp_citation10]) + " t1 = " + str(round(t1,2)))
+print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1a, raw_citation1b, raw_citation1c, raw_citation2a, raw_citation2b, raw_citation2c, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8, exp_citation9, exp_citation10, exp_citation11]) + " t1 = " + str(round(t1,2)))
 dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
 dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
 dump(invErrorFileName, inventor_missing_dict, ["patent_id", "error", "num_lines"], False)
