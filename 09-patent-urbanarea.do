@@ -27,7 +27,7 @@ foreach inputprefix in "20190306-ua1 20190306-ua2 20190306-ua3" {
 	sort patent_id
 
 	merge m:1 patent_id using ${destdir}patent_technology_classification.dta, keep(match master) nogen
-	/* 47,859 observations are not matched and 7,655,088 are matched 
+	/* 47,859 observations are not matched and 7,655,088 are matched
 	About 37k of the 47k non matched are from 2014 onwards */
 	drop patent_id pat_inv_cnt ua_pat_inv_cnt ua_share ua_inv_cnt
 	rename cat nber_cat
@@ -67,12 +67,12 @@ foreach inputprefix in "20190306-ua1 20190306-ua2 20190306-ua3" {
 	bysort uaid: gen pat_pool=sum(pat_cnt)
 	replace pat_pool = pat_pool - pat_cnt
 	label variable pat_pool "[ua-year] pool of patents"
-	order year uaid pat_cnt pat_pool inv_cnt avg_ua_share 
+	order year uaid pat_cnt pat_pool inv_cnt avg_ua_share
 	save ${destdir}`inputprefix'-ua_year_patents.dta, replace
 }
 
-/*bysort patent_id index_urbanarea (ua2_patentinventor_total): replace ua2_patentinventor_total = ua2_patentinventor_total[1] if missing(ua2_patentinventor_total) 
+/*bysort patent_id index_urbanarea (ua2_patentinventor_total): replace ua2_patentinventor_total = ua2_patentinventor_total[1] if missing(ua2_patentinventor_total)
  Note that the above replacement will only happen for those observations where
    index_urbanarea (urban_area) is set. Those not in an urban_area will not have this */
-   
+
 

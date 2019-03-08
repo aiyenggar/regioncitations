@@ -15,7 +15,7 @@ import geopy.distance
 #backwardCitationsConfig="Expanded"
 backwardCitationsConfig="Pure-Collapsed"
 fileDatePrefix="20190306"
-urbanareaConfig="ua1"
+urbanareaConfig="ua3"
 calculateCitationDistance=True
 distanceTreshold=30.01
 degreeTreshold=0.3 # to set the bounding box based on latitude and longitude
