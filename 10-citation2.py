@@ -15,16 +15,16 @@ import geopy.distance
 #backwardCitationsConfig="Expanded"
 backwardCitationsConfig="Pure-Collapsed"
 fileDatePrefix="20190306"
-urbanareaConfig="ua1"
-calculateCitationDistance=False
+urbanareaConfig="ua3"
+calculateCitationDistance=True
 distanceTreshold=30.01
 degreeTreshold=0.3 # to set the bounding box based on latitude and longitude
 outputPrefix = fileDatePrefix + "-" + urbanareaConfig + "-" + "CalcDist" + str(calculateCitationDistance)
 pathPrefix = "/Users/aiyenggar/processed/patents/"
 validLargest = sys.maxsize
 
-attributeErrorValue=['-2']
-keyErrorValue=['-3']
+attributeErrorValue=['-2'] # List value is empty
+keyErrorValue=['-3'] # No information
 defaultErrorValue=['-4']
 
 # the below file needs to be augmented to include a list of latlongid, so whenever uaid is -1, one may fall back onto the latlongid to then calculate the actual distance
@@ -189,6 +189,13 @@ exp_citation10a = 0 # Number of expanded citations where calculating distance as
 exp_citation10b = 0 # Number of expanded citations where calculating distance assigns citation as non-local (change made to citation location)
 exp_citation11 = 0 # Number of expanded citations where distance was not calculated despite being set to be calculated
 exp_citation12 = 0 # Number of expanded citations where calculateCitationDistance is true but where exactly one location is not undefined, so distance calculations cannot be used
+exp_citation13 = 0 # Number of expanded citations where patent location is undetermined
+exp_citation14 = 0 # Number of expanded citations where citation location is undetermined
+exp_citation15 = 0 # Number of expanded citations where either patent location or citation location is undetermined
+exp_citation16 = 0 # Number of expanded citations where patent assignee is undetermined
+exp_citation17 = 0 # Number of expanded citations where citation assignee is undetermined
+exp_citation18 = 0 # Number of expanded citations where either patent assignee or citation assignee is undetermined
+exp_citation19 = 0 # Number of expanded citations where patent location or citation location or patent assignee or citation assignee is undetermined
 
 for citation in sreader:
     """ Timing """
@@ -357,6 +364,23 @@ for citation in sreader:
                         else:
                             exp_citation12 += 1
 
+                    if patloc < 0:
+                        exp_citation13 += 1
+                    if citloc < 0:
+                        exp_citation14 += 1
+                    if patloc < 0 or citloc < 0:
+                        exp_citation15 += 1
+
+                    if patass < 0:
+                        exp_citation16 += 1
+                    if citass < 0:
+                        exp_citation17 += 1
+                    if patass < 0 or citass < 0:
+                        exp_citation18 += 1
+
+                    if patloc < 0 or citloc < 0 or patass < 0 or citass < 0:
+                        exp_citation19 += 1
+
                     fc_dict = assign_flow(fc_dict, year, type_citation, patloc, citloc, patass, citass, validLargest)
 
                     if (backwardCitationsConfig == "Expanded"): # count expanded citations received
@@ -371,7 +395,7 @@ for citation in sreader:
     acc_back_cit = update(acc_back_cit, bc_dict, [0,0,0,0,0])
 
     if sreader.line_num >= status_line + 375000:
-        print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1a, raw_citation1b, raw_citation1c, raw_citation2a, raw_citation2b, raw_citation2c, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8a, exp_citation8b, exp_citation9a, exp_citation9b, exp_citation10a, exp_citation10b, exp_citation11, exp_citation12]) + " t1 = " + str(round(t1,2)))
+        print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1a, raw_citation1b, raw_citation1c, raw_citation2a, raw_citation2b, raw_citation2c, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8a, exp_citation8b, exp_citation9a, exp_citation9b, exp_citation10a, exp_citation10b, exp_citation11, exp_citation12]) + " Missing = " + str([exp_citation13, exp_citation14, exp_citation15, exp_citation16, exp_citation17, exp_citation18, exp_citation19]) + " t1 = " + str(round(t1,2)))
         status_line = sreader.line_num
         dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
         dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
@@ -384,7 +408,7 @@ for citation in sreader:
     t1 += end - start
 
 # dump final output
-print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1a, raw_citation1b, raw_citation1c, raw_citation2a, raw_citation2b, raw_citation2c, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8a, exp_citation8b, exp_citation9a, exp_citation9b, exp_citation10a, exp_citation10b, exp_citation11, exp_citation12]) + " t1 = " + str(round(t1,2)))
+print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1a, raw_citation1b, raw_citation1c, raw_citation2a, raw_citation2b, raw_citation2c, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8a, exp_citation8b, exp_citation9a, exp_citation9b, exp_citation10a, exp_citation10b, exp_citation11, exp_citation12]) + " Missing = " + str([exp_citation13, exp_citation14, exp_citation15, exp_citation16, exp_citation17, exp_citation18, exp_citation19]) + " t1 = " + str(round(t1,2)))
 dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
 dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
 dump(invErrorFileName, inventor_missing_dict, ["patent_id", "error", "num_lines"], False)
