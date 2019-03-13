@@ -2,11 +2,11 @@ set more off
 local destdir /Users/aiyenggar/processed/patents/
 cd `destdir'
 
-local inputprefix "20190306-ua1"
-//local inputprefix "20190306-ua2"
-//local inputprefix "20190306-ua3"
-//local distest "CalcDistTrue"
-local distest "CalcDistFalse"
+//local inputprefix "20190314-ua1"
+//local inputprefix "20190314-ua2"
+local inputprefix "20190314-ua3"
+local distest "CalcDistTrue"
+//local distest "CalcDistFalse"
 
 import delimited `destdir'`inputprefix'-`distest'-backward_citations.csv, varnames(1) encoding(UTF-8) clear
 label variable citation_type "1 Null, 2 Applicant, 3 Examiner, 4 Other, 5 Third Party, 100 All"

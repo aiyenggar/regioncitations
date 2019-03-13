@@ -14,7 +14,7 @@ import geopy.distance
 
 #backwardCitationsConfig="Expanded"
 backwardCitationsConfig="Pure-Collapsed"
-fileDatePrefix="20190306"
+fileDatePrefix="20190314"
 urbanareaConfig="ua3"
 calculateCitationDistance=True
 distanceTreshold=30.01

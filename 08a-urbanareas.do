@@ -161,114 +161,27 @@ gen appl_date = date(date,"YMD")
 gen year=year(appl_date)
 rename number application_id
 keep year patent_id assignee_id assignee assigneetype assigneeseq rawlocation_id
-sort rawlocation_id
-/* 2019-03-13 The following would be needed only if we were using the location of the assignee
 
-drop if missing(rawlocation_id) | rawlocation_id=="NULL"
-/* 7,707 rows have an empty rawlocation_id or rawlocation_id as NULL*/
-/* 5,895,704 of the initial 5,903,411 remain */
-
-*/
-merge 1:1 rawlocation_id using `destdir'rawlocation_urbanarea.dta
-/* 335 entries are not matched, but all 5,895,704 entries are retained */
-replace ua1 = -2 if _merge==1
-replace ua2 = -2 if _merge==1
-replace ua3 = -2 if _merge==1
-replace latlongid = -2 if _merge==1
-drop if _merge == 2 /* from using */
-drop _merge rawlocation_id
 egen assignee_numid = group(assignee_id) if strlen(assignee_id) > 0
-save `destdir'temp_patent_assignee_urbanarea.dta, replace
+save `destdir'temp_patent_assignee_year.dta, replace
 
 bysort assignee_numid: gen patent_count=_N if !missing(assignee_numid)
 bysort assignee_numid: keep if _n == 1 | missing(assignee_numid)
 gsort - patent_count
-keep assignee_numid assignee_id assignee country patent_count
+keep assignee_numid assignee_id assignee patent_count /* country */
 save `destdir'assignee_id.dta, replace
 
-use `destdir'temp_patent_assignee_urbanarea.dta, clear
+use `destdir'temp_patent_assignee_year.dta, clear
 drop assignee_id /* assignee_numid will do the job for the comparisons */
-order year patent_id assignee_numid ua*
+order year patent_id assignee_numid
 sort patent_id
 replace assignee_numid = -1 if missing(assignee_numid)
-save `destdir'patent_assignee_urbanarea.dta, replace
-count if ua1 < 0 /* 1,169,210 of 5,895,704 */
-count if ua2 < 0 /* 566,024 of 5,895,704 */
-count if ua3 < 0 /* 418,176 of 5,895,704 */
-tab year if ua1 <= -1 & ua2 <= -1 & ua3 <= -1
+save `destdir'patent_assignee_year.dta, replace
 
-/*
-. tab year if ua1 <= -1 & ua2 <= -1 & ua3 <= -1
-
-       year |      Freq.     Percent        Cum.
-------------+-----------------------------------
-       1075 |          1        0.00        0.00
-       1682 |          1        0.00        0.00
-       1900 |          1        0.00        0.00
-       1959 |          1        0.00        0.00
-       1961 |          1        0.00        0.00
-       1962 |          1        0.00        0.00
-       1963 |          1        0.00        0.00
-       1965 |          4        0.00        0.00
-       1966 |          1        0.00        0.00
-       1967 |          1        0.00        0.00
-       1968 |          3        0.00        0.00
-       1969 |          4        0.00        0.00
-       1970 |         21        0.01        0.01
-       1971 |         63        0.02        0.02
-       1972 |        132        0.03        0.06
-       1973 |        571        0.14        0.19
-       1974 |      2,473        0.59        0.78
-       1975 |      3,717        0.89        1.67
-       1976 |      3,637        0.87        2.54
-       1977 |      3,339        0.80        3.34
-       1978 |      3,467        0.83        4.17
-       1979 |      3,390        0.81        4.98
-       1980 |      3,561        0.85        5.83
-       1981 |      3,394        0.81        6.64
-       1982 |      3,570        0.85        7.50
-       1983 |      3,414        0.82        8.31
-       1984 |      3,929        0.94        9.25
-       1985 |      4,190        1.00       10.26
-       1986 |      4,533        1.08       11.34
-       1987 |      5,164        1.23       12.57
-       1988 |      5,792        1.39       13.96
-       1989 |      6,187        1.48       15.44
-       1990 |      6,301        1.51       16.95
-       1991 |      6,248        1.49       18.44
-       1992 |      6,683        1.60       20.04
-       1993 |      6,951        1.66       21.70
-       1994 |      7,908        1.89       23.59
-       1995 |      8,702        2.08       25.67
-       1996 |      9,727        2.33       28.00
-       1997 |     10,596        2.53       30.53
-       1998 |     10,779        2.58       33.11
-       1999 |     12,727        3.04       36.15
-       2000 |     16,860        4.03       40.19
-       2001 |     18,785        4.49       44.68
-       2002 |     17,637        4.22       48.90
-       2003 |     14,596        3.49       52.39
-       2004 |     14,021        3.35       55.74
-       2005 |     14,482        3.46       59.20
-       2006 |     15,559        3.72       62.92
-       2007 |     15,886        3.80       66.72
-       2008 |     15,432        3.69       70.41
-       2009 |     15,284        3.65       74.07
-       2010 |     15,933        3.81       77.88
-       2011 |     17,307        4.14       82.02
-       2012 |     17,562        4.20       86.22
-       2013 |     18,619        4.45       90.67
-       2014 |     17,156        4.10       94.77
-       2015 |     13,188        3.15       97.92
-       2016 |      7,305        1.75       99.67
-       2017 |      1,374        0.33      100.00
-       2018 |          2        0.00      100.00
-       9183 |          1        0.00      100.00
-------------+-----------------------------------
-      Total |    418,175      100.00
-*/
-
+tab assigneetype if year > 2000
+tab assigneetype
 /* 
+ 
  tab assigneetype if year > 2000
 assigneetyp |
           e |      Freq.     Percent        Cum.
