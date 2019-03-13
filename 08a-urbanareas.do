@@ -168,8 +168,7 @@ drop if missing(rawlocation_id) | rawlocation_id=="NULL"
 /* 7,707 rows have an empty rawlocation_id or rawlocation_id as NULL*/
 /* 5,895,704 of the initial 5,903,411 remain */
 
-*/
-merge 1:1 rawlocation_id using `destdir'rawlocation_urbanarea.dta
+merge m:1 rawlocation_id using `destdir'rawlocation_urbanarea.dta
 /* 335 entries are not matched, but all 5,895,704 entries are retained */
 replace ua1 = -2 if _merge==1
 replace ua2 = -2 if _merge==1
@@ -177,26 +176,30 @@ replace ua3 = -2 if _merge==1
 replace latlongid = -2 if _merge==1
 drop if _merge == 2 /* from using */
 drop _merge rawlocation_id
+
+2019-03-13 End of location change */
+ 
 egen assignee_numid = group(assignee_id) if strlen(assignee_id) > 0
 save `destdir'temp_patent_assignee_urbanarea.dta, replace
 
 bysort assignee_numid: gen patent_count=_N if !missing(assignee_numid)
 bysort assignee_numid: keep if _n == 1 | missing(assignee_numid)
 gsort - patent_count
-keep assignee_numid assignee_id assignee country patent_count
+keep assignee_numid assignee_id assignee patent_count
 save `destdir'assignee_id.dta, replace
 
 use `destdir'temp_patent_assignee_urbanarea.dta, clear
 drop assignee_id /* assignee_numid will do the job for the comparisons */
-order year patent_id assignee_numid ua*
+order year patent_id assignee_numid
 sort patent_id
 replace assignee_numid = -1 if missing(assignee_numid)
 save `destdir'patent_assignee_urbanarea.dta, replace
+/*
 count if ua1 < 0 /* 1,169,210 of 5,895,704 */
 count if ua2 < 0 /* 566,024 of 5,895,704 */
 count if ua3 < 0 /* 418,176 of 5,895,704 */
 tab year if ua1 <= -1 & ua2 <= -1 & ua3 <= -1
-
+*/
 /*
 . tab year if ua1 <= -1 & ua2 <= -1 & ua3 <= -1
 
