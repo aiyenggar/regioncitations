@@ -162,9 +162,13 @@ gen year=year(appl_date)
 rename number application_id
 keep year patent_id assignee_id assignee assigneetype assigneeseq rawlocation_id
 sort rawlocation_id
+/* 2019-03-13 The following would be needed only if we were using the location of the assignee
+
 drop if missing(rawlocation_id) | rawlocation_id=="NULL"
 /* 7,707 rows have an empty rawlocation_id or rawlocation_id as NULL*/
 /* 5,895,704 of the initial 5,903,411 remain */
+
+*/
 merge 1:1 rawlocation_id using `destdir'rawlocation_urbanarea.dta
 /* 335 entries are not matched, but all 5,895,704 entries are retained */
 replace ua1 = -2 if _merge==1

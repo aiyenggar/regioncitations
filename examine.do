@@ -7,8 +7,9 @@ drop if patent_id=="NULL"
 gen appl_date = date(date,"YMD")
 gen year=year(appl_date)
 keep year patent_id error num_lines
+gsort - num_lines
 save ${destdir}20190306-ua3-CalcDistTrue-ErrAss.dta, replace 
-count if missing(year) /* 2,625,274 missing year, in other words no info on patent */
+count if missing(year) /* 2,625,274 of 3,555,635 are missing year, in other words no info on patent */
 tab year if !missing(year)
 
 /* 
@@ -127,4 +128,13 @@ tab error if !missing(year)
 */
 
 import delimited ${destdir}20190306-ua3-CalcDistTrue-ErrInv.csv, encoding(ISO-8859-1) clear
+merge m:1 patent_id using ${destdir}application.dta, keep(match master) nogen
+drop if patent_id=="NULL"
+gen appl_date = date(date,"YMD")
+gen year=year(appl_date)
+keep year patent_id error num_lines
+gsort - num_lines
 save ${destdir}20190306-ua3-CalcDistTrue-ErrInv.dta, replace 
+count if missing(year) /* 2,625,270 of 2,626,125 are missing year */
+tab year if !missing(year)
+tab error if missing(year) /* All 2,625,270 are Key Errors */
