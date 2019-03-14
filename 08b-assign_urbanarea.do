@@ -6,14 +6,15 @@ sort application_year patent_id
 export delimited using ${destdir}${date}-citation.csv, replace
 
 use ${destdir}patent_assignee_year.dta, clear
-keep patent_id assignee_numid assignee
+keep patent_id assignee_numid
 tostring assignee_numid, generate(assigneelist)
 bysort patent_id: replace assigneelist = assigneelist[_n-1] + "," + assigneelist if _n > 1
 bysort patent_id: keep if _n == _N
-drop assignee_numid assignee
+drop assignee_numid
 save ${destdir}${date}-assignee.dta, replace
 
-global uacut "ua3 ua2 ua1"
+// global uacut "ua3 ua2 ua1"
+global uacut "ua3"
 foreach uastr in $uacut {
 	di "Beginning `uastr'"
 	
@@ -35,8 +36,8 @@ foreach uastr in $uacut {
 	
 	use ${destdir}${date}-assignee.dta, clear
 	merge 1:1 patent_id using ${destdir}${date}-`uastr'-inventor.dta
-	/* We are missing assignee information for 933,863 patents (_merge==2) */
-	/* We are missing inventor information for 594 patents (_merge==1) */
+	/* We are missing assignee information for 6,807 patents (_merge==2) */
+	/* We are missing inventor information for 868 patents (_merge==1) */
 	drop _merge
 	export delimited ${destdir}${date}-`uastr'-patent_list_location_assignee.csv, replace
 }

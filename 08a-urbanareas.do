@@ -146,6 +146,7 @@ tab year if ua1 <= -1 & ua2 <= -1 & ua3 <= -1
 */
 
 use `destdir'rawassignee.dta, clear
+/* assignee processing for human readability and reduced space requirement, this value is not used to determine matches, assignee_id is */
 gen assignee = organization if !missing(organization)
 replace assignee = name_first + " " + name_last if missing(assignee)
 replace assignee = substr(assignee, 1, 48)
@@ -155,80 +156,54 @@ rename sequence assigneeseq
 rename type assigneetype
 drop uuid
 /* We start with 5,903,411 entries */
-merge m:1 patent_id using `destdir'application.dta, keep(match master) nogen
-/* All entries are matched, leaving 5,903,411 matched entries */
+merge m:1 patent_id using `destdir'application.dta, nogen
+/* 5,903,411 entries are matched,  934,138 are not. We keep all since the unmatched need to be interpreted as individual patents */
 gen appl_date = date(date,"YMD")
 gen year=year(appl_date)
-rename number application_id
-keep year patent_id assignee_id assignee assigneetype assigneeseq rawlocation_id
+keep year patent_id assignee_id assignee assigneetype assigneeseq 
+/*
+https://www.uspto.gov/web/offices/ac/ido/oeip/taf/inv_all.htm
+ 
+“An independent inventor (also called an individual inventor), for purposes of this report, is a person whose patent, at the time of grant, has ownership that is unassigned or assigned to an individual (i.e., ownership of the patent is not assigned to an organization).”
+*/
 
+gen update_assignee=1 if missing(assignee_id) | assigneetype == 4 | assigneetype == 5 | assigneetype == 14 | assigneetype == 15
+replace update_assignee=0 if missing(update_assignee) /* 0 for 5,838,211 and 1 for  999,338 */
+bysort patent_id update_assignee: gen patcnt = _N
+bysort patent_id update_assignee: gen patind = _n
+drop if update_assignee==1 & patcnt>1 /* 18,717 observations deleted. For those patents that we want to set the assignee for, we want one entry per patent_id. Multiple assignees will be taken care of with multiple inventors on the patent */
+save `destdir'temp_patent_assignee_year1.dta, replace /* 6,818,832 observations saved */
+
+/* Isolated those patents that are individual patents. These need their assignee set differently */
+keep if update_assignee==1 /* 980,621 observations */
+keep patent_id
+merge 1:m patent_id using ${destdir}rawinventor.dta, keep(match) nogen /* drop 270 of not matched from master */
+/* 1,404,965 observations */
+keep patent_id inventor_id
+gen attr_assignee="inventor-"+inventor_id
+keep patent_id attr_assignee
+sort patent_id
+gen update_assignee=1
+gen patind=1
+save `destdir'temp_assignee_reassignment.dta, replace /* 1,404,965 */
+
+use `destdir'temp_patent_assignee_year1.dta, clear /* 6,818,832 */
+merge 1:m patent_id update_assignee patind using `destdir'temp_assignee_reassignment.dta, keep(match master)
+/* 5,838,480 not matched from master, 1,404,965 matched, leaving us with 7,243,445 observations */
+replace assignee_id = attr_assignee if update_assignee==1 & _merge==3 /* 1,404,965  changes made */
 egen assignee_numid = group(assignee_id) if strlen(assignee_id) > 0
-save `destdir'temp_patent_assignee_year.dta, replace
+replace assignee_numid = -1 if missing(assignee_numid)
+save `destdir'temp_patent_assignee_year2.dta, replace
 
 bysort assignee_numid: gen patent_count=_N if !missing(assignee_numid)
 bysort assignee_numid: keep if _n == 1 | missing(assignee_numid)
 gsort - patent_count
-keep assignee_numid assignee_id assignee patent_count /* country */
+keep assignee_numid assignee_id assignee patent_count assigneetype assigneeseq
+order assignee_numid assignee_id assignee
 save `destdir'assignee_id.dta, replace
 
-use `destdir'temp_patent_assignee_year.dta, clear
-drop assignee_id /* assignee_numid will do the job for the comparisons */
+use `destdir'temp_patent_assignee_year2.dta, clear
+keep patent_id assignee_numid year /* assignee_numid will do the job for the comparisons */
 order year patent_id assignee_numid
 sort patent_id
-replace assignee_numid = -1 if missing(assignee_numid)
-save `destdir'patent_assignee_year.dta, replace
-
-tab assigneetype if year > 2000
-tab assigneetype
-/* 
- 
- tab assigneetype if year > 2000
-assigneetyp |
-          e |      Freq.     Percent        Cum.
-------------+-----------------------------------
-          0 |        222        0.01        0.01
-          2 |  1,678,904       47.22       47.23
-          3 |  1,828,166       51.42       98.65
-          4 |     16,467        0.46       99.12
-          5 |     13,801        0.39       99.51
-          6 |     13,244        0.37       99.88
-          7 |      3,888        0.11       99.99
-          8 |          2        0.00       99.99
-          9 |        109        0.00       99.99
-         12 |         89        0.00       99.99
-         13 |        134        0.00      100.00
-         14 |         65        0.00      100.00
-         15 |         52        0.00      100.00
-         16 |          2        0.00      100.00
-         17 |          2        0.00      100.00
-------------+-----------------------------------
-      Total |  3,555,147      100.00
-
-tab assigneetype
-
-assigneetyp |
-          e |      Freq.     Percent        Cum.
-------------+-----------------------------------
-          0 |        734        0.01        0.01
-          1 |          9        0.00        0.01
-          2 |  2,954,197       50.11       50.12
-          3 |  2,817,041       47.78       97.90
-          4 |     36,218        0.61       98.52
-          5 |     25,515        0.43       98.95
-          6 |     43,726        0.74       99.69
-          7 |     12,950        0.22       99.91
-          8 |         22        0.00       99.91
-          9 |        249        0.00       99.91
-         12 |      1,262        0.02       99.94
-         13 |        587        0.01       99.95
-         14 |      2,688        0.05       99.99
-         15 |        485        0.01      100.00
-         16 |          7        0.00      100.00
-         17 |         12        0.00      100.00
-         18 |          1        0.00      100.00
-         19 |          1        0.00      100.00
-------------+-----------------------------------
-      Total |  5,895,704      100.00
-	  
-*/
-
+save `destdir'patent_assignee_year.dta, replace /* 7,243,445 observations for 6,640,891 unique patents with 264 unassigned patents */
