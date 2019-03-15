@@ -35,8 +35,8 @@ About 37k of the 47k non matched are from 2014 onwards */
 drop patent_id pat_inv_cnt ua_pat_inv_cnt ua_share ua_inv_cnt
 rename cat nber_cat
 rename subcat nber_subcat
-
 sort uaid year
+
 levels nber_cat, local(catlev)
 foreach icat of local catlev {
 	bysort uaid year: gen runsumcat`icat'=sum(1)  if nber_cat==`icat'
@@ -53,13 +53,35 @@ foreach l of local subcatlev {
 	drop runsumsubcat`l'
 }
 
+egen class_numid = group(class) if !strpos(class,"No longer published") & !strpos(class,"-0T")
+ 
+levels class_numid, local(classlev)
+foreach l of local classlev {
+	di "Processing class_numid `l'"
+	bysort uaid year: gen runsumclass`l'=sum(1)  if class_numid==`l'
+	replace runsumclass`l'=0 if missing(runsumclass`l')
+	bysort uaid year: egen classidcnt`l'=max(runsumclass`l')
+	drop runsumclass`l'
+}
+
 /* We drop those observations missing urban area */
 drop if uaid < 0
 bysort uaid year: gen pat_cnt=_N
 label variable pat_cnt "[ua-year] count of patents"
+
 drop class subclass nber_cat nber_subcat
 bysort uaid year: keep if _n == 1
 /* We are now down to 59,807 observations */
+
+
+foreach var of varlist classidcnt* {
+  gen f`var' = `var'/pat_cnt
+  gen fsq`var' = f`var'*f`var'
+}
+
+egen techclass_focus = rowtotal(fsq*)
+gen techclass_diversity = 1 - techclass_focus
+drop fclassidcnt* fsqclassidcnt*
 
 foreach var of varlist cat* subcat* {
   gen d`var' = 1 if `var' > 0
