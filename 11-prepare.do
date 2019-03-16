@@ -61,7 +61,7 @@ order year urban_area uaid *recd*
 save `destdir'`inputprefix'-`distest'-ua_year_citations.dta, replace
 
 merge m:1 uaid year using `destdir'`inputprefix'-ua_year_patents.dta, keep(match master) nogen
-order year urban_area uaid pat_cnt pat_pool inv_cnt avg_ua_share fq*
+order year urban_area uaid techclass* pat_cnt pat_pool inv_cnt avg_ua_share fq*
 
 label variable cit_recd_total "Total Citations Received"
 label variable cit_recd_self "Self Citations Received"
@@ -102,12 +102,5 @@ foreach var of varlist cat* subcat* {
   gen percent`var' = (100*`var')/pat_cnt
 }
 
-order year urban_area uaid citation_type *recd* *made* lnpatents lnpool d1* d2* percent*
+order year urban_area uaid country techclass* citation_type *recd* *made* lnpatents lnpool d* percent*
 save `destdir'`inputprefix'-`distest'-urbanarea-year-estimation.dta, replace
-
-/*
-M-01	GEOBOUND-NEAREST	DISTEST-OFF	FLOWCNT-ACCUMULATE	FLOWCAT-ALL
-M-02	GEOBOUND-NEAREST	DISTEST-OFF	FLOWCNT-ACCUMULATE	FLOWCAT-ALL 1. Added Country 2. Collapsed Citations Received 3. Dropped other
-M-03	GEOBOUND-NEAREST	DISTEST-OFF	FLOWCNT-ACCUMULATE	FLOWCAT-ALL 1. Added Country 2. Collapsed Citations Received
-M-04	GEOBOUND-NEAREST	DISTEST-ON	FLOWCNT-ACCUMULATE	FLOWCAT-ALL 1. Added Country 2. Collapsed Citations Received
-*/
