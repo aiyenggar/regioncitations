@@ -81,7 +81,7 @@ foreach var of varlist classidcnt* {
 
 egen techclass_focus = rowtotal(fsq*)
 gen techclass_diversity = 1 - techclass_focus
-drop fclassidcnt* fsqclassidcnt*
+drop fclassidcnt* fsqclassidcnt* classidcnt*
 
 foreach var of varlist cat* subcat* {
   gen d`var' = 1 if `var' > 0
@@ -92,7 +92,7 @@ sort uaid year
 bysort uaid: gen pat_pool=sum(pat_cnt)
 replace pat_pool = pat_pool - pat_cnt
 label variable pat_pool "[ua-year] pool of patents"
-order year uaid pat_cnt pat_pool inv_cnt avg_ua_share
+order year uaid pat_cnt pat_pool inv_cnt avg_ua_share techclass*
 save ${destdir}`inputprefix'-ua_year_patents.dta, replace
 
 
