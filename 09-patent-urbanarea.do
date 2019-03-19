@@ -7,9 +7,14 @@ local inputprefix "20190314-ua3"
 
 use ${destdir}`inputprefix'-patent.dta, clear
 /* We start with 15,751,822 entries */
+
 keep year patent_id inventor_id uaid country
 label variable uaid "urban area id per uaid.dta"
 
+bysort uaid year inventor_id: gen inventor_index=_n if uaid >= 0
+replace inventor_index=0 if inventor_index > 1
+bysort uaid year: egen uniq_inv=sum(inventor_index)
+label variable uniq_inv "[ua-year] number of unique inventors"
 bysort uaid year: gen inv_cnt=_N if uaid >= 0
 label variable inv_cnt "[ua-year] number of non-unique inventors"
 bysort patent_id uaid: gen index1 = _n if uaid >= 0
@@ -25,6 +30,8 @@ label variable ua_share "[patent] share of inventors in urban areas"
 keep if index1 == 1
 /* We drop 7,841,067 observations, leaving 7,702,947 patent-ua observations */
 drop index1 inventor_id
+bysort uaid year: gen pat_cnt=_N
+label variable pat_cnt "[ua-year] count of patents"
 bysort uaid year: egen avg_ua_share = mean(ua_share)
 label variable avg_ua_share "[ua-year] share of inventors in urban areas (avg)"
 sort patent_id
@@ -32,72 +39,61 @@ sort patent_id
 merge m:1 patent_id using ${destdir}patent_technology_classification.dta, keep(match master) nogen
 /* 47,859 observations are not matched and 7,655,088 are matched
 About 37k of the 47k non matched are from 2014 onwards */
-drop patent_id pat_inv_cnt ua_pat_inv_cnt ua_share ua_inv_cnt
+drop pat_inv_cnt ua_pat_inv_cnt ua_share ua_inv_cnt
 rename cat nber_cat
 rename subcat nber_subcat
+rename class uspc_class
+rename subclass uspc_subclass
 sort uaid year
+save temp1.dta, replace
 
-levels nber_cat, local(catlev)
-foreach icat of local catlev {
-	bysort uaid year: gen runsumcat`icat'=sum(1)  if nber_cat==`icat'
-	replace runsumcat`icat'=0 if missing(runsumcat`icat')
-	bysort uaid year: egen cat`icat'=max(runsumcat`icat')
-	drop runsumcat`icat'
-}
 
-levels nber_subcat, local(subcatlev)
-foreach l of local subcatlev {
-	bysort uaid year: gen runsumsubcat`l'=sum(1)  if nber_subcat==`l'
-	replace runsumsubcat`l'=0 if missing(runsumsubcat`l')
-	bysort uaid year: egen subcat`l'=max(runsumsubcat`l')
-	drop runsumsubcat`l'
-}
+use temp1.dta, clear
+egen id_uspc_class = group(uspc_class) if !strpos(uspc_class,"No longer published") & !strpos(uspc_class,"-0T")
+bysort uaid year id_uspc_class: gen patents_in_class=_N if !missing(id_uspc_class)
+gen sqf_class = (patents_in_class/pat_cnt) * (patents_in_class/pat_cnt)
+bysort uaid year id_uspc_class: replace sqf_class=0 if _n > 1
+bysort uaid year: gen uspc_tempsum=sum(sqf_class)
+bysort uaid year: egen uspc_focus=max(uspc_tempsum)
+gen uspc_differentiation=1-uspc_focus
 
-egen class_numid = group(class) if !strpos(class,"No longer published") & !strpos(class,"-0T")
- 
-levels class_numid, local(classlev)
-foreach l of local classlev {
-	di "Processing class_numid `l'"
-	bysort uaid year: gen runsumclass`l'=sum(1)  if class_numid==`l'
-	replace runsumclass`l'=0 if missing(runsumclass`l')
-	bysort uaid year: egen classidcnt`l'=max(runsumclass`l')
-	drop runsumclass`l'
-}
+bysort uaid year nber_cat: gen patents_in_category=_N if !missing(nber_cat)
+gen percentcat = (100*patents_in_category)/pat_cnt
+gen sqf_category = (patents_in_category/pat_cnt) * (patents_in_category/pat_cnt)
+bysort uaid year nber_cat: replace sqf_category=0 if _n > 1
+bysort uaid year: gen nber_cat_tempsum=sum(sqf_category)
+bysort uaid year: egen nber_cat_focus=max(nber_cat_tempsum)
+gen nber_cat_differentiation=1-nber_cat_focus
 
-/* We drop those observations missing urban area */
-drop if uaid < 0
-bysort uaid year: gen pat_cnt=_N
-label variable pat_cnt "[ua-year] count of patents"
+bysort uaid year nber_subcat: gen patents_in_subcategory=_N if !missing(nber_subcat)
+gen percentsubcat = (100*patents_in_subcategory)/pat_cnt
+gen sqf_subcategory = (patents_in_subcategory/pat_cnt) * (patents_in_subcategory/pat_cnt)
+bysort uaid year nber_subcat: replace sqf_subcategory=0 if _n > 1
+bysort uaid year: gen nber_subcat_tempsum=sum(sqf_subcategory)
+bysort uaid year: egen nber_subcat_focus=max(nber_subcat_tempsum)
+gen nber_subcat_differentiation=1-nber_subcat_focus
+save temp3.dta, replace
 
-drop class subclass nber_cat nber_subcat
+use temp3.dta, clear
+local tempval=999999
+replace nber_cat=`tempval' if missing(nber_cat)
+reshape wide percentcat, i(uaid year) j(nber_cat)
+drop percentcat`tempval'
+
+replace nber_subcat=`tempval' if missing(nber_subcat)
+reshape wide percentsubcat, i(uaid year) j(nber_subcat)
+drop percentsubcat`tempval'
+save temp4.dta, replace
+
+
 bysort uaid year: keep if _n == 1
-/* We are now down to 59,807 observations */
+/* We are now down to 64,177 observations */
 
 
-foreach var of varlist classidcnt* {
-  gen f`var' = `var'/pat_cnt
-  gen fsq`var' = f`var'*f`var'
-}
-
-egen techclass_focus = rowtotal(fsq*)
-gen techclass_diversity = 1 - techclass_focus
-drop fclassidcnt* fsqclassidcnt* classidcnt*
-
-foreach var of varlist cat* subcat* {
-  gen d`var' = 1 if `var' > 0
-  replace d`var' = 0 if missing(d`var')
-}
-
+drop uspc_class uspc_subclass nber_cat nber_subcat patent_id *tempsum
 sort uaid year
 bysort uaid: gen pat_pool=sum(pat_cnt)
 replace pat_pool = pat_pool - pat_cnt
 label variable pat_pool "[ua-year] pool of patents"
-order year uaid pat_cnt pat_pool inv_cnt avg_ua_share techclass*
+order year uaid pat_cnt pat_pool *_focus *_differentiation
 save ${destdir}`inputprefix'-ua_year_patents.dta, replace
-
-
-/*bysort patent_id index_urbanarea (ua2_patentinventor_total): replace ua2_patentinventor_total = ua2_patentinventor_total[1] if missing(ua2_patentinventor_total)
- Note that the above replacement will only happen for those observations where
-   index_urbanarea (urban_area) is set. Those not in an urban_area will not have this */
-
-

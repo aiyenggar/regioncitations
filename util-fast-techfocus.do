@@ -17,5 +17,5 @@ keep year uaid urban_area techclass*
 order year uaid urban_area techclass*
 save techfinal.dta, replace
 
-merge 1:1 year uaid using tech2.dta, keep(match master) nogen
-count if abs(focus0-techclass_focus) > 0.000001
+merge 1:1 year uaid using temp2.dta, keep(match master) nogen
+count if abs(uspc_focus-techclass_focus) > 0.000001

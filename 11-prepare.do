@@ -98,9 +98,5 @@ foreach ly of local levelyear {
 }
 /* done generating year dummies */
 
-foreach var of varlist cat* subcat* {
-  gen percent`var' = (100*`var')/pat_cnt
-}
-
 order year urban_area uaid country techclass* citation_type *recd* *made* lnpatents lnpool d* percent*
 save `destdir'`inputprefix'-`distest'-urbanarea-year-estimation.dta, replace
