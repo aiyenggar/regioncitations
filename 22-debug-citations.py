@@ -14,7 +14,7 @@ import geopy.distance
 
 #backwardCitationsConfig="Expanded"
 backwardCitationsConfig="Pure-Collapsed"
-fileDatePrefix="20190314"
+fileDatePrefix="20190321err"
 urbanareaConfig="ua3"
 calculateCitationDistance=True
 distanceTreshold=30.01
@@ -31,7 +31,7 @@ defaultErrorValue=['-4']
 # patent_id,assigneelist,latlonglist,ualist
 keysFile1=pathPrefix + fileDatePrefix + "-" + urbanareaConfig + "-patent_list_location_assignee.csv"
 # application_year,patent_id,citation_id,citation_type,sequence,kind,application_date
-searchFileName=pathPrefix + fileDatePrefix + "-citation.csv"
+searchFileName=pathPrefix + "err-citations2.csv"
 distancesFile=pathPrefix + "latlong_urbanarea_2.csv"
 latlongFile=pathPrefix + "latlong_urbanarea.csv"
 # Within Cluster, Within Firm: q1
@@ -40,15 +40,78 @@ latlongFile=pathPrefix + "latlong_urbanarea.csv"
 # Outside Cluster, Within Firm: q4
 # Not determinable: q5
 
-targetdict={}
-targetdict[tuple([2003,3459])]=pathPrefix+"2003-3459.csv"
-targetdict[tuple([2009,5174])]=pathPrefix+"2009-5174.csv"
-targetdict[tuple([1999,666])]=pathPrefix+"1999-666.csv"
-targetdict[tuple([2004,5434])]=pathPrefix+"2004-5434.csv"
-targetdict[tuple([2006,4359])]=pathPrefix+"2006-4359.csv"
-targetdict[tuple([2010,1268])]=pathPrefix+"2010-1268.csv"
-targetdict[tuple([2010,3839])]=pathPrefix+"2010-3839.csv"
-targetdict[tuple([2006,2898])]=pathPrefix+"2006-2898.csv"
+fc_outputheader=["uaid", "year", "citation_type", "fq1", "fq2", "fq3", "fq4", "fq5"]
+bc_outputheader=["uaid", "year", "citation_type", "bq1", "bq2", "bq3", "bq4", "bq5"]
+fc_outputFileName=pathPrefix + outputPrefix + "-forward_citations.csv"
+bc_outputFileName=pathPrefix + outputPrefix + "-backward_citations.csv"
+
+invErrorFileName=pathPrefix + outputPrefix + "-ErrInv.csv"
+assErrorFileName=pathPrefix + outputPrefix + "-ErrAss.csv"
+
+def dump(fName, dictionary, header, tolist):
+    mapf = open(fName, 'w', encoding='utf-8')
+    mapwriter = csv.writer(mapf)
+    mapwriter.writerow(header)
+    for key in dictionary:
+        if tolist:
+            l = list(key)
+            r = list(dictionary[key])
+        else:
+            l = [key[0],key[1]]
+            r = [str(dictionary[key])]
+        mapwriter.writerow(l+r)
+    mapf.close()
+    return
+
+def assign_flow(dictionary, fo_year, citationtype, focal_location, other_location, focal_assignee, other_assignee, avoid):
+    if (focal_location >= 0) and (focal_location != avoid):
+        key = tuple([focal_location, fo_year, citationtype])
+        prior = [0, 0, 0, 0, 0]
+        if key in dictionary:
+            prior = dictionary[key]
+        if (focal_assignee < 0) or (other_location < 0) or (other_assignee < 0):
+            prior[4] += 1
+        else:
+            # Guaranteed that each of focal_location, other_location, focal_assignee, other_assignee are valid
+            if focal_location == other_location:
+                if focal_assignee == other_assignee:
+                    prior[0] += 1
+                else:
+                    prior[1] += 1
+            else:
+                if focal_assignee == other_assignee:
+                    prior[3] += 1
+                else:
+                    prior[2] += 1
+        dictionary[key] = prior
+    return dictionary
+
+def assign_flow2(dictionary, fo_year, citationtype, focal_location, focal_assignee, other_assignee, avoid): #flow within assignee is marked on quadrant 1, and flow outside assignee is marked on quadrant 2
+    if (focal_location >= 0) and (focal_location != avoid):
+        key = tuple([focal_location, fo_year, citationtype])
+        prior = [0, 0, 0, 0, 0]
+        if key in dictionary:
+            prior = dictionary[key]
+        if (focal_assignee < 0) or (other_assignee < 0):
+            prior[4] = 1 # quadrant 5
+        else:
+            if focal_assignee == other_assignee:
+                prior[0] = 1 # quadrant 1
+            else:
+                prior[1] = 1 # quadrant 2
+        dictionary[key] = prior
+    return dictionary
+
+def update(master_dictionary, updates_dict, default):
+    for keys in updates_dict:
+        change = updates_dict[keys]
+        master = default
+        if keys in master_dictionary:
+            master = master_dictionary[keys]
+        for index in range(0,5):
+            master[index] += change[index]
+        master_dictionary[keys] = master
+    return master_dictionary
 
 def adderr(dic, key, desc):
     conskey = tuple([key, desc])
@@ -143,7 +206,6 @@ for citation in sreader:
         year = int(citation[0])
     except ValueError:
         continue
-
     patent_id = citation[1].strip() # to remove leading and trailing spaces
     citation_id = citation[2].strip() # to remove leading and trailing spaces
     type_citation = int(citation[3]) # 1 Null, 2 Applicant, 3 Examiner, 4 Other, 5 Third Party
@@ -221,7 +283,8 @@ for citation in sreader:
         c_ass = defaultErrorValue
 
     raw_citation3 += 1
-
+    fc_dict = {}
+    bc_dict = {}
 
     for pind in range(len(p_loc)):
         for cind in range(len(c_loc)):
@@ -232,11 +295,6 @@ for citation in sreader:
                     citloc = int(c_loc[cind])
                     patass = int(p_ass[apind])
                     citass = int(c_ass[acind])
-                    
-                    erkey = tuple([year, citloc])
-                    if (erkey not in targetdict) and citloc >= 0:
-                        continue
-                    
                     f1 = False
                     f2 = False
                     if (patloc >= 0) and (citloc >= 0):
@@ -323,19 +381,26 @@ for citation in sreader:
                     if patloc < 0 or citloc < 0 or patass < 0 or citass < 0:
                         exp_citation19 += 1
 
-                    erkey = tuple([year, citloc])
-                    if erkey in targetdict:
-                        mapf = open(targetdict[erkey], 'a+', encoding='utf-8')
-                        mapwriter = csv.writer(mapf)
-                        mapwriter.writerow(citation)
-                        mapf.close()
+                    fc_dict = assign_flow(fc_dict, year, type_citation, patloc, citloc, patass, citass, validLargest)
 
+                    if (backwardCitationsConfig == "Expanded"): # count expanded citations received
+                        bc_dict = assign_flow(bc_dict, year, type_citation, citloc, patloc, citass, patass, validLargest)
+                    elif (backwardCitationsConfig == "Pure-Collapsed"): # count pure citations received
+                         bc_dict = assign_flow2(bc_dict, year, type_citation, citloc, citass, patass, validLargest)
+                    else:
+                        print("Undefined backwardCitationsConfig")
+                        exit()
 
-
+    acc_fwd_cit = update(acc_fwd_cit, fc_dict, [0,0,0,0,0])
+    acc_back_cit = update(acc_back_cit, bc_dict, [0,0,0,0,0])
 
     if sreader.line_num >= status_line + 375000:
         print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1a, raw_citation1b, raw_citation1c, raw_citation2a, raw_citation2b, raw_citation2c, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8a, exp_citation8b, exp_citation9a, exp_citation9b, exp_citation10a, exp_citation10b, exp_citation11, exp_citation12]) + " Missing = " + str([exp_citation13, exp_citation14, exp_citation15, exp_citation16, exp_citation17, exp_citation18, exp_citation19]) + " t1 = " + str(round(t1,2)))
         status_line = sreader.line_num
+        dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
+        dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
+        dump(invErrorFileName, inventor_missing_dict, ["patent_id", "error", "num_lines"], False)
+        dump(assErrorFileName, assignee_missing_dict, ["patent_id", "error", "num_lines"], False)
         counter += 1
         if counter < 0:
             break
@@ -344,5 +409,8 @@ for citation in sreader:
 
 # dump final output
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1a, raw_citation1b, raw_citation1c, raw_citation2a, raw_citation2b, raw_citation2c, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8a, exp_citation8b, exp_citation9a, exp_citation9b, exp_citation10a, exp_citation10b, exp_citation11, exp_citation12]) + " Missing = " + str([exp_citation13, exp_citation14, exp_citation15, exp_citation16, exp_citation17, exp_citation18, exp_citation19]) + " t1 = " + str(round(t1,2)))
-
+dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
+dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
+dump(invErrorFileName, inventor_missing_dict, ["patent_id", "error", "num_lines"], False)
+dump(assErrorFileName, assignee_missing_dict, ["patent_id", "error", "num_lines"], False)
 # 2019-02-28 21:42:18 Total = 91000027 InvErr = 16235262 AssErr = 17894175 t1 = 7272.67
