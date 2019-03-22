@@ -14,7 +14,7 @@ import geopy.distance
 
 #backwardCitationsConfig="Expanded"
 backwardCitationsConfig="Pure-Collapsed"
-fileDatePrefix="20190321err"
+fileDatePrefix="1999-666"
 urbanareaConfig="ua3"
 calculateCitationDistance=True
 distanceTreshold=30.01
@@ -31,7 +31,7 @@ defaultErrorValue=['-4']
 # patent_id,assigneelist,latlonglist,ualist
 keysFile1=pathPrefix + fileDatePrefix + "-" + urbanareaConfig + "-patent_list_location_assignee.csv"
 # application_year,patent_id,citation_id,citation_type,sequence,kind,application_date
-searchFileName=pathPrefix + "err-citations2.csv"
+searchFileName=pathPrefix + fileDatePrefix + "-citation.csv"
 distancesFile=pathPrefix + "latlong_urbanarea_2.csv"
 latlongFile=pathPrefix + "latlong_urbanarea.csv"
 # Within Cluster, Within Firm: q1

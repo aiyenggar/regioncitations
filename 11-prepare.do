@@ -5,29 +5,13 @@ cd `destdir'
 //local inputprefix "20190314-ua1"
 //local inputprefix "20190314-ua2"
 local inputprefix "20190314-ua3"
-local distest "CalcDistTrue"
-//local distest "CalcDistFalse"
+local distest "dis"
+//local distest "nod"
 
-import delimited `destdir'`inputprefix'-`distest'-backward_citations.csv, varnames(1) encoding(UTF-8) clear
-label variable citation_type "1 Null, 2 Applicant, 3 Examiner, 4 Other, 5 Third Party, 100 All"
-bysort uaid year: egen cit_recd_self = sum(bq1)
-gen nonself_raw = bq2 + bq5
-bysort uaid year: egen cit_recd_nonself = sum(nonself_raw)
-drop nonself_raw
+import delimited `destdir'`inputprefix'-`distest'-dependent-variable.csv, varnames(1) encoding(UTF-8) clear
+label variable cit_recd_total "[ua-year] total citations received"
 label variable cit_recd_self "[ua-year] self citations received"
 label variable cit_recd_nonself "[ua-year] nonself citations received"
-gen cit_recd_total = cit_recd_self + cit_recd_nonself
-label variable cit_recd_total "[ua-year] total citations received"
-
-label variable bq1 "[ua-year-citationtype] ua(same) assg(same) backward citations"
-label variable bq2 "[ua-year-citationtype] ua(same) assg(diff) backward citations"
-label variable bq3 "[ua-year-citationtype] ua(diff) assg(diff) backward citations"
-label variable bq4 "[ua-year-citationtype] ua(diff) assg(same) backward citations"
-label variable bq5 "[ua-year-citationtype] other (undeterminable) backward citations"
-
-save `destdir'`inputprefix'-`distest'-backward_citations.dta, replace
-bysort uaid year: keep if _n == 1
-keep uaid year cit_recd*
 save `destdir'`inputprefix'-`distest'-pure_citations_received.dta, replace
 
 import delimited `destdir'`inputprefix'-`distest'-forward_citations.csv, varnames(1) encoding(UTF-8) clear

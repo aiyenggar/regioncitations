@@ -138,6 +138,11 @@ for citation in sreader:
     """ Timing """
     start = time.time()
     if sreader.line_num == 1:
+        for erkey in targetdict:
+            mapf = open(targetdict[erkey], 'w', encoding='utf-8')
+            mapwriter = csv.writer(mapf)
+            mapwriter.writerow(citation)
+            mapf.close()
         continue
     try:
         year = int(citation[0])
@@ -222,7 +227,6 @@ for citation in sreader:
 
     raw_citation3 += 1
 
-
     for pind in range(len(p_loc)):
         for cind in range(len(c_loc)):
             for apind in range(len(p_ass)):
@@ -232,11 +236,11 @@ for citation in sreader:
                     citloc = int(c_loc[cind])
                     patass = int(p_ass[apind])
                     citass = int(c_ass[acind])
-                    
+
                     erkey = tuple([year, citloc])
                     if (erkey not in targetdict) and citloc >= 0:
                         continue
-                    
+
                     f1 = False
                     f2 = False
                     if (patloc >= 0) and (citloc >= 0):

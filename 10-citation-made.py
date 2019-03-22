@@ -11,7 +11,7 @@ import numpy as np
 import pandas as pd
 import time
 import geopy.distance
-
+import citationutils as ut
 #backwardCitationsConfig="Expanded"
 backwardCitationsConfig="Pure-Collapsed"
 fileDatePrefix="20190314"
@@ -47,21 +47,6 @@ bc_outputFileName=pathPrefix + outputPrefix + "-backward_citations.csv"
 
 invErrorFileName=pathPrefix + outputPrefix + "-ErrInv.csv"
 assErrorFileName=pathPrefix + outputPrefix + "-ErrAss.csv"
-
-def dump(fName, dictionary, header, tolist):
-    mapf = open(fName, 'w', encoding='utf-8')
-    mapwriter = csv.writer(mapf)
-    mapwriter.writerow(header)
-    for key in dictionary:
-        if tolist:
-            l = list(key)
-            r = list(dictionary[key])
-        else:
-            l = [key[0],key[1]]
-            r = [str(dictionary[key])]
-        mapwriter.writerow(l+r)
-    mapf.close()
-    return
 
 def assign_flow(dictionary, fo_year, citationtype, focal_location, other_location, focal_assignee, other_assignee, avoid):
     if (focal_location >= 0) and (focal_location != avoid):
@@ -397,10 +382,10 @@ for citation in sreader:
     if sreader.line_num >= status_line + 375000:
         print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1a, raw_citation1b, raw_citation1c, raw_citation2a, raw_citation2b, raw_citation2c, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8a, exp_citation8b, exp_citation9a, exp_citation9b, exp_citation10a, exp_citation10b, exp_citation11, exp_citation12]) + " Missing = " + str([exp_citation13, exp_citation14, exp_citation15, exp_citation16, exp_citation17, exp_citation18, exp_citation19]) + " t1 = " + str(round(t1,2)))
         status_line = sreader.line_num
-        dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
-        dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
-        dump(invErrorFileName, inventor_missing_dict, ["patent_id", "error", "num_lines"], False)
-        dump(assErrorFileName, assignee_missing_dict, ["patent_id", "error", "num_lines"], False)
+        ut.dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
+        ut.dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
+        ut.dump(invErrorFileName, inventor_missing_dict, ["patent_id", "error", "num_lines"], False)
+        ut.dump(assErrorFileName, assignee_missing_dict, ["patent_id", "error", "num_lines"], False)
         counter += 1
         if counter < 0:
             break
@@ -409,8 +394,8 @@ for citation in sreader:
 
 # dump final output
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Raw = " + str([sreader.line_num, raw_citation1a, raw_citation1b, raw_citation1c, raw_citation2a, raw_citation2b, raw_citation2c, raw_citation3]) + " Exp = "  + str([exp_citation1, exp_citation2, exp_citation3, exp_citation4]) + " Dist = " + str([exp_citation5, exp_citation6, exp_citation7, exp_citation8a, exp_citation8b, exp_citation9a, exp_citation9b, exp_citation10a, exp_citation10b, exp_citation11, exp_citation12]) + " Missing = " + str([exp_citation13, exp_citation14, exp_citation15, exp_citation16, exp_citation17, exp_citation18, exp_citation19]) + " t1 = " + str(round(t1,2)))
-dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
-dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
-dump(invErrorFileName, inventor_missing_dict, ["patent_id", "error", "num_lines"], False)
-dump(assErrorFileName, assignee_missing_dict, ["patent_id", "error", "num_lines"], False)
+ut.dump(fc_outputFileName, acc_fwd_cit, fc_outputheader, True)
+ut.dump(bc_outputFileName, acc_back_cit, bc_outputheader, True)
+ut.dump(invErrorFileName, inventor_missing_dict, ["patent_id", "error", "num_lines"], False)
+ut.dump(assErrorFileName, assignee_missing_dict, ["patent_id", "error", "num_lines"], False)
 # 2019-02-28 21:42:18 Total = 91000027 InvErr = 16235262 AssErr = 17894175 t1 = 7272.67
