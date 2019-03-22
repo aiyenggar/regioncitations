@@ -24,6 +24,7 @@ update_freq_lines=15000000
 attributeErrorValue=['-2'] # List value is empty
 keyErrorValue=['-3'] # No information
 defaultErrorValue=['-4']
+expandedCitationLastFileSuffix=7
 
 # the below file needs to be augmented to include a list of latlongid, so whenever uaid is -1, one may fall back onto the latlongid to then calculate the actual distance
 # patent_id,assigneelist,latlonglist,ualist
@@ -119,16 +120,16 @@ def incrdict(key, dictionary):
     return dictionary
 
 def isValidUrbanArea(uaid):
-    if (uaid >= 0):
+    if (int(uaid) >= 0):
         return True
     return False
 
 def isValidAssignee(assignee_id):
-    if (assignee_id >= 0):
+    if (int(assignee_id) >= 0):
         return True
     return False
 
 def isValidLatLongId(latlongid):
-    if (latlongid >= 0):
+    if (int(latlongid) >= 0):
         return True
     return False
