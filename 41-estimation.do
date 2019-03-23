@@ -6,11 +6,15 @@ local citationcategorystartyear = 2001
 local allcitationscategory = 100
 local applicantcitationscategory = 2
 local examinercitationscategory = 3
+local allflows "ALL"
+local uniqueflows "UNIQ"
 local quintile_levels 5
 local geosample "ua3"
 local calcsample "True"
+local distest "dis"
+//local distest "nod"
 local inputprefix "20190314-`geosample'"
-local distest "CalcDist`calcsample'"
+
 local legendsample " (Mapping: `geosample', Distance Calculation: `calcsample')"
 local fileprefix = "`inputprefix'-`distest'"
 local destdir /Users/aiyenggar/processed/patents/
@@ -32,7 +36,7 @@ Model 7: DV - All Received. All. citationcategorystartyear onward. Examiner Cita
 */
 
 use `sourcefile', clear
-keep if citation_type==`allcitationscategory'
+keep if citation_type==`allcitationscategory' & countstyle=="`allflows'"
 xtset uaid year
 local yearmin = `samplestartyear'
 local dyearstart = `yearmin'+1
@@ -110,7 +114,7 @@ local dyearstart = `yearmin'+1
 local yearmax = `sampleendyear'
 
 use `sourcefile', clear
-keep if citation_type==`allcitationscategory'
+keep if citation_type==`allcitationscategory' & countstyle=="`allflows'"
 local citsample "AllCitations"
 xtset uaid year
 xtnbreg cit_recd_total  rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_other lnpool d`dyearstart'-d`yearmax' percentsubcat* if (year>=`yearmin' & year<=`yearmax'), i(uaid) fe
@@ -130,7 +134,7 @@ sutex cit_recd_total cit_recd_nonself   rcit_made_localinternal rcit_made_locale
 filefilter temp.tex `reportdir'`myfileprefix'-summary.tex, from("{table}") to("{sidewaystable}") replace
 
 use `sourcefile', clear
-keep if citation_type==`applicantcitationscategory'
+keep if citation_type==`applicantcitationscategory' & countstyle=="`allflows'"
 local citsample "ApplicantCitations"
 xtset uaid year
 xtnbreg cit_recd_total  rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_other lnpool d`dyearstart'-d`yearmax' percentsubcat* if (year>=`yearmin' & year<=`yearmax'), i(uaid) fe
@@ -150,7 +154,7 @@ sutex cit_recd_total cit_recd_nonself   rcit_made_localinternal rcit_made_locale
 filefilter temp.tex `reportdir'`myfileprefix'-summary.tex, from("{table}") to("{sidewaystable}") replace
 
 use `sourcefile', clear
-keep if citation_type==`examinercitationscategory'
+keep if citation_type==`examinercitationscategory' & countstyle=="`allflows'"
 local citsample "ExaminerCitations"
 xtset uaid year
 xtnbreg cit_recd_total  rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_other lnpool d`dyearstart'-d`yearmax' percentsubcat* if (year>=`yearmin' & year<=`yearmax'), i(uaid) fe
@@ -178,7 +182,7 @@ filefilter temp.tex `reportdir'`fileprefix'-base-model.tex, from("{table}") to("
 /* pool table */
 
 use `sourcefile', clear
-keep if citation_type==`allcitationscategory'
+keep if citation_type==`allcitationscategory' & countstyle=="`allflows'"
 xtset uaid year
 
 local yearmin = `samplestartyear'

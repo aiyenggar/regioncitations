@@ -45,10 +45,7 @@ rename subcat nber_subcat
 rename class uspc_class
 rename subclass uspc_subclass
 sort uaid year
-save temp1.dta, replace
 
-
-use temp1.dta, clear
 egen id_uspc_class = group(uspc_class) if !strpos(uspc_class,"No longer published") & !strpos(uspc_class,"-0T")
 bysort uaid year id_uspc_class: gen patents_in_class=_N if !missing(id_uspc_class)
 gen sqf_class = (patents_in_class/pat_cnt) * (patents_in_class/pat_cnt)
@@ -58,7 +55,7 @@ bysort uaid year: egen uspc_focus=max(uspc_tempsum)
 gen uspc_differentiation=1-uspc_focus
 
 bysort uaid year nber_cat: gen patents_in_category=_N if !missing(nber_cat)
-gen percentcat = (100*patents_in_category)/pat_cnt
+gen catpercent = (100*patents_in_category)/pat_cnt
 gen sqf_category = (patents_in_category/pat_cnt) * (patents_in_category/pat_cnt)
 bysort uaid year nber_cat: replace sqf_category=0 if _n > 1
 bysort uaid year: gen nber_cat_tempsum=sum(sqf_category)
@@ -66,34 +63,52 @@ bysort uaid year: egen nber_cat_focus=max(nber_cat_tempsum)
 gen nber_cat_differentiation=1-nber_cat_focus
 
 bysort uaid year nber_subcat: gen patents_in_subcategory=_N if !missing(nber_subcat)
-gen percentsubcat = (100*patents_in_subcategory)/pat_cnt
+gen subcatpercent = (100*patents_in_subcategory)/pat_cnt
 gen sqf_subcategory = (patents_in_subcategory/pat_cnt) * (patents_in_subcategory/pat_cnt)
 bysort uaid year nber_subcat: replace sqf_subcategory=0 if _n > 1
 bysort uaid year: gen nber_subcat_tempsum=sum(sqf_subcategory)
 bysort uaid year: egen nber_subcat_focus=max(nber_subcat_tempsum)
 gen nber_subcat_differentiation=1-nber_subcat_focus
-save temp3.dta, replace
+preserve
 
-use temp3.dta, clear
-local tempval=999999
-replace nber_cat=`tempval' if missing(nber_cat)
-reshape wide percentcat, i(uaid year) j(nber_cat)
-drop percentcat`tempval'
+bysort uaid year nber_cat: keep if _n==1
+keep uaid year nber_cat catpercent
+levels nber_cat, local(levelcat)
+foreach lcat of local levelcat {
+	gen tempcat`lcat'=catpercent if nber_cat==`lcat'
+	replace tempcat`lcat'=0 if missing(tempcat`lcat')
+	bysort uaid year: egen percentcat`lcat' = max(tempcat`lcat')
+	drop tempcat`lcat'
+}
+drop nber_cat catpercent
+bysort uaid year: keep if _n ==1
+save tempcatpercent.dta, replace
 
-replace nber_subcat=`tempval' if missing(nber_subcat)
-reshape wide percentsubcat, i(uaid year) j(nber_subcat)
-drop percentsubcat`tempval'
-save temp4.dta, replace
+restore
+preserve
+bysort uaid year nber_subcat: keep if _n==1
+keep uaid year nber_subcat subcatpercent
+levels nber_subcat, local(levelsubcat)
+foreach lsubcat of local levelsubcat {
+	gen tempsubcat`lsubcat'=subcatpercent if nber_subcat==`lsubcat'
+	replace tempsubcat`lsubcat'=0 if missing(tempsubcat`lsubcat')
+	bysort uaid year: egen percentsubcat`lsubcat' = max(tempsubcat`lsubcat')
+	drop tempsubcat`lsubcat'
+}
+drop nber_subcat subcatpercent
+bysort uaid year: keep if _n ==1
+save tempsubcatpercent.dta, replace
 
+restore
+merge m:1 uaid year using tempcatpercent.dta, keep(match master) nogen
+merge m:1 uaid year using tempsubcatpercent.dta, keep(match master) nogen
+save ${destdir}`inputprefix'-patent-technology.dta, replace
 
-bysort uaid year: keep if _n == 1
-/* We are now down to 64,177 observations */
-
-
-drop uspc_class uspc_subclass nber_cat nber_subcat patent_id *tempsum
+drop uspc_class uspc_subclass nber_cat nber_subcat inventor_index patent_id *tempsum sqf_class sqf_category sqf_subcategory id_uspc_class catpercent subcatpercent patents_in_class patents_in_category patents_in_subcategory
 sort uaid year
+bysort uaid year: keep if _n == 1
 bysort uaid: gen pat_pool=sum(pat_cnt)
 replace pat_pool = pat_pool - pat_cnt
 label variable pat_pool "[ua-year] pool of patents"
 order year uaid pat_cnt pat_pool *_focus *_differentiation
-save ${destdir}`inputprefix'-ua_year_patents.dta, replace
+save ${destdir}`inputprefix'-ua-year-patents.dta, replace

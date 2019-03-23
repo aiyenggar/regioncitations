@@ -4,9 +4,8 @@ Created on Wed Feb  27 05:48:51 2019
 @author: aiyenggar
 """
 
-import csv
 import sys
-
+pathPrefix = "/Users/aiyenggar/processed/patents/"
 #backwardCitationsConfig="Expanded"
 backwardCitationsConfig="Pure-Collapsed"
 fileDatePrefix="20190314"
@@ -18,7 +17,7 @@ calculateCitationDistanceString="dis"
 distanceTreshold=30.01
 degreeTreshold=0.3 # to set the bounding box based on latitude and longitude
 outputPrefix = fileDatePrefix + "-" + urbanareaConfig + "-" + calculateCitationDistanceString
-pathPrefix = "/Users/aiyenggar/processed/patents/"
+
 veryLargeValue = sys.maxsize
 update_freq_lines=15000000
 attributeErrorValue=['-2'] # List value is empty
@@ -39,85 +38,14 @@ latlongFile=pathPrefix + "latlong_urbanarea.csv"
 # Outside Cluster, Within Firm: q4
 # Not determinable: q5
 
-fc_outputheader=["uaid", "year", "citation_type", "fq1", "fq2", "fq3", "fq4", "fq5"]
-fc_outputFileName=pathPrefix + outputPrefix + "-forward_citations.csv"
+inputfile22 = keysFile1
+searchfile22 = searchFileName
+outputfile22 = pathPrefix + outputPrefix + "-patent-citation-received-by-year.csv"
+outputheader22 = ["year", "patent_id", "total_citations_received", "self_citations_received", "nonself_citations_received"]
+errorfile22 = pathPrefix + outputPrefix + "-err22.csv"
+errorheader22 = ["patent_id", "field", "error_value", "num_raw_citations"]
 
-invErrorFileName=pathPrefix + outputPrefix + "-ErrInv.csv"
-assErrorFileName=pathPrefix + outputPrefix + "-ErrAss.csv"
-
-def dump(fName, dictionary, header, tolist):
-    mapf = open(fName, 'w', encoding='utf-8')
-    mapwriter = csv.writer(mapf)
-    mapwriter.writerow(header)
-    for key in dictionary:
-        if tolist:
-            l = list(key)
-            r = list(dictionary[key])
-        else:
-            l = [key[0],key[1]]
-            r = [str(dictionary[key])]
-        mapwriter.writerow(l+r)
-    mapf.close()
-    return
-
-def assign_flow(dictionary, fo_year, citationtype, focal_location, other_location, focal_assignee, other_assignee, avoid):
-    if (focal_location >= 0) and (focal_location != avoid):
-        key = tuple([focal_location, fo_year, citationtype])
-        prior = [0, 0, 0, 0, 0]
-        if key in dictionary:
-            prior = dictionary[key]
-        if (focal_assignee < 0) or (other_location < 0) or (other_assignee < 0):
-            prior[4] += 1
-        else:
-            # Guaranteed that each of focal_location, other_location, focal_assignee, other_assignee are valid
-            if focal_location == other_location:
-                if focal_assignee == other_assignee:
-                    prior[0] += 1
-                else:
-                    prior[1] += 1
-            else:
-                if focal_assignee == other_assignee:
-                    prior[3] += 1
-                else:
-                    prior[2] += 1
-        dictionary[key] = prior
-    return dictionary
-
-def assign_flow2(dictionary, fo_year, citationtype, focal_location, focal_assignee, other_assignee, avoid): #flow within assignee is marked on quadrant 1, and flow outside assignee is marked on quadrant 2
-    if (focal_location >= 0) and (focal_location != avoid):
-        key = tuple([focal_location, fo_year, citationtype])
-        prior = [0, 0, 0, 0, 0]
-        if key in dictionary:
-            prior = dictionary[key]
-        if (focal_assignee < 0) or (other_assignee < 0):
-            prior[4] = 1 # quadrant 5
-        else:
-            if focal_assignee == other_assignee:
-                prior[0] = 1 # quadrant 1
-            else:
-                prior[1] = 1 # quadrant 2
-        dictionary[key] = prior
-    return dictionary
-
-def update(master_dictionary, updates_dict, default):
-    for keys in updates_dict:
-        change = updates_dict[keys]
-        master = default
-        if keys in master_dictionary:
-            master = master_dictionary[keys]
-        for index in range(0,5):
-            master[index] += change[index]
-        master_dictionary[keys] = master
-    return master_dictionary
-
-
-# Take a key and a dictionary, and increment the value against the key in the dictionary by one
-def incrdict(key, dictionary):
-    if key not in dictionary:
-        dictionary[key] = 1
-    else:
-        dictionary[key] += 1
-    return dictionary
+missing_dict = {} #global
 
 def isValidUrbanArea(uaid):
     if (int(uaid) >= 0):
@@ -133,3 +61,24 @@ def isValidLatLongId(latlongid):
     if (int(latlongid) >= 0):
         return True
     return False
+
+def splitFromDict(key, fieldName, splitBy, dictionary):
+    try:
+        retVal = dictionary[fieldName][key].split(splitBy)
+    except AttributeError:
+        # we assume the value would have returned nan, implying a missing assignee field
+        ekey = tuple([key, fieldName, attributeErrorValue[0]])
+        if ekey not in missing_dict:
+            missing_dict[ekey] = 0
+        missing_dict[ekey] += 1
+        retVal = attributeErrorValue
+    except KeyError:
+        ekey = tuple([key, fieldName, keyErrorValue[0]])
+        if ekey not in missing_dict:
+            missing_dict[ekey] = 0
+        missing_dict[ekey] += 1
+        retVal = keyErrorValue
+    except:
+        print(str(sys.exc_info()[0]) + " of " + fieldName + " -> " + key + " " + str(sys.exc_info()[1]))
+        retVal = defaultErrorValue
+    return retVal

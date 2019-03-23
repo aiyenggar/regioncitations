@@ -5,34 +5,10 @@ Created on Wed Feb  27 05:48:51 2019
 """
 
 import csv
-import sys
 import pandas as pd
 import time
 import geopy.distance
 import citationutils as ut
-
-missing_dict = {} #global
-
-def splitFromDict(key, fieldName, splitBy, dictionary):
-    try:
-        retVal = dictionary[fieldName][key].split(splitBy)
-    except AttributeError:
-        # we assume the value would have returned nan, implying a missing assignee field
-        ekey = tuple([key, fieldName, ut.attributeErrorValue[0]])
-        if ekey not in missing_dict:
-            missing_dict[ekey] = 0
-        missing_dict[ekey] += 1
-        retVal = ut.attributeErrorValue
-    except KeyError:
-        ekey = tuple([key, fieldName, ut.keyErrorValue[0]])
-        if ekey not in missing_dict:
-            missing_dict[ekey] = 0
-        missing_dict[ekey] += 1
-        retVal = ut.keyErrorValue
-    except:
-        print(str(sys.exc_info()[0]) + " of " + fieldName + " -> " + key + " " + str(sys.exc_info()[1]))
-        retVal = ut.defaultErrorValue
-    return retVal
 
 def getDistance(latlong1, latlong2):
     retVal = ut.veryLargeValue
@@ -103,13 +79,13 @@ for citation in sreader:
     seq_citation = int(citation[4])
     kind_citation = citation[5] # B1, A etc
 
-    p_latlongid = splitFromDict(patent_id, "latlonglist", ",", inv_latlongid_dict)
-    p_loc = splitFromDict(patent_id, "ualist", ",", inv_uaid_dict)
-    p_ass = splitFromDict(patent_id, "assigneelist", ",", assignee_dict)
+    p_latlongid = ut.splitFromDict(patent_id, "latlonglist", ",", inv_latlongid_dict)
+    p_loc = ut.splitFromDict(patent_id, "ualist", ",", inv_uaid_dict)
+    p_ass = ut.splitFromDict(patent_id, "assigneelist", ",", assignee_dict)
 
-    c_latlongid = splitFromDict(citation_id, "latlonglist", ",", inv_latlongid_dict)
-    c_loc = splitFromDict(citation_id, "ualist", ",", inv_uaid_dict)
-    c_ass = splitFromDict(citation_id, "assigneelist", ",", assignee_dict)
+    c_latlongid = ut.splitFromDict(citation_id, "latlonglist", ",", inv_latlongid_dict)
+    c_loc = ut.splitFromDict(citation_id, "ualist", ",", inv_uaid_dict)
+    c_ass = ut.splitFromDict(citation_id, "assigneelist", ",", assignee_dict)
 
     for pind in range(len(p_loc)):
         for cind in range(len(c_loc)):
