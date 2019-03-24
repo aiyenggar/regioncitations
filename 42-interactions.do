@@ -1,4 +1,4 @@
-/* This file has the code to generate regression results interactions with technology diversification measures */
+/* This file has the code to generate regression results interactions with `divlist' measures */
 
 local sampleendyear = 2010
 local citationcategorystartyear = 2001
@@ -16,7 +16,7 @@ local sourcefile `destdir'`fileprefix'-urbanarea-year-estimation.dta
 local mid=49
 est drop _all
 
-local stylelist "ALL UNIQ"
+local stylelist "ALL"
 foreach style of local stylelist {
 	local yearlist "1980 1990"
 	foreach samplestartyear of local yearlist {
@@ -33,25 +33,25 @@ foreach style of local stylelist {
 
 				/* Generate interaction variables */
 				gen div=`divvar'
-				label variable div "Technology Diversification"
+				label variable div "`divlist'"
 				gen sqdiv=div*div
-				label variable sqdiv "Square(Technology Diversification)"
+				label variable sqdiv "Square(`divlist')"
 				gen intq1=rcit_made_localinternal * div
-				label variable intq1 "1 x Technology Diversification"
+				label variable intq1 "1 x `divlist'"
 				gen sqintq1=rcit_made_localinternal * sqdiv
-				label variable sqintq1 "1 x sq(Technology Diversification)"
+				label variable sqintq1 "1 x sq(`divlist')"
 				gen intq2=rcit_made_localexternal * div
-				label variable intq2 "2 x Technology Diversification"
+				label variable intq2 "2 x `divlist'"
 				gen sqintq2=rcit_made_localexternal * sqdiv
-				label variable sqintq2 "2 x sq(Technology Diversification)"
+				label variable sqintq2 "2 x sq(`divlist')"
 				gen intq4=rcit_made_nonlocalinternal * div
-				label variable intq4 "3 x Technology Diversification"
+				label variable intq4 "3 x `divlist'"
 				gen sqintq4=rcit_made_nonlocalinternal * sqdiv
-				label variable sqintq4 "3 x sq(Technology Diversification)"
+				label variable sqintq4 "3 x sq(`divlist')"
 				gen intq5=rcit_made_other * div
-				label variable intq5 "4 x Technology Diversification"
+				label variable intq5 "4 x `divlist'"
 				gen sqintq5=rcit_made_other * sqdiv
-				label variable sqintq5 "4 x sq(Technology Diversification)"
+				label variable sqintq5 "4 x sq(`divlist')"
 				/* Completed generating variables */
 
 				local varlist "1 10"
@@ -97,7 +97,7 @@ foreach style of local stylelist {
 					sutex cit_recd_total cit_recd_nonself   rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_nonlocalexternal  rcit_made_other  div sqdiv lnpool if e(sample) == 1, minmax file(temp.tex) labels key(`myfileprefix'-summary) title("Summary Statistics (`modelname')") replace 
 					filefilter temp.tex `reportdir'`myfileprefix'-summary.tex, from("{table}") to("{sidewaystable}") replace
 
-					xtnbreg cit_recd_total  rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_other div intq1 intq2 intq4 intq5 sqintq1 sqdiv sqintq2 sqintq4 sqintq5 lnpool d`dyearstart'-d`yearmax' percentsubcat* if (year>=`yearmin' & year<=`yearmax' & quintile >= `l'), i(uaid) fe
+					xtnbreg cit_recd_total  rcit_made_localinternal rcit_made_localexternal rcit_made_nonlocalinternal rcit_made_other div intq1 intq2 intq4 intq5 sqdiv sqintq1 sqintq2 sqintq4 sqintq5 lnpool d`dyearstart'-d`yearmax' percentsubcat* if (year>=`yearmin' & year<=`yearmax' & quintile >= `l'), i(uaid) fe
 					estadd local Groups `e(N_g)'
 					estadd local Locations "All"
 					estadd local PeriodStart `yearmin'
@@ -117,9 +117,9 @@ foreach style of local stylelist {
 					filefilter temp.tex `reportdir'`myfileprefix'-summary.tex, from("{table}") to("{sidewaystable}") replace
 				} /* quintile list */						
 				esttab `mlist' using temp.tex, ///
-				title("Negative Binomial Regression Analysis of Invention Quality (All Locations, All Citations, `yearmin'-`yearmax', `divvar') \label{`fileprefix'-model}") ///
+				title("Negative Binomial Regression Analysis of Invention Quality (All Locations, All Citations, `yearmin'-`yearmax', `style' Flows) \label{`fileprefix'-model}") ///
 				label replace p(3) not nostar noomitted compress nogaps ///
-				drop (d* percent*) scalars("Groups" "PatentPool" "FlowCount" "Model" "Technology") addnotes("Reference category is Share Citations Made[Different Urban Area, Different Assignee]" "All models include region fixed effects, year dummies and technology subcategory controls")
+				drop (d* percent*) scalars("Groups" "PatentPool" "Model" ) addnotes("Reference category is Share Citations Made[Different Urban Area, Different Assignee]" "All models include region fixed effects, year dummies and technology subcategory controls")
 				filefilter temp.tex `reportdir'`fileprefix'-`style'-`samplestartyear'-`divvar'-interactions-model.tex, from("{table}") to("{sidewaystable}") replace
 			} /* diversification */
 	} /* samplestartyear */
