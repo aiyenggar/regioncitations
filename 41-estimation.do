@@ -1,7 +1,7 @@
 /* This file has the code to generate regression results for papers sent out 2019 and later*/
 
 local sampleendyear = 2010
-local citationcategorystartyear = 2002
+local citationcategorystartyear = 2001
 local allcitationscategory = 100
 local applicantcitationscategory = 2
 local examinercitationscategory = 3
