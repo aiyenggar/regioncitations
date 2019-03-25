@@ -56,5 +56,5 @@ foreach ly of local levelyear {
 }
 /* done generating year dummies */
 
-order year urban_area uaid country *focus *differentiation citation_type countstyle *recd* *made* lnpatents lnpool d* 
+order year urban_area uaid country *focus *diversification citation_type countstyle *recd* *made* lnpatents lnpool d* 
 save `prefix'urbanarea-year-estimation.dta, replace

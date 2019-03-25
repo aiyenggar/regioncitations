@@ -25,24 +25,9 @@ import delimited `datadir'application.tsv, varnames(1) encoding(UTF-8) clear
 sort patent_id
 save application.dta, replace
 
-import delimited `datadir'assignee.tsv, varnames(1) encoding(UTF-8) clear
-rename id assignee_id
-save assignee.dta, replace
-
-import delimited `datadir'location.tsv, varnames(1) encoding(UTF-8) clear
-save location.dta, replace
-
 import delimited `datadir'nber.tsv, varnames(1) encoding(UTF-8) clear
 sort patent_id
 save `destdir'nber.dta, replace
-
-import delimited `datadir'patent_assignee.tsv, varnames(1) encoding(UTF-8) clear
-sort patent_id
-save patent_assignee.dta, replace
-
-import delimited `datadir'patent_inventor.tsv, varnames(1) encoding(UTF-8) clear
-sort patent_id
-save patent_inventor.dta, replace
 
 import delimited `datadir'patent.tsv, varnames(1) encoding(UTF-8) clear
 rename id patent_id
@@ -59,9 +44,6 @@ sort patent_id sequence
 save rawinventor.dta, replace
 
 import delimited `datadir'uspatentcitation.tsv, varnames(1) encoding(UTF-8) clear
-save uspatentcitationfull.dta, replace
-
-use uspatentcitationfull.dta
 drop uuid name country
 save uspatentcitation.dta, replace
 
@@ -83,7 +65,6 @@ third party5|      2,062        0.00      100.00
 drop category date
 sort patent_id
 merge m:1 patent_id using `destdir'application.dta, keep(match master) nogen
-
 gen application_date = date(date,"YMD") /* 185 missing */
 gen application_year=year(application_date) /* 185 missing */
 drop id series_code number country date

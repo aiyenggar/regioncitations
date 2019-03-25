@@ -68,10 +68,9 @@ gen assignee = organization if !missing(organization)
 replace assignee = name_first + " " + name_last if missing(assignee)
 replace assignee = substr(assignee, 1, 48)
 compress assignee
-drop name_first name_last organization
+drop uuid name_first name_last organization
 rename sequence assigneeseq
-rename type assigneetype
-drop uuid
+rename type assigneetype 
 /* We start with 5,903,411 entries */
 merge m:1 patent_id using `destdir'application.dta, nogen
 /* 5,903,411 entries are matched,  934,138 are not. We keep all since the unmatched need to be interpreted as individual patents */

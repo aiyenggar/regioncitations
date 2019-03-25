@@ -36,6 +36,18 @@ bysort uaid year: egen avg_ua_share = mean(ua_share)
 label variable avg_ua_share "[ua-year] share of inventors in urban areas (avg)"
 sort patent_id
 
+merge m:m patent_id using patent_assignee_year.dta, keep(match master) nogen
+bysort uaid year assignee_numid: gen assignee_index=_n if !missing(assignee_numid)
+replace assignee_index=0 if assignee_index > 1
+bysort uaid year: egen uniq_ass=sum(assignee_index)
+label variable uniq_ass "[ua-year] number of unique assignees"
+bysort uaid year: gen ass_cnt=_N if !missing(assignee_numid)
+label variable ass_cnt "[ua-year] number of non-unique assignees"
+bysort patent_id uaid: gen index1 = _n if uaid >= 0
+label variable index1 "[ua] index of patent-inventor location"
+keep if index1 == 1
+drop index1 assignee_numid
+
 merge m:1 patent_id using ${destdir}patent_technology_classification.dta, keep(match master) nogen
 /* 47,859 observations are not matched and 7,655,088 are matched
 About 37k of the 47k non matched are from 2014 onwards */
@@ -110,5 +122,5 @@ bysort uaid year: keep if _n == 1
 bysort uaid: gen pat_pool=sum(pat_cnt)
 replace pat_pool = pat_pool - pat_cnt
 label variable pat_pool "[ua-year] pool of patents"
-order year uaid pat_cnt pat_pool *_focus *_differentiation
+order year uaid pat_cnt pat_pool *_focus *_diversification
 save ${destdir}`inputprefix'-ua-year-patents.dta, replace
