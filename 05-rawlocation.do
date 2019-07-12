@@ -23,4 +23,4 @@ drop location_id state city country
 bysort latlong: keep if _n == 1
 keep latlong latitude longitude
 order latlong latitude longitude
-export delimited using spatialjoin.csv, replace
+export delimited using latlongidmap.csv, replace

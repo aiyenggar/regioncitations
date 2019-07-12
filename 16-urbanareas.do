@@ -3,8 +3,8 @@ local destdir ~/processed/patents/
 cd `destdir'
 
 use `destdir'uspc_current.dta, clear
-/* We start with 22,880,877 observations, primarily because most 
-   patents have multiple class assignments. */
+/* We start with 22,880,877 observations. Tabulated by mainclass count at the end of this file. */
+/* By keeping only one entry per patent, we lose many mainclass associations, and many subclass associations for the class retained as well as those dropped */
 keep if sequence == 0
 drop sequence
 /* 6,610,258 patents remain */
@@ -25,10 +25,13 @@ save `destdir'patent_technology_classification.dta, replace
 use `destdir'rawlocation.dta, clear
 keep rawlocation_id country latlong
 sort latlong
+/* bring latlongid in */
 merge m:1 latlong using `destdir'latlongid.dta, keep(match master) nogen
 drop latlong
+/* bring ua1, ua2 and ua3 where ua3 is the union */
 merge m:1 latlongid using `destdir'latlong_urbanarea.dta, keep(match master) nogen
 sort rawlocation_id
+/* 25M rawlocation_id are now mapped to ua1-ua3 via latlongid */
 save `destdir'rawlocation_urbanarea.dta, replace
 
 use `destdir'rawinventor.dta, clear
@@ -77,23 +80,27 @@ merge m:1 patent_id using `destdir'application.dta, nogen
 gen appl_date = date(date,"YMD")
 gen year=year(appl_date)
 keep year patent_id assignee_id assignee assigneetype assigneeseq 
+
 /*
 https://www.uspto.gov/web/offices/ac/ido/oeip/taf/inv_all.htm
  
 “An independent inventor (also called an individual inventor), for purposes of this report, is a person whose patent, at the time of grant, has ownership that is unassigned or assigned to an individual (i.e., ownership of the patent is not assigned to an organization).”
+
+2 - US Company or Corporation, 3 - Foreign Company or Corporation, 4 - US Individual, 5 - Foreign Individual, 6 - US Government, 7 - Foreign Government, 8 - Country Government, 9 - State Government (US). Note: A "1" appearing before any of these codes signifies part interest
 */
 
 gen update_assignee=1 if missing(assignee_id) | assigneetype == 4 | assigneetype == 5 | assigneetype == 14 | assigneetype == 15
 replace update_assignee=0 if missing(update_assignee) /* 0 for 5,838,211 and 1 for  999,338 */
-bysort patent_id update_assignee: gen patcnt = _N
+bysort patent_id update_assignee: gen patcnt = _N /* A patent can have multiple assignees, we count how many 'assignees' are missing and how many are present */
 bysort patent_id update_assignee: gen patind = _n
+/* shouldn't the below be patind > 1? With patcnt > 1 we lose those patents forever do we not? */
 drop if update_assignee==1 & patcnt>1 /* 18,717 observations deleted. For those patents that we want to set the assignee for, we want one entry per patent_id. Multiple assignees will be taken care of with multiple inventors on the patent */
 save `destdir'temp_patent_assignee_year1.dta, replace /* 6,818,832 observations saved */
 
 /* Isolated those patents that are individual patents. These need their assignee set differently */
 keep if update_assignee==1 /* 980,621 observations */
 keep patent_id
-merge 1:m patent_id using ${destdir}rawinventor.dta, keep(match) nogen /* drop 270 of not matched from master */
+merge 1:m patent_id using `destdir'rawinventor.dta, keep(match) nogen /* drop 270 of not matched from master */
 /* 1,404,965 observations */
 keep patent_id inventor_id
 gen attr_assignee="inventor-"+inventor_id
@@ -123,3 +130,30 @@ keep patent_id assignee_numid year /* assignee_numid will do the job for the com
 order year patent_id assignee_numid
 sort patent_id
 save `destdir'patent_assignee_year.dta, replace /* 7,243,445 observations for 6,640,891 unique patents with 264 unassigned patents */
+
+
+/*
+number of main classes per patent. 61.72% of patents have only one mainclass
+      mccnt |      Freq.     Percent        Cum.
+------------+-----------------------------------
+          1 |  4,080,032       61.72       61.72
+          2 |  1,673,486       25.32       87.04
+          3 |    599,547        9.07       96.11
+          4 |    183,367        2.77       98.88
+          5 |     52,538        0.79       99.67
+          6 |     15,068        0.23       99.90
+          7 |      4,484        0.07       99.97
+          8 |      1,270        0.02       99.99
+          9 |        418        0.01      100.00
+         10 |        173        0.00      100.00
+         11 |         66        0.00      100.00
+         12 |         36        0.00      100.00
+         13 |         16        0.00      100.00
+         14 |          5        0.00      100.00
+         15 |          5        0.00      100.00
+         16 |          4        0.00      100.00
+         17 |          1        0.00      100.00
+         19 |          1        0.00      100.00
+------------+-----------------------------------
+      Total |  6,610,517      100.00
+*/

@@ -2,10 +2,10 @@ set more off
 local destdir ~/processed/patents/
 cd `destdir'
 
-import delimited `destdir'latlong_urbanarea_2.csv, encoding(ISO-8859-1)clear
+import delimited `destdir'latlong_distance.csv, encoding(ISO-8859-1)clear
 keep if distance < 30.01
 bysort l_latlongid: gen near_points=_N
-rename r_latlongid latlongid /* this fields is known to be mapped on to an urban area */
+rename r_latlongid latlongid /* this latlongid is known to be mapped onto an urban area */
 sort latlongid
 merge m:1 latlongid using latlong_urbanarea_1.dta, keep(match master) nogen
 drop latitude longitude
@@ -15,6 +15,7 @@ by l_latlongid: replace nvals = sum(nvals)
 by l_latlongid: replace nvals = nvals[_N]
 
 sort l_latlongid distance
+/* retain the urban area of the point that is closest to it. There may be other ways to do this */
 by l_latlongid: keep if _n == 1
 
 gen ua3 = ua1 if nvals > 1

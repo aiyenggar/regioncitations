@@ -1,8 +1,44 @@
-path to patentsview files in 05-rawlocation.do
-many-to-one spatial join with largest area selection in 
-backwardCitationsConfig in 10-citation2.py
+path to patentsview files in 05-rawlocation.do, 15-import.do
+path to processed folder: 06-spatial-join.txt, 07-latlong-urbanarea.do, 08-distance-calc.py, 09-join-urbanarea.do, 15-import.do, 16-urbanareas.do, 17-assign_urbanarea.do
+
+latlong_distance.csv is the new name for latlong_urbanarea_2.csv
+08-distance-calc.py is the new name for 08-fill-urbanarea.py
+
+0.3 lat long bounding box in 08-distance-calc.py
+30 KM cutoff in 09-join-urbanarea.do as 30.01
+
+ua of -2 is genrated in 16-urbanareas.do when a rawlocation_id shows up in rawinventor.dta that was not in rawlocation.dta
+
+Assignee manipulation happens in 16-urbanareas.do (decisions about individual assignee when none is provided)
+
+I do not understand the second half of 16-urbanareas.do
+
+Steps:
+
+Preparation:
+01-dataunzip.sh : Unzips the files downloaded
+02-data-validate.sh : Some of the files downloaded have unmatched double quotes that cause the comma delimited to work incorrectly. This step identifies and isolates the problematic lines.
+03-data-cleanup.sh : The issues identified in the previous step are fixed. Other problems involving CF(0x0D) and TAB (0x09) are also fixed. Hex Fiend is a useful hex editor to deal with large files.
+04-data-verify.sh : Using the same logic as in 02-data-validate.sh, we check if all unmatched double quote errors have indeed been fixed.
+
+Pre-processing:
+05-rawlocation.do : We generate a location key as a string with latitude and longitude separated by a comma. The mapping of location key to floating point values of latitude and longitude are saved in latlongidmap.csv (previously spatialjoin.csv) 
 
 
-30 Km Treshold:
-0.3 lat long box in 06c-fill-urban-area.py
+Processed Files:
 
+one-many-latlong-urbanarea.dta & 07-latlong-urbanarea.do & From one-many-latlong-urbanarea.csv got from ArcGIS Spatial join, maps latlong to (multiple) urban_area. This is also the file where latlongid, and uaid make their presence in this form, though these are generated in the ArcGIS join.
+
+rawlocation.dta & 05-rawlocation.do & rawlocation_id, location_id (comma separated string of latitude and longitude), latitude and longitude
+uaid.csv, uaid.dta & 07-latlong-urbanarea.do & Maps uaid to urban_area
+latlongid.csv, latlongid.dta & 07-latlong-urbanarea.do & Maps latlongid to latlong (the comma separated string of latitude and longitude)
+latlong_urbanarea_1.csv, latlong_urbanarea_1.dta & 07-latlong-urbanarea.do & Maps latlongid to ua1 (the uaid of the largest urban area of membership)
+nearby.dta & 09-join-urbanarea.do & maps latlongid to ua2 (nearby urban area when there is only one in 30 KM) and ua3 (nearby urban area when there are more than one in 30 KM)
+latlong_urbanarea.dta, latlong_urbanarea.csv & 09-join-urbanarea.do & ua2 is UAID of perfect match or of unique urban area within 30km, and ua3 is UAID of perfect match or of closest urban area within 30km. ua3 thus captures the best guess about the urban area of all locations.
+rawlocation_urbanarea.dta & 16-urbanareas.do & 25M rawlocation_id are mapped to ua1-ua3 via latlongid 
+
+Open:
+Technological classification based on sequence == 0 in 16-urbanareas.do has to be justified. As it stands now, I can think of many potential problems.
+
+Decisions:
+Assignee when none is present. Individual inventors patentid is used.
