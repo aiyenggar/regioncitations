@@ -73,6 +73,22 @@ save citation.dta, replace
 /* Very interesting to note that the number of examiner citations has remained
    static over several years while the number of applicant citations has shot up */
 
+/* Create a dta file with patent_id, application_date, grant_date, application_year, grant_year */
+use patent.dta, clear
+keep patent_id date
+rename date grant_date
+sort patent_id
+merge 1:1 patent_id using `destdir'application.dta, keep(match master) nogen
+rename date application_date
+keep patent_id grant_date application_date
+gen application_year=year(date(application_date,"YMD"))
+gen grant_year=year(date(grant_date,"YMD"))
+save patent_date.dta, replace
+
 import delimited `datadir'uspc_current.tsv, varnames(1) encoding(UTF-8) clear
 drop uuid
 save uspc_current.dta, replace
+
+import delimited `datadir'cpc_current.tsv, varnames(1) encoding(UTF-8) clear
+drop uuid
+save cpc_current.dta, replace
