@@ -89,6 +89,12 @@ import delimited `datadir'uspc_current.tsv, varnames(1) encoding(UTF-8) clear
 drop uuid
 save uspc_current.dta, replace
 
+local datadir ~/data/20180528-patentsview/
 import delimited `datadir'cpc_current.tsv, varnames(1) encoding(UTF-8) clear
 drop uuid
+tostring patent_id, replace
+sort patent_id
 save cpc_current.dta, replace
+
+merge m:1 patent_id using patent_date.dta, keep(match master) nogen
+save patent_date_cpc.dta, replace
