@@ -65,31 +65,31 @@ third party5|      2,062        0.00      100.00
 drop category date
 sort patent_id
 merge m:1 patent_id using `destdir'application.dta, keep(match master) nogen
-gen application_date = date(date,"YMD") /* 185 missing */
-gen application_year=year(application_date) /* 185 missing */
+gen date_application = date(date,"YMD") /* 185 missing */
+gen year_application=year(date_application) /* 185 missing */
 drop id series_code number country date
-order application_year patent_id citation_id citation_type sequence
+order year_application patent_id citation_id citation_type sequence
 save citation.dta, replace
 /* Very interesting to note that the number of examiner citations has remained
    static over several years while the number of applicant citations has shot up */
 
-/* Create a dta file with patent_id, application_date, grant_date, application_year, grant_year */
+/* Create a dta file with patent_id, date_application, date_grant, year_application, year_grant */
 use patent.dta, clear
 keep patent_id date
-rename date grant_date
+rename date date_grant
 sort patent_id
 merge 1:1 patent_id using `destdir'application.dta, keep(match master) nogen
-rename date application_date
-keep patent_id grant_date application_date
-gen application_year=year(date(application_date,"YMD"))
-gen grant_year=year(date(grant_date,"YMD"))
+rename date date_application
+keep patent_id date_grant date_application
+gen year_application=year(date(date_application,"YMD"))
+gen year_grant=year(date(date_grant,"YMD"))
 save patent_date.dta, replace
 
 import delimited `datadir'uspc_current.tsv, varnames(1) encoding(UTF-8) clear
 drop uuid
 save uspc_current.dta, replace
 
-local datadir ~/data/20180528-patentsview/
+
 import delimited `datadir'cpc_current.tsv, varnames(1) encoding(UTF-8) clear
 drop uuid
 tostring patent_id, replace
@@ -98,3 +98,13 @@ save cpc_current.dta, replace
 
 merge m:1 patent_id using patent_date.dta, keep(match master) nogen
 save patent_date_cpc.dta, replace
+
+import delimited `datadir'cpc_group.tsv,  varnames(1) encoding(UTF-8) clear
+sort id
+rename id group_id
+save cpc_group.dta, replace
+
+import delimited `datadir'cpc_subgroup.tsv,  varnames(1) encoding(UTF-8) clear
+sort id
+rename id subgroup_id
+save cpc_subgroup.dta, replace
