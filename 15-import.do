@@ -89,11 +89,19 @@ import delimited `datadir'uspc_current.tsv, varnames(1) encoding(UTF-8) clear
 drop uuid
 save uspc_current.dta, replace
 
-
+local datadir ~/data/20180528-patentsview/
 import delimited `datadir'cpc_current.tsv, varnames(1) encoding(UTF-8) clear
 drop uuid
+rename subsection_id class_id
+rename group_id subclass_id
+split subgroup_id, g(group_id) parse(/)
+gen maingroup_id = group_id1 + "/00"
+gen twodigsubgroup_id = group_id1 + "/" + substr(group_id2,1,2)
+rename group_id1 slashprior_id
+rename group_id2 slashpost_id
 tostring patent_id, replace
 sort patent_id
+order patent_id section_id class_id subclass_id maingroup_id subgroup_id twodigsubgroup_id
 save cpc_current.dta, replace
 
 merge m:1 patent_id using patent_date.dta, keep(match master) nogen
@@ -101,10 +109,19 @@ save patent_date_cpc.dta, replace
 
 import delimited `datadir'cpc_group.tsv,  varnames(1) encoding(UTF-8) clear
 sort id
-rename id group_id
-save cpc_group.dta, replace
+rename id subclass_id
+save cpc_subclass.dta, replace
 
+local datadir ~/data/20180528-patentsview/
 import delimited `datadir'cpc_subgroup.tsv,  varnames(1) encoding(UTF-8) clear
 sort id
 rename id subgroup_id
+split subgroup_id, g(group_id) parse(/)
+gen maingroup_id = group_id1 + "/00"
+rename group_id1 slashprior_id
+rename group_id2 slashpost_id
+order subgroup_id maingroup_id title
 save cpc_subgroup.dta, replace
+
+keep if maingroup_id == "H01M8/00" & strlen(slashpost_id) == 2
+export delimited using "/Users/aiyenggar/processed/patents/H01M8-subgroup-2digitcategories.csv", quote replace
