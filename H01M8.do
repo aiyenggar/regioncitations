@@ -24,3 +24,9 @@ gsort -patents_assignee
 save h01m8assignee.dta, replace
 
 /* 3194 assignees, 26 with 100 or more patents, 63 with 50 or more patents, 298 with 10 or more patents, 548 with 5 or more patents */
+
+use h01m8yearassignee.dta, clear
+bysort year_application: gen i_yearapplication = _n
+label var patents_appyear "Patents granted (till March 2018, CPC:H01M8/00)"
+label var year_application "Application year"
+twoway connected patents_appyear year_application if i_yearapplication == 1 & year_application >= 1980 & year_application <= 2014, xlabel(1980(5)2015) ylabel(50(200)1300)
