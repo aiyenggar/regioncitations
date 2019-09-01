@@ -30,3 +30,21 @@ bysort year_application: gen i_yearapplication = _n
 label var patents_appyear "Patents granted (till March 2018, CPC:H01M8/00)"
 label var year_application "Application year"
 twoway connected patents_appyear year_application if i_yearapplication == 1 & year_application >= 1980 & year_application <= 2014, xlabel(1980(5)2015) ylabel(50(200)1300)
+
+use h01m8yearassignee.dta, clear
+drop year_grant patents_appyear assignees_year
+rename patents_assignee_appyear y
+reshape wide y, i(assignee_numid) j(year_application)
+foreach var of varlist y1971-y2017 {
+	replace `var' = 0 if missing(`var')
+}
+drop y1971-y1995
+drop y2016-y2017
+gen p19962015 = y1996 + y1997 + y1998 + y1999 + y2000 + y2001+ y2002 + y2003 + y2004 + y2005 + y2006 + y2007 + y2008 + y2009 + y2010 + y2011 + y2012 + y2013 + y2014 + y2015
+order assignee p19962015 y*
+gsort -p19962015
+save h01m8yearwise.dta, replace
+
+keep if p19962015 >= 30
+keep assignee p19962015 y*
+export excel using "h01m8min30patents.xlsx", firstrow(variables) replace
