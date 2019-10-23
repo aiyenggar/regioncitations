@@ -51,3 +51,29 @@ save `fn'yearwise.dta, replace
 keep if p19962015 >= 30
 keep assignee p19962015 y*
 export excel using "`fn'min30patents.xlsx", firstrow(variables) replace
+
+use "/Users/aiyenggar/processed/patents/patent_date_cpc.dta"
+keep patent_id subgroup_id category date_application year_application year_grant
+drop if missing(year_application) | year_application < 1960 | year_application > 2020
+gsort date_application patent_id
+keep if category=="inventional"
+drop category
+egen nid_subgroup = group(subgroup_id)
+save patent_cpc_nid_subgroup.dta, replace
+
+keep subgroup_id nid_subgroup
+bysort nid_subgroup: keep if _n == 1
+save nid_subgroup_map.dta, replace
+
+use patent_cpc_nid_subgroup.dta, clear
+keep patent_id nid_subgroup
+bysort patent_id: drop if _N==1 /* patents that do not combine anything */
+export delimited using "/Users/aiyenggar/processed/patents/patent_cpc_nid_subgroup.csv", replace
+
+import delimited "/Users/aiyenggar/processed/patents/novel-cpc.csv", varnames(1) stringcols(3) encoding(UTF-8)
+save novel-cpc.dta, replace
+bysort initial_patent: gen count_novel = _N
+bysort initial_patent: keep if _n == 1
+keep initial_patent count_novel
+rename initial_patent patent_id
+save novel-cpc-simple.dta, replace
