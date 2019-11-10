@@ -52,8 +52,16 @@ keep if p19962015 >= 30
 keep assignee p19962015 y*
 export excel using "`fn'min30patents.xlsx", firstrow(variables) replace
 
-use "/Users/aiyenggar/processed/patents/patent_date_cpc.dta"
-keep patent_id subgroup_id category date_application year_application year_grant
+local mg H01M8/00
+local fn fuelcells
+use "patent_date_cpc.dta", clear
+gen sampleg=1 if (maingroup_id == "`mg'")
+replace sampleg=0 if missing(sampleg)
+bysort patent_id: egen scnt=sum(sampleg)
+/* Every entry for a given patent_id should carry the same sampleg value */
+replace sampleg=1 if scnt > 0
+replace sampleg=0 if scnt == 0
+keep patent_id subgroup_id category date_application year_application year_grant sampleg
 drop if missing(year_application) | year_application < 1960 | year_application > 2020
 gsort date_application patent_id
 keep if category=="inventional"
@@ -66,14 +74,50 @@ bysort nid_subgroup: keep if _n == 1
 save nid_subgroup_map.dta, replace
 
 use patent_cpc_nid_subgroup.dta, clear
-keep patent_id nid_subgroup
+keep patent_id nid_subgroup sampleg
+order patent_id nid_subgroup sampleg
 bysort patent_id: drop if _N==1 /* patents that do not combine anything */
-export delimited using "/Users/aiyenggar/processed/patents/patent_cpc_nid_subgroup.csv", replace
+export delimited using "patent_cpc_nid_subgroup.csv", replace
 
-import delimited "/Users/aiyenggar/processed/patents/novel-cpc.csv", varnames(1) stringcols(3) encoding(UTF-8)
-save novel-cpc.dta, replace
+/* Process in python to generate novel-cpc.csv */
+local mg H01M8/00
+local fn fuelcells
+import delimited "novel-cpc-sample.csv", varnames(1) stringcols(3) encoding(UTF-8) clear
+save novel-cpc-sample.dta, replace
 bysort initial_patent: gen count_novel = _N
 bysort initial_patent: keep if _n == 1
 keep initial_patent count_novel
 rename initial_patent patent_id
-save novel-cpc-simple.dta, replace
+save novel-cpc-patents-sample.dta, replace
+
+import delimited "novel-cpc-global.csv", varnames(1) stringcols(3) encoding(UTF-8) clear
+save novel-cpc-global.dta, replace
+bysort initial_patent: gen count_novel = _N
+bysort initial_patent: keep if _n == 1
+keep initial_patent count_novel
+rename initial_patent patent_id
+save novel-cpc-patents-global.dta, replace
+
+use "`fn'.dta", clear
+bysort patent_id: keep if _n == 1
+order patent_id year_application
+keep patent_id year_application
+sort year_application patent_id
+export delimited using "`fn'patents.csv", replace
+save "`fn'patents.dta", replace
+
+local fn fuelcells
+use "`fn'patents.dta", clear
+merge 1:1 patent_id using novel-cpc-patents-sample.dta, keep(match master)
+replace count_novel = 0 if _merge == 1
+drop _merge
+gen ln_count_novel = ln(1 + count_novel)
+rename count_novel samp_novel_cnt
+rename ln_count_novel samp_ln_novel_cnt
+merge 1:1 patent_id using novel-cpc-patents-global.dta, keep(match master)
+replace count_novel = 0 if _merge == 1
+drop _merge
+gen ln_count_novel = ln(1 + count_novel)
+rename count_novel glob_novel_cnt
+rename ln_count_novel glob_ln_novel_cnt
+save "`fn'-novel-patents.dta", replace
