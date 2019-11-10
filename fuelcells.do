@@ -80,23 +80,96 @@ order patent_id nid_subgroup sampleg
 bysort patent_id: drop if _N==1 /* patents that do not combine anything */
 export delimited using "patent_cpc_nid_subgroup.csv", replace
 
-/* Process in python to generate novel-cpc.csv */
+use cpc_current.dta, clear
+bysort subgroup_id: keep if _n == 1
+drop patent_id category sequence
+save cpc.dta, replace
+
+/* Process in python to generate novel-cpc-sample.csv and novel-cpc-global.csv*/
 local mg H01M8/00
 local fn fuelcells
 import delimited "novel-cpc-sample.csv", varnames(1) stringcols(3) encoding(UTF-8) clear
-save novel-cpc-sample.dta, replace
-bysort initial_patent: gen count_novel = _N
-bysort initial_patent: keep if _n == 1
-keep initial_patent count_novel
 rename initial_patent patent_id
+
+rename nid_subgroup1 nid_subgroup
+merge m:1 nid_subgroup using nid_subgroup_map, keep(match master) nogen
+merge m:1 subgroup_id using cpc.dta, keep(match master) nogen
+drop slashprior_id slashpost_id twodigsubgroup_id
+rename nid_subgroup a_nid_subgroup
+rename subgroup_id a_subgroup_id
+rename section_id a_section_id
+rename class_id a_class_id
+rename subclass_id a_subclass_id
+rename maingroup_id a_maingroup_id
+
+rename nid_subgroup2 nid_subgroup
+merge m:1 nid_subgroup using nid_subgroup_map, keep(match master) nogen
+merge m:1 subgroup_id using cpc.dta, keep(match master) nogen
+drop slashprior_id slashpost_id twodigsubgroup_id
+rename nid_subgroup b_nid_subgroup
+rename subgroup_id b_subgroup_id
+rename section_id b_section_id
+rename class_id b_class_id
+rename subclass_id b_subclass_id
+rename maingroup_id b_maingroup_id
+
+gen nov0 = a_subgroup_id != b_subgroup_id
+gen nov1 = a_maingroup_id != b_maingroup_id
+gen nov2 = a_subclass_id != b_subclass_id
+gen nov3 = a_class_id != b_class_id
+gen nov4 = a_section_id != b_section_id
+
+save novel-cpc-sample.dta, replace
+
+bysort patent_id: egen count_snov0 = sum(nov0)
+bysort patent_id: egen count_snov1 = sum(nov1)
+bysort patent_id: egen count_snov2 = sum(nov2)
+bysort patent_id: egen count_snov3 = sum(nov3)
+bysort patent_id: egen count_snov4 = sum(nov4)
+bysort patent_id: keep if _n == 1
+keep patent_id count_snov*
 save novel-cpc-patents-sample.dta, replace
 
 import delimited "novel-cpc-global.csv", varnames(1) stringcols(3) encoding(UTF-8) clear
-save novel-cpc-global.dta, replace
-bysort initial_patent: gen count_novel = _N
-bysort initial_patent: keep if _n == 1
-keep initial_patent count_novel
 rename initial_patent patent_id
+
+rename nid_subgroup1 nid_subgroup
+merge m:1 nid_subgroup using nid_subgroup_map, keep(match master) nogen
+merge m:1 subgroup_id using cpc.dta, keep(match master) nogen
+drop slashprior_id slashpost_id twodigsubgroup_id
+rename nid_subgroup a_nid_subgroup
+rename subgroup_id a_subgroup_id
+rename section_id a_section_id
+rename class_id a_class_id
+rename subclass_id a_subclass_id
+rename maingroup_id a_maingroup_id
+
+rename nid_subgroup2 nid_subgroup
+merge m:1 nid_subgroup using nid_subgroup_map, keep(match master) nogen
+merge m:1 subgroup_id using cpc.dta, keep(match master) nogen
+drop slashprior_id slashpost_id twodigsubgroup_id
+rename nid_subgroup b_nid_subgroup
+rename subgroup_id b_subgroup_id
+rename section_id b_section_id
+rename class_id b_class_id
+rename subclass_id b_subclass_id
+rename maingroup_id b_maingroup_id
+
+gen nov0 = a_subgroup_id != b_subgroup_id
+gen nov1 = a_maingroup_id != b_maingroup_id
+gen nov2 = a_subclass_id != b_subclass_id
+gen nov3 = a_class_id != b_class_id
+gen nov4 = a_section_id != b_section_id
+
+save novel-cpc-global.dta, replace
+
+bysort patent_id: egen count_gnov0 = sum(nov0)
+bysort patent_id: egen count_gnov1 = sum(nov1)
+bysort patent_id: egen count_gnov2 = sum(nov2)
+bysort patent_id: egen count_gnov3 = sum(nov3)
+bysort patent_id: egen count_gnov4 = sum(nov4)
+bysort patent_id: keep if _n == 1
+keep patent_id count_gnov*
 save novel-cpc-patents-global.dta, replace
 
 use "`fn'.dta", clear
@@ -108,49 +181,55 @@ export delimited using "`fn'patents.csv", replace
 save "`fn'patents.dta", replace
 
 use "`fn'patents.dta", clear
-merge 1:1 patent_id using novel-cpc-patents-sample.dta, keep(match master)
-replace count_novel = 0 if _merge == 1
-drop _merge
-gen ln_count_novel = ln(1 + count_novel)
-rename count_novel samp_novel_comb
-rename ln_count_novel samp_ln_novel_comb
-merge 1:1 patent_id using novel-cpc-patents-global.dta, keep(match master)
-replace count_novel = 0 if _merge == 1
-drop _merge
-gen ln_count_novel = ln(1 + count_novel)
-rename count_novel glob_novel_comb
-rename ln_count_novel glob_ln_novel_comb
+merge 1:1 patent_id using novel-cpc-patents-sample.dta, keep(match master) nogen
+merge 1:1 patent_id using novel-cpc-patents-global.dta, keep(match master) nogen
+foreach x of varlist count* {
+  replace `x' = 0 if missing(`x')
+}
 save "`fn'-novel-patents.dta", replace
+
 
 use "`fn'-novel-patents.dta", clear
 merge  1:m patent_id using patent_assignee, keep(match master) nogen
 drop assignee_id
 
 bysort year_application assignee_numid: egen yr_assg_num_pat=sum(1)
-bysort year_application assignee_numid: egen yr_assg_snov_pat=count(patent_id) if samp_novel_comb > 0
-replace yr_assg_snov_pat=0 if missing(yr_assg_snov_pat)
-bysort year_application assignee_numid: egen snov=max(yr_assg_snov_pat)
-drop yr_assg_snov_pat
-rename snov yr_assg_snov_pat
+bysort year_application assignee_numid: egen yr_assg_snov0_pat=count(patent_id) if count_snov0 > 0
+replace yr_assg_snov0_pat=0 if missing(yr_assg_snov0_pat)
+bysort year_application assignee_numid: egen snov=max(yr_assg_snov0_pat)
+drop yr_assg_snov0_pat
+rename snov yr_assg_snov0_pat
 
-bysort year_application assignee_numid: egen yr_assg_gnov_pat=count(patent_id) if glob_novel_comb > 0
-replace yr_assg_gnov_pat=0 if missing(yr_assg_gnov_pat)
-bysort year_application assignee_numid: egen gnov=max(yr_assg_gnov_pat)
-drop yr_assg_gnov_pat
-rename gnov yr_assg_gnov_pat
+bysort year_application assignee_numid: egen yr_assg_snov2_pat=count(patent_id) if count_snov2 > 0
+replace yr_assg_snov2_pat=0 if missing(yr_assg_snov2_pat)
+bysort year_application assignee_numid: egen snov=max(yr_assg_snov2_pat)
+drop yr_assg_snov2_pat
+rename snov yr_assg_snov2_pat
 
 order patent_id year_application yr* assignee_numid assignee
 save "`fn'-novel-patents-assignee-year.dta", replace
 
+
 bysort year_application assignee_numid: keep if _n == 1
-drop patent_id
+drop patent_id assignee count_* assigneetype assigneeseq
 /* fill in years where no patents were filed */
 keep if year >= 1995 & year <= 2014
+xtset assignee_numid year_application
+tsfill, full
+replace yr_assg_num_pat=0 if missing(yr_assg_num_pat)
 bysort assignee_numid: egen assg_pat=sum(yr_assg_num_pat)
 keep if assg_pat >= 30
 gsort -assg_pat  assignee_numid year_application
-gen share_snovel_year = round(yr_assg_snov_pat*100/yr_assg_num_pat, 2)
-gen share_gnovel_year = round(yr_assg_gnov_pat*100/yr_assg_num_pat, 2)
-order year_application share* assignee_numid assignee yr*
+gen share_snov0_year = round(yr_assg_snov0_pat*100/yr_assg_num_pat, 2)
+gen share_snov2_year = round(yr_assg_snov2_pat*100/yr_assg_num_pat, 2)
+order year_application share* assignee_numid yr*
+merge m:1 assignee_numid using assignee_id, keep(match master) nogen
+drop assignee_id assigneetype assigneeseq patent_count
+gsort -assg_pat assignee_numid year_application
 save "`fn'-novel-assignee-year.dta", replace
 
+line yr_assg_num_pat yr_assg_snov0_pat yr_assg_snov2_pat year_application if assignee_numid==281292
+/*
+twoway rarea yr_assg_num_pat yr_assg_snov_pat year_application if assignee_numid==117263
+twoway rarea yr_assg_num_pat yr_assg_snov_pat year_application if assignee_numid==281292
+*/
