@@ -54,6 +54,7 @@ export excel using "`fn'min30patents.xlsx", firstrow(variables) replace
 
 local mg H01M8/00
 local fn fuelcells
+
 use "patent_date_cpc.dta", clear
 gen sampleg=1 if (maingroup_id == "`mg'")
 replace sampleg=0 if missing(sampleg)
@@ -106,18 +107,50 @@ sort year_application patent_id
 export delimited using "`fn'patents.csv", replace
 save "`fn'patents.dta", replace
 
-local fn fuelcells
 use "`fn'patents.dta", clear
 merge 1:1 patent_id using novel-cpc-patents-sample.dta, keep(match master)
 replace count_novel = 0 if _merge == 1
 drop _merge
 gen ln_count_novel = ln(1 + count_novel)
-rename count_novel samp_novel_cnt
-rename ln_count_novel samp_ln_novel_cnt
+rename count_novel samp_novel_comb
+rename ln_count_novel samp_ln_novel_comb
 merge 1:1 patent_id using novel-cpc-patents-global.dta, keep(match master)
 replace count_novel = 0 if _merge == 1
 drop _merge
 gen ln_count_novel = ln(1 + count_novel)
-rename count_novel glob_novel_cnt
-rename ln_count_novel glob_ln_novel_cnt
+rename count_novel glob_novel_comb
+rename ln_count_novel glob_ln_novel_comb
 save "`fn'-novel-patents.dta", replace
+
+use "`fn'-novel-patents.dta", clear
+merge  1:m patent_id using patent_assignee, keep(match master) nogen
+drop assignee_id
+
+bysort year_application assignee_numid: egen yr_assg_num_pat=sum(1)
+bysort year_application assignee_numid: egen yr_assg_snov_pat=count(patent_id) if samp_novel_comb > 0
+replace yr_assg_snov_pat=0 if missing(yr_assg_snov_pat)
+bysort year_application assignee_numid: egen snov=max(yr_assg_snov_pat)
+drop yr_assg_snov_pat
+rename snov yr_assg_snov_pat
+
+bysort year_application assignee_numid: egen yr_assg_gnov_pat=count(patent_id) if glob_novel_comb > 0
+replace yr_assg_gnov_pat=0 if missing(yr_assg_gnov_pat)
+bysort year_application assignee_numid: egen gnov=max(yr_assg_gnov_pat)
+drop yr_assg_gnov_pat
+rename gnov yr_assg_gnov_pat
+
+order patent_id year_application yr* assignee_numid assignee
+save "`fn'-novel-patents-assignee-year.dta", replace
+
+bysort year_application assignee_numid: keep if _n == 1
+drop patent_id
+/* fill in years where no patents were filed */
+keep if year >= 1995 & year <= 2014
+bysort assignee_numid: egen assg_pat=sum(yr_assg_num_pat)
+keep if assg_pat >= 30
+gsort -assg_pat  assignee_numid year_application
+gen share_snovel_year = round(yr_assg_snov_pat*100/yr_assg_num_pat, 2)
+gen share_gnovel_year = round(yr_assg_gnov_pat*100/yr_assg_num_pat, 2)
+order year_application share* assignee_numid assignee yr*
+save "`fn'-novel-assignee-year.dta", replace
+
