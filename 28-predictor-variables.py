@@ -3,6 +3,7 @@ Created on Thu Mar  21 19:08:51 2019
 
 @author: aiyenggar
 """
+# ISSUE the denominator is not correct for flows other than all flows and all types of citations. Fix it
 
 import csv
 import time

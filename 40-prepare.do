@@ -14,17 +14,20 @@ label variable lncit_made_total "Log (Total Citation Flows)"
 
 label variable q1 "[ua-year-citationtype-countstyle] ua(same) assg(same) citations made"
 label variable q2 "[ua-year-citationtype-countstyle] ua(same) assg(diff) citations made"
-label variable q3 "[ua-year-citationtype-countstyle] ua(diff) assg(diff) citations made"
-label variable q4 "[ua-year-citationtype-countstyle] ua(diff) assg(same) citations made"
+rename q3 q4o
+rename q4 q3
+rename q4o q4
+label variable q3 "[ua-year-citationtype-countstyle] ua(diff) assg(same) citations made"
+label variable q4 "[ua-year-citationtype-countstyle] ua(diff) assg(diff) citations made"
 label variable q5 "[ua-year-citationtype-countstyle] other (undeterminable) citations made"
 
 gen rcit_made_localinternal=q1/cit_made_total
 label variable rcit_made_localinternal "Share Citations Made[Same Urban Area, Same Assignee]"
 gen rcit_made_localexternal=q2/cit_made_total
 label variable rcit_made_localexternal "Share Citations Made[Same Urban Area, Different Assignee]"
-gen rcit_made_nonlocalinternal=q4/cit_made_total
+gen rcit_made_nonlocalinternal=q3/cit_made_total
 label variable rcit_made_nonlocalinternal "Share Citations Made[Different Urban Area, Same Assignee]"
-gen rcit_made_nonlocalexternal=q3/cit_made_total
+gen rcit_made_nonlocalexternal=q4/cit_made_total
 label variable rcit_made_nonlocalexternal "Share Citations Made[Different Urban Area, Different Assignee]"
 gen rcit_made_other=q5/cit_made_total
 label variable rcit_made_other "Share Citations Made[Other]"
