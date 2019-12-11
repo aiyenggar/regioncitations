@@ -7,6 +7,9 @@ Created on Thu Mar  21 19:08:51 2019
 import csv
 import time
 import citationutils as ut
+import pandas as pd
+
+citcnt_dict = pd.read_csv(ut.pathPrefix + ut.outputPrefix + "-expanded-citation-count.csv", usecols = ['patent_id','expanded_citations'], dtype={'patent_id':str,'expanded_citations':int}, index_col='patent_id').to_dict()
 
 allflows="ALL"
 uniqueflows="UNIQ"
@@ -60,7 +63,11 @@ for index in range(1, ut.expandedCitationLastFileSuffix+1):
             key1 = tuple([citation[0], citation[2], ctype, allflows])
             if key1 not in pv_dict:
                 pv_dict[key1] = [0, 0, 0, 0, 0, 0]
-            pv_dict[key1][quadrant] += 1
+            expanded_citations = citcnt_dict['expanded_citations'][citation[1]]
+            if expanded_citations != 0:
+                pv_dict[key1][quadrant] += 1/expanded_citations
+            else:
+                print(citation[1] + " has zero expanded citations")
 
         skey = tuple(citation)
         if skey not in seen_dict:
@@ -68,7 +75,11 @@ for index in range(1, ut.expandedCitationLastFileSuffix+1):
                 key2 = tuple([citation[0], citation[2], ctype, uniqueflows])
                 if key2 not in pv_dict:
                     pv_dict[key2] = [0, 0, 0, 0, 0, 0]
-                pv_dict[key2][quadrant] += 1
+                expanded_citations = citcnt_dict['expanded_citations'][citation[1]]
+                if expanded_citations != 0:
+                    pv_dict[key2][quadrant] += 1/expanded_citations
+                else:
+                    print(citation[1] + " has zero expanded citations")
             seen_dict[skey] = 1
 
     prior_lines += sreader.line_num
@@ -76,6 +87,11 @@ for index in range(1, ut.expandedCitationLastFileSuffix+1):
     searchf.close()
 
 for key in pv_dict:
-    pv_dict[key][0] = pv_dict[key][1] + pv_dict[key][2] + pv_dict[key][3] + pv_dict[key][4] + pv_dict[key][5]
+    pv_dict[key][0] = round(pv_dict[key][1] + pv_dict[key][2] + pv_dict[key][3] + pv_dict[key][4] + pv_dict[key][5], 4)
+    pv_dict[key][1] = round(pv_dict[key][1], 4)
+    pv_dict[key][2] = round(pv_dict[key][2], 4) 
+    pv_dict[key][3] = round(pv_dict[key][3], 4)
+    pv_dict[key][4] = round(pv_dict[key][4], 4)
+    pv_dict[key][5] = round(pv_dict[key][5], 4)
     mapwriter.writerow(list(key) + pv_dict[key])
 mapf.close()
