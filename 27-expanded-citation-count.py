@@ -10,9 +10,11 @@ import csv
 import time
 import citationutils as ut
 
+#cntf = open(ut.pathPrefix + ut.outputPrefix + "-ecc.csv", 'w', encoding='utf-8')
 cntf = open(ut.pathPrefix + ut.outputPrefix + "-expanded-citation-count.csv", 'w', encoding='utf-8')
+
 cntwriter = csv.writer(cntf)
-cntwriter.writerow(["patent_id", "expanded_citations"])
+cntwriter.writerow(["patent_id", "citation_type", "expanded_citations"])
 citcntdict = {}
 prior_lines = 0
 patentseen = ""
@@ -30,18 +32,28 @@ for index in range(1, ut.expandedCitationLastFileSuffix+1):
         if patentseen != citation[1]:
             if sreader.line_num >= last_time + ut.update_freq_lines:
                 for key in citcntdict:
-                    cntwriter.writerow([key, citcntdict[key]])
+                    patent_id = key[0]
+                    citation_type = int(key[1])
+                    count = citcntdict[key]
+                    cntwriter.writerow([patent_id, citation_type, count])                
                 cntf.flush()
                 citcntdict = {}
+                all_citations = 0
                 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Processed " + str(prior_lines + sreader.line_num) + " expanded citations")
                 last_time = sreader.line_num
-            citcntdict[citation[1]] = 0
             patentseen = citation[1]
-        citcntdict[patentseen] += 1
+        ckey = tuple([citation[1], int(citation[7])])
+        if ckey not in citcntdict:
+            citcntdict[ckey] = 0
+        citcntdict[ckey] += 1
     prior_lines += sreader.line_num
     print(time.strftime("%Y-%m-%d %H:%M:%S") + " Processed " + str(prior_lines) + " expanded citations (End of File)")
     searchf.close()
 
 for key in citcntdict:
-    cntwriter.writerow([key, citcntdict[key]])
+    patent_id = key[0]
+    citation_type = int(key[1])
+    count = citcntdict[key]
+    all_citations += count
+    cntwriter.writerow([patent_id, citation_type, count])                
 cntf.close()
