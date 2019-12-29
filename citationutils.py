@@ -23,7 +23,7 @@ update_freq_lines=15000000
 attributeErrorValue=['-2'] # List value is empty
 keyErrorValue=['-3'] # No information
 defaultErrorValue=['-4']
-expandedCitationLastFileSuffix=7
+expandedCitationLastFileSuffix=1
 
 # the below file needs to be augmented to include a list of latlongid, so whenever uaid is -1, one may fall back onto the latlongid to then calculate the actual distance
 # patent_id,assigneelist,latlonglist,ualist

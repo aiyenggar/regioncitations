@@ -166,3 +166,13 @@ order patent_id assignee_numid assignee assigneetype assigneeseq assignee_id
 sort patent_id
 save patent_assignee.dta, replace
 
+use citation.dta, clear
+bysort patent_id citation_type: gen tokeep = _n
+bysort patent_id citation_id: gen all_patents_cited = _n == 1
+by patent_id citation_id: replace all_patents_cited = sum(all_patents_cited)
+by patent_id citation_id: replace all_patents_cited = all_patents_cited[_N]
+bysort patent_id citation_id citation_type: gen intype_patents_cited = _n == 1
+by patent_id citation_id citation_type: replace intype_patents_cited = sum(intype_patents_cited)
+by patent_id citation_id citation_type: replace intype_patents_cited = intype_patents_cited[_N]
+keep if tokeep == 1
+keep application_year patent_id citation_type all_patents_cited intype_patents_cited

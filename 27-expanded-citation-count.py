@@ -9,7 +9,19 @@ Created on Wed Dec 11 18:02:19 2019
 import csv
 import time
 import citationutils as ut
+import numpy as np
+import pandas as pd
+import dask.dataframe as dd
+from dask.distributed import Client
 
+if __name__ == "__main__":
+    client = Client(n_workers=1, threads_per_worker=4, processes=False, memory_limit='2GB')
+index = 2
+df = dd.read_csv("/Users/aiyenggar/data/20180528-patentsview/uspatentcitation.tsv", sep='\t', usecols = ['patent_id','citation_id','kind'], dtype={'patent_id':str,'citation_id':str,'kind':str})
+pcited = df.groupby(['patent_id','kind'])['r_patent_id'].nunique().compute()
+client.close()
+
+"""
 #cntf = open(ut.pathPrefix + ut.outputPrefix + "-ecc.csv", 'w', encoding='utf-8')
 cntf = open(ut.pathPrefix + ut.outputPrefix + "-expanded-citation-count.csv", 'w', encoding='utf-8')
 
@@ -18,10 +30,11 @@ cntwriter.writerow(["patent_id", "citation_type", "expanded_citations"])
 citcntdict = {}
 prior_lines = 0
 patentseen = ""
+
 # "year", "m_patent_id", "m_inventor_uaid", "m_assignee_id", "r_patent_id", "r_inventor_uaid", "r_assignee_id", "citation_type"
 for index in range(1, ut.expandedCitationLastFileSuffix+1):
-#    searchf = open(ut.pathPrefix + ut.outputPrefix + "-ecm-" + str(index) + ".csv", 'r', encoding='utf-8')
-    searchf = open(ut.pathPrefix + ut.outputPrefix + "-expanded-citation-made-" + str(index) + ".csv", 'r', encoding='utf-8')
+    searchf = open(ut.pathPrefix + ut.outputPrefix + "-ecm-" + str(index) + ".csv", 'r', encoding='utf-8')
+#    searchf = open(ut.pathPrefix + ut.outputPrefix + "-expanded-citation-made-" + str(index) + ".csv", 'r', encoding='utf-8')
     sreader = csv.reader(searchf)
     last_time = 0
 
@@ -57,3 +70,4 @@ for key in citcntdict:
     all_citations += count
     cntwriter.writerow([patent_id, citation_type, count])                
 cntf.close()
+"""
