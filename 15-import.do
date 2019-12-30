@@ -201,3 +201,23 @@ keep if tokeep == 1
 keep application_year patent_id citation_type precutoff_patents_cited all_patents_cited intype_patents_cited
 sort patent_id
 save count_citations.dta, replace
+
+use rawassignee.dta, clear
+keep patent_id assignee_id
+bysort patent_id assignee_id: gen cnt_assignee = _n == 1
+keep if cnt_assignee == 1 /* drop duplicate entries of same assignee on a patent */
+by patent_id: replace cnt_assignee = sum(cnt_assignee)
+by patent_id: replace cnt_assignee = cnt_assignee[_N]
+drop assignee_id
+by patent_id: keep if _n == 1
+save count_assignee.dta, replace
+
+use rawinventor.dta, clear
+keep patent_id inventor_id
+bysort patent_id inventor_id: gen cnt_inventor = _n == 1
+keep if cnt_inventor == 1 /* drop duplicate entries of the same inventor on a patent */
+by patent_id: replace cnt_inventor = sum(cnt_inventor)
+by patent_id: replace cnt_inventor = cnt_inventor[_N]
+drop inventor_id
+by patent_id: keep if _n == 1
+save count_inventor.dta, replace
