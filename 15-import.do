@@ -43,11 +43,15 @@ import delimited `datadir'rawinventor.tsv, varnames(1) encoding(UTF-8) clear
 sort patent_id sequence
 save rawinventor.dta, replace
 
+local datadir ~/data/20180528-patentsview/
+local destdir ~/processed/patents/
+cd `destdir'
+
 import delimited `datadir'uspatentcitation.tsv, varnames(1) encoding(UTF-8) clear
 drop uuid name country
 save uspatentcitation.dta, replace
 
-use uspatentcitation.dta
+use uspatentcitation.dta, clear
 egen citation_type=group(category)
 /* 
 group(categ |
@@ -67,8 +71,17 @@ sort patent_id
 merge m:1 patent_id using `destdir'application.dta, keep(match master) nogen
 gen date_application = date(date,"YMD") /* 185 missing */
 gen year_application=year(date_application) /* 185 missing */
-drop id series_code number country date
+drop id series_code number country date date_application
 order year_application patent_id citation_id citation_type sequence
+rename patent_id p1
+rename citation_id patent_id
+merge m:1 patent_id using `destdir'application.dta, keep(match master) nogen
+rename patent_id citation_id
+rename p1 patent_id
+gen date_application = date(date,"YMD") 
+gen citation_year_application=year(date_application) 
+drop id series_code number country date date_application
+order year_application patent_id citation_id citation_type sequence citation_year_application
 save citation.dta, replace
 /* Very interesting to note that the number of examiner citations has remained
    static over several years while the number of applicant citations has shot up */
@@ -167,12 +180,24 @@ sort patent_id
 save patent_assignee.dta, replace
 
 use citation.dta, clear
-bysort patent_id citation_type: gen tokeep = _n
+bysort patent_id citation_id: gen citseq = _n
+keep if citseq == 1 /* drop identical citations */
+keep application_year patent_id citation_id citation_type
+
+destring citation_id, generate(intcitation_id) force
+gen precutoff = intcitation_id < 3930271
+egen precutoff_patents_cited = sum(precutoff), by(patent_id)
+
 bysort patent_id citation_id: gen all_patents_cited = _n == 1
-by patent_id citation_id: replace all_patents_cited = sum(all_patents_cited)
-by patent_id citation_id: replace all_patents_cited = all_patents_cited[_N]
-bysort patent_id citation_id citation_type: gen intype_patents_cited = _n == 1
-by patent_id citation_id citation_type: replace intype_patents_cited = sum(intype_patents_cited)
-by patent_id citation_id citation_type: replace intype_patents_cited = intype_patents_cited[_N]
+by patent_id: replace all_patents_cited = sum(all_patents_cited)
+by patent_id: replace all_patents_cited = all_patents_cited[_N]
+
+bysort patent_id citation_type citation_id: gen intype_patents_cited = _n == 1
+by patent_id citation_type: replace intype_patents_cited = sum(intype_patents_cited)
+by patent_id citation_type: replace intype_patents_cited = intype_patents_cited[_N]
+
+bysort patent_id citation_type: gen tokeep = _n
 keep if tokeep == 1
-keep application_year patent_id citation_type all_patents_cited intype_patents_cited
+keep application_year patent_id citation_type precutoff_patents_cited all_patents_cited intype_patents_cited
+sort patent_id
+save count_citations.dta, replace
