@@ -1,9 +1,7 @@
 set more off
 global destdir ~/processed/patents/
 
-//local inputprefix "20190314-ua1"
-//local inputprefix "20190314-ua2"
-local inputprefix "20190314-ua3"
+local inputprefix "20191230-ua3"
 
 use ${destdir}`inputprefix'-patent.dta, clear
 /* We start with 15,751,822 entries */
@@ -36,7 +34,8 @@ bysort uaid year: egen avg_ua_share = mean(ua_share)
 label variable avg_ua_share "[ua-year] share of inventors in urban areas (avg)"
 sort patent_id
 
-merge m:m patent_id using patent_assignee_year.dta, keep(match master) nogen
+merge m:m patent_id using assignee_year.dta, keep(match master) nogen
+drop assignee_id assigneetype assigneeseq assignee
 bysort uaid year assignee_numid: gen assignee_index=_n if !missing(assignee_numid)
 replace assignee_index=0 if assignee_index > 1
 bysort uaid year: egen uniq_ass=sum(assignee_index)
@@ -47,6 +46,10 @@ bysort patent_id uaid: gen index1 = _n if uaid >= 0
 label variable index1 "[ua] index of patent-inventor location"
 keep if index1 == 1
 drop index1 assignee_numid
+
+global destdir ~/processed/patents/
+
+local inputprefix "20191230-ua3"
 
 merge m:1 patent_id using ${destdir}patent_technology_classification.dta, keep(match master) nogen
 /* 47,859 observations are not matched and 7,655,088 are matched
@@ -116,7 +119,7 @@ merge m:1 uaid year using tempcatpercent.dta, keep(match master) nogen
 merge m:1 uaid year using tempsubcatpercent.dta, keep(match master) nogen
 save ${destdir}`inputprefix'-patent-technology.dta, replace
 
-drop uspc_class uspc_subclass nber_cat nber_subcat inventor_index patent_id *tempsum sqf_class sqf_category sqf_subcategory id_uspc_class catpercent subcatpercent patents_in_class patents_in_category patents_in_subcategory
+drop uspc_class uspc_subclass nber_cat nber_subcat inventor_index patent_id *tempsum sqf_class sqf_category sqf_subcategory id_uspc_class catpercent subcatpercent patents_in_class patents_in_category patents_in_subcategory year_application year_grant
 sort uaid year
 bysort uaid year: keep if _n == 1
 bysort uaid: gen pat_pool=sum(pat_cnt)

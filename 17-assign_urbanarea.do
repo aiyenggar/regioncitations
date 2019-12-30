@@ -1,11 +1,7 @@
 global destdir ~/processed/patents/
 global date : display %tdCYND daily("$S_DATE", "DMY")
 
-use ${destdir}citation.dta, clear
-sort application_year patent_id
-export delimited using ${destdir}${date}-citation.csv, replace
-
-use ${destdir}patent_assignee_year.dta, clear
+use ${destdir}assignee_year.dta, clear
 keep patent_id assignee_numid
 tostring assignee_numid, generate(assigneelist)
 bysort patent_id: replace assigneelist = assigneelist[_n-1] + "," + assigneelist if _n > 1
@@ -43,8 +39,8 @@ foreach uastr in $uacut {
 	
 	use ${destdir}${date}-assignee.dta, clear
 	merge 1:1 patent_id using ${destdir}${date}-`uastr'-inventor.dta
-	/* We are missing assignee information for 6,807 patents (_merge==2) */
-	/* We are missing inventor information for 868 patents (_merge==1) */
+	/* We are missing assignee information for 0 patents (_merge==2) */
+	/* We are missing inventor information for 869 patents (_merge==1) */
 	drop _merge
 	export delimited ${destdir}${date}-`uastr'-patent_list_location_assignee.csv, replace
 }

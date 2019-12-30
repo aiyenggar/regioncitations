@@ -2,6 +2,80 @@ set more off
 local destdir ~/processed/patents/
 cd `destdir'
 
+/* Create a dta file with patent_id, date_application, date_grant, year_application, year_grant */
+use patent.dta, clear
+keep patent_id date
+rename date date_grant
+sort patent_id
+merge 1:1 patent_id using `destdir'application.dta, keep(match master) nogen
+rename date date_application
+keep patent_id date_grant date_application
+gen year_application=year(date(date_application,"YMD"))
+gen year_grant=year(date(date_grant,"YMD"))
+save patent_date.dta, replace
+
+use cpc_current.dta, clear
+merge m:1 patent_id using patent_date.dta, keep(match master) nogen
+save patent_date_cpc.dta, replace
+
+use uspatentcitation.dta, clear
+egen citation_type=group(category)
+/* 
+group(categ |
+       ory) |      Freq.     Percent        Cum.
+------------+-----------------------------------
+NULL      1 | 21,863,086       23.08       23.08
+applicant 2 | 27,250,149       28.77       51.85
+examiner  3 | 20,169,593       21.29       73.14
+other     4 | 25,441,800       26.86      100.00
+third party5|      2,062        0.00      100.00
+------------+-----------------------------------
+      Total | 94,726,690      100.00
+*/
+
+drop category date
+sort patent_id
+order patent_id citation_id citation_type sequence
+save citation.dta, replace
+/* Very interesting to note that the number of examiner citations has remained
+   static over several years while the number of applicant citations has shot up */
+
+/* year_cpc_subclass.dta will have number of unique patents by application year for each cpc subclass e.g., H01M */
+use patent_date_cpc.dta, clear
+bysort patent_id subclass_id: keep if _n == 1
+keep subclass_id year_application
+bysort subclass_id year_application: gen patents_applyear_subclass = _N
+bysort subclass_id year_application: keep if _n == 1
+bysort subclass_id: egen patents_subclass = sum(patents_applyear_subclass)
+merge m:1 subclass_id using cpc_subclass, keep(match master) nogen
+gen subclass_desc = proper(substr(title, 1, 108))
+drop title
+egen rank_subclass_byyear = rank(-patents_applyear_subclass), by(year_application)
+gsort -year_application rank_subclass_byyear 
+order year_application patents* rank* subclass_id subclass_desc
+drop if year_application > 2017
+save year_cpcsubclass.dta, replace
+
+/* year_cpc_maingroup.dta will have number of unique patents by application year for each cpc subclass e.g., H01M8/00 */
+use patent_date_cpc.dta, clear
+bysort patent_id maingroup_id: keep if _n == 1
+keep maingroup_id year_application
+bysort maingroup_id year_application: gen patents_applyear_maingroup = _N
+bysort maingroup_id year_application: keep if _n == 1
+bysort maingroup_id: egen patents_maingroup = sum(patents_applyear_maingroup)
+gen subgroup_id = maingroup_id
+merge m:1 subgroup_id using cpc_subgroup, keep(match master) nogen
+gen maingroup_desc = proper(substr(title, 1, 108))
+drop title
+egen rank_maingroup_byyear = rank(-patents_applyear_maingroup), by(year_application)
+gsort -year_application rank_maingroup_byyear
+keep year_application patents* rank* maingroup_id maingroup_desc
+order year_application patents* rank* maingroup_id maingroup_desc
+drop if year_application > 2017
+save year_cpcmaingroup.dta, replace
+
+
+
 use `destdir'uspc_current.dta, clear
 /* We start with 22,880,877 observations. Tabulated by mainclass count at the end of this file. */
 /* By keeping only one entry per patent, we lose many mainclass associations, and many subclass associations for the class retained as well as those dropped */
@@ -76,7 +150,10 @@ rename sequence assigneeseq
 rename type assigneetype 
 /* We start with 5,903,411 entries */
 keep patent_id assignee_id assignee assigneetype assigneeseq 
-
+sort patent_id
+merge m:1 patent_id using patent_date.dta, nogen /* 934138 unmatched from using, total 6837549 */
+keep patent_id assignee_id assigneetype assigneeseq assignee year_application year_grant
+save rawassignee_year.dta, replace
 /*
 https://www.uspto.gov/web/offices/ac/ido/oeip/taf/inv_all.htm
  
@@ -84,50 +161,86 @@ https://www.uspto.gov/web/offices/ac/ido/oeip/taf/inv_all.htm
 
 2 - US Company or Corporation, 3 - Foreign Company or Corporation, 4 - US Individual, 5 - Foreign Individual, 6 - US Government, 7 - Foreign Government, 8 - Country Government, 9 - State Government (US). Note: A "1" appearing before any of these codes signifies part interest
 */
-
-gen update_assignee=1 if missing(assignee_id) | assigneetype == 4 | assigneetype == 5 | assigneetype == 14 | assigneetype == 15
-replace update_assignee=0 if missing(update_assignee) /* 0 for 5,838,211 and 1 for  999,338 */
-bysort patent_id update_assignee: gen patcnt = _N /* A patent can have multiple assignees, we count how many 'assignees' are missing and how many are present */
-bysort patent_id update_assignee: gen patind = _n
-/* shouldn't the below be patind > 1? With patcnt > 1 we lose those patents forever do we not? */
-drop if update_assignee==1 & patcnt>1 /* 18,717 observations deleted. For those patents that we want to set the assignee for, we want one entry per patent_id. Multiple assignees will be taken care of with multiple inventors on the patent */
-save `destdir'temp_patent_assignee_year1.dta, replace /* 6,818,832 observations saved */
-
-/* Isolated those patents that are individual patents. These need their assignee set differently */
-keep if update_assignee==1 /* 980,621 observations */
+keep if missing(assignee_id) | assigneetype == 4 | assigneetype == 5 | assigneetype == 14 | assigneetype == 15
+/* 999339 observations */
 keep patent_id
-merge 1:m patent_id using `destdir'rawinventor.dta, keep(match) nogen /* drop 270 of not matched from master */
-/* 1,404,965 observations */
+bysort patent_id: keep if _n == 1 /* 988614 observations */
+/* Isolated those patents that are individual patents. These need their assignee set differently */
+merge 1:m patent_id using `destdir'rawinventor.dta, keep(match) nogen
+/* 1421594 observations */
 keep patent_id inventor_id
 gen attr_assignee="inventor-"+inventor_id
 keep patent_id attr_assignee
 sort patent_id
-gen update_assignee=1
-gen patind=1
-save `destdir'temp_assignee_reassignment.dta, replace /* 1,404,965 */
+gen joinflag = 1
+save `destdir'individual_patents.dta, replace /* 1421594 */
 
-use `destdir'temp_patent_assignee_year1.dta, clear /* 6,818,832 */
-merge 1:m patent_id update_assignee patind using `destdir'temp_assignee_reassignment.dta, keep(match master)
-/* 5,838,480 not matched from master, 1,404,965 matched, leaving us with 7,243,445 observations */
-replace assignee_id = attr_assignee if update_assignee==1 & _merge==3 /* 1,404,965  changes made */
+use rawassignee_year.dta, clear
+gen joinflag = 1 if missing(assignee_id) | assigneetype == 4 | assigneetype == 5 | assigneetype == 14 | assigneetype == 15
+replace joinflag = -1 * (100 + round(1000000 * uniform())) if missing(joinflag)
+bysort patent_id joinflag: gen index = _n
+drop if joinflag == 1 & index > 1 /* We want only one entry per flagged patent */
+drop index /* 10724 dropped, 6826825 remain */
+merge 1:m patent_id joinflag using individual_patents, keep(match master) /* 1421594 matched, 7260075 remain */
+replace assignee_id = attr_assignee if joinflag==1 & _merge==3
 egen assignee_numid = group(assignee_id) if strlen(assignee_id) > 0
-replace assignee_numid = -1 if missing(assignee_numid)
-save `destdir'temp_patent_assignee_year2.dta, replace
+replace assignee_numid = -1 * (100 + round(1000000 * uniform())) if missing(assignee_numid)
+drop joinflag attr_assignee _merge
+save assignee_year.dta, replace
 
-bysort assignee_numid: gen patent_count=_N if !missing(assignee_numid)
-bysort assignee_numid: keep if _n == 1 | missing(assignee_numid)
-gsort - patent_count
-keep assignee_numid assignee_id assignee patent_count assigneetype assigneeseq
-order assignee_numid assignee_id assignee
-save `destdir'assignee_id.dta, replace
+keep patent_id assignee_numid
+bysort patent_id assignee_numid: gen cnt_assignee = _n == 1
+keep if cnt_assignee == 1 /* drop duplicate entries of same assignee on a patent */
+by patent_id: replace cnt_assignee = sum(cnt_assignee)
+by patent_id: replace cnt_assignee = cnt_assignee[_N]
+drop assignee_numid
+by patent_id: keep if _n == 1
+label variable cnt_assignee "Count of assignees for patent"
+save count_assignee.dta, replace
 
-use `destdir'temp_patent_assignee_year2.dta, clear
-keep patent_id assignee_numid year /* assignee_numid will do the job for the comparisons */
-order year patent_id assignee_numid
+use citation.dta, clear
+bysort patent_id citation_id: gen citseq = _n
+keep if citseq == 1 /* drop identical citations */
+keep patent_id citation_id citation_type
+
+destring citation_id, generate(intcitation_id) force
+gen precutoff = intcitation_id < 3930271
+egen precutoff_patents_cited = sum(precutoff), by(patent_id)
+
+bysort patent_id citation_id: gen all_patents_cited = _n == 1
+by patent_id: replace all_patents_cited = sum(all_patents_cited)
+by patent_id: replace all_patents_cited = all_patents_cited[_N]
+
+bysort patent_id citation_type citation_id: gen cited_type = _n == 1
+by patent_id citation_type: replace cited_type = sum(cited_type)
+by patent_id citation_type: replace cited_type = cited_type[_N]
+
+bysort patent_id citation_type: gen tokeep = _n
+keep if tokeep == 1
+keep patent_id citation_type precutoff_patents_cited all_patents_cited cited_type
 sort patent_id
-save `destdir'patent_assignee_year.dta, replace /* 7,243,445 observations for 6,640,891 unique patents with 264 unassigned patents */
+reshape wide cited_type, i(patent_id) j(citation_type)
+label variable precutoff_patents_cited "Count of Patents Cited with Patent ID less than 3930271"
+label variable all_patents_cited "Count of Patents Cited"
+label variable cited_type1 "Count of Patents Cited of Undetermined Citation Type (NULL)"
+label variable cited_type2 "Count of Patents Cited by Applicant"
+label variable cited_type3 "Count of Patents Cited by Examiner"
+label variable cited_type4 "Count of Patents Cited by Other"
+label variable cited_type5 "Count of Patents Cited by Third Party"
+save count_citations.dta, replace
 
-merge m:1 patent_id using `destdir'application.dta, nogen
-/* 5,903,411 entries are matched,  934,138 are not. We keep all since the unmatched need to be interpreted as individual patents */
-gen appl_date = date(date,"YMD")
-gen year=year(appl_date)
+use rawinventor.dta, clear
+keep patent_id inventor_id
+bysort patent_id inventor_id: gen cnt_inventor = _n == 1
+keep if cnt_inventor == 1 /* drop duplicate entries of the same inventor on a patent */
+by patent_id: replace cnt_inventor = sum(cnt_inventor)
+by patent_id: replace cnt_inventor = cnt_inventor[_N]
+drop inventor_id
+by patent_id: keep if _n == 1
+save count_inventor.dta, replace
+
+use count_citations.dta, clear
+merge 1:1 patent_id using count_assignee, nogen
+merge 1:1 patent_id using count_inventor, nogen
+merge 1:1 patent_id using patent_date, nogen
+save patent_summary.dta, replace
