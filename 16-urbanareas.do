@@ -75,11 +75,7 @@ drop uuid name_first name_last organization
 rename sequence assigneeseq
 rename type assigneetype 
 /* We start with 5,903,411 entries */
-merge m:1 patent_id using `destdir'application.dta, nogen
-/* 5,903,411 entries are matched,  934,138 are not. We keep all since the unmatched need to be interpreted as individual patents */
-gen appl_date = date(date,"YMD")
-gen year=year(appl_date)
-keep year patent_id assignee_id assignee assigneetype assigneeseq 
+keep patent_id assignee_id assignee assigneetype assigneeseq 
 
 /*
 https://www.uspto.gov/web/offices/ac/ido/oeip/taf/inv_all.htm
@@ -131,29 +127,7 @@ order year patent_id assignee_numid
 sort patent_id
 save `destdir'patent_assignee_year.dta, replace /* 7,243,445 observations for 6,640,891 unique patents with 264 unassigned patents */
 
-
-/*
-number of main classes per patent. 61.72% of patents have only one mainclass
-      mccnt |      Freq.     Percent        Cum.
-------------+-----------------------------------
-          1 |  4,080,032       61.72       61.72
-          2 |  1,673,486       25.32       87.04
-          3 |    599,547        9.07       96.11
-          4 |    183,367        2.77       98.88
-          5 |     52,538        0.79       99.67
-          6 |     15,068        0.23       99.90
-          7 |      4,484        0.07       99.97
-          8 |      1,270        0.02       99.99
-          9 |        418        0.01      100.00
-         10 |        173        0.00      100.00
-         11 |         66        0.00      100.00
-         12 |         36        0.00      100.00
-         13 |         16        0.00      100.00
-         14 |          5        0.00      100.00
-         15 |          5        0.00      100.00
-         16 |          4        0.00      100.00
-         17 |          1        0.00      100.00
-         19 |          1        0.00      100.00
-------------+-----------------------------------
-      Total |  6,610,517      100.00
-*/
+merge m:1 patent_id using `destdir'application.dta, nogen
+/* 5,903,411 entries are matched,  934,138 are not. We keep all since the unmatched need to be interpreted as individual patents */
+gen appl_date = date(date,"YMD")
+gen year=year(appl_date)
