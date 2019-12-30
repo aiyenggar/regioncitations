@@ -35,8 +35,12 @@ third party5|      2,062        0.00      100.00
 
 drop category date
 sort patent_id
-order patent_id citation_id citation_type sequence
+merge m:1 patent_id using patent_date.dta, keep(match master) nogen
+keep year_application patent_id citation_id citation_type sequence kind
+order year_application patent_id citation_id citation_type sequence kind
+export delimited `destdir'citation.csv, replace
 save citation.dta, replace
+
 /* Very interesting to note that the number of examiner citations has remained
    static over several years while the number of applicant citations has shot up */
 
