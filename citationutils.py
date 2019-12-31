@@ -20,6 +20,7 @@ outputPrefix = fileDatePrefix + "-" + urbanareaConfig + "-" + calculateCitationD
 
 veryLargeValue = sys.maxsize
 update_freq_lines=15000000
+#update_freq_lines=100
 attributeErrorValue=['-2'] # List value is empty
 keyErrorValue=['-3'] # No information
 defaultErrorValue=['-4']
@@ -83,4 +84,17 @@ def splitFromDict(key, fieldName, splitBy, dictionary):
     except:
         print(str(sys.exc_info()[0]) + " of " + fieldName + " -> " + key + " " + str(sys.exc_info()[1]))
         retVal = defaultErrorValue
+    return retVal
+
+# Assumes a return value of int
+def readDict(key, fieldName, dictionary):
+    try:
+        retVal = dictionary[fieldName][key]
+    except AttributeError:
+        retVal = int(attributeErrorValue[0])
+    except KeyError:
+        retVal = int(keyErrorValue[0])
+    except:
+        print(str(sys.exc_info()[0]) + " [" + fieldName + "][" + key + "]" + str(sys.exc_info()[1]))
+        retVal = int(defaultErrorValue[0])
     return retVal
