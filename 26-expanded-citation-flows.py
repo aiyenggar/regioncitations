@@ -49,7 +49,7 @@ else:
     latlong_dict = None
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Pre-processing")
 
-distf = open(ut.pathPrefix + ut.outputPrefix + "-patent-citation-distance.csv", 'w', encoding='utf-8')
+distf = open(ut.citationDistanceUsedFileName, 'w', encoding='utf-8')
 distwriter = csv.writer(distf)
 distwriter.writerow(["category", "p_uaid", "c_uaid", "p_llid", "c_llid", "distance"])
 
@@ -59,7 +59,7 @@ last_time = 0
 
 for citation in sreader:
     if sreader.line_num == 1:
-        mapf = open(ut.pathPrefix + ut.outputPrefix + "-citation-flows.csv", 'w', encoding='utf-8')
+        mapf = open(ut.citationFlowsFile, 'w', encoding='utf-8')
         mapwriter = csv.writer(mapf)
         mapwriter.writerow(["year", "uaid", "patent_id", "citation_id", "q0", "q1", "q2", "q3", "q4", "q5"])
         continue # we skip the header line
@@ -164,15 +164,3 @@ searchf.close()
 mapf.close()
 distf.close()
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed reading through search file")
-
-"""
-import dask.dataframe as dd
-from dask.distributed import Client
-
-if __name__ == "__main__":
-    client = Client(n_workers=1, threads_per_worker=4, processes=False, memory_limit='2GB')
-index = 2
-df = dd.read_csv("/Users/aiyenggar/data/20180528-patentsview/uspatentcitation.tsv", sep='\t', usecols = ['patent_id','citation_id','kind'], dtype={'patent_id':str,'citation_id':str,'kind':str})
-pcited = df.groupby(['patent_id','kind'])['r_patent_id'].nunique().compute()
-client.close()
-"""

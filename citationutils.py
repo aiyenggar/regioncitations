@@ -47,7 +47,9 @@ outputfile22 = pathPrefix + outputPrefix + "-patent-citation-received-by-year.cs
 outputheader22 = ["year", "patent_id", "total_citations_received", "self_citations_received", "nonself_citations_received"]
 errorfile22 = pathPrefix + outputPrefix + "-err22.csv"
 errorheader22 = ["patent_id", "field", "error_value", "num_raw_citations"]
-
+citationDistanceUsedFileName = pathPrefix + outputPrefix + "-patent-citation-distance.csv"
+#year,uaid,patent_id,citation_id,q0,q1,q2,q3,q4,q5
+citationFlowsFile = pathPrefix + outputPrefix + "-citation-flows.csv"
 missing_dict = {} #global
 
 def isValidUrbanArea(uaid):
