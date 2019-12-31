@@ -247,4 +247,15 @@ use count_citations.dta, clear
 merge 1:1 patent_id using count_assignee, nogen
 merge 1:1 patent_id using count_inventor, nogen
 merge 1:1 patent_id using patent_date, nogen
+drop if patent_id == "NULL"
 save patent_summary.dta, replace
+replace cited_type1 = 0 if missing(cited_type1)
+replace cited_type2 = 0 if missing(cited_type2)
+replace cited_type3 = 0 if missing(cited_type3)
+replace cited_type4 = 0 if missing(cited_type4)
+replace cited_type5 = 0 if missing(cited_type5)
+replace precutoff_patents_cited = -1 if missing(precutoff_patents_cited)
+replace all_patents_cited = -1 if missing(all_patents_cited)
+replace cnt_assignee = -1 if missing(cnt_assignee)
+replace cnt_inventor = -1 if missing(cnt_inventor)
+export delimited `destdir'patent_summary.csv, replace
