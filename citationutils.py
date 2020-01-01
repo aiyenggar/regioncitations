@@ -51,7 +51,8 @@ citationDistanceUsedFileName = pathPrefix + outputPrefix + "-patent-citation-dis
 #year,uaid,patent_id,citation_id,q0,q1,q2,q3,q4,q5
 citationFlowsFile = pathPrefix + outputPrefix + "-citation-flows.csv"
 citationFlowsParquet = pathPrefix + outputPrefix + "-citation-flows.parquet"
-singleUaidFlowsFile = pathPrefix + outputPrefix + "-single-citation-flows.csv"
+singleUaidFlowsFile = pathPrefix + outputPrefix + "-single-citation-flows.parquet"
+flowsFile = pathPrefix + outputPrefix + "-flows.parquet"
 missing_dict = {} #global
 
 def isValidUrbanArea(uaid):
