@@ -50,6 +50,8 @@ errorheader22 = ["patent_id", "field", "error_value", "num_raw_citations"]
 citationDistanceUsedFileName = pathPrefix + outputPrefix + "-patent-citation-distance.csv"
 #year,uaid,patent_id,citation_id,q0,q1,q2,q3,q4,q5
 citationFlowsFile = pathPrefix + outputPrefix + "-citation-flows.csv"
+citationFlowsParquet = pathPrefix + outputPrefix + "-citation-flows.parquet"
+singleUaidFlowsFile = pathPrefix + outputPrefix + "-single-citation-flows.csv"
 missing_dict = {} #global
 
 def isValidUrbanArea(uaid):
