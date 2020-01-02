@@ -9,7 +9,7 @@ import citationutils as ut
 import pandas as pd
 import time
 
-maxindex = 1
+maxindex = 10
 last_index = 0
 bigdf = None
 while last_index < maxindex:
