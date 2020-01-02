@@ -8,8 +8,7 @@ sort patent_id
 export delimited citation268k.csv, replace
 
 use "/Users/aiyenggar/processed/patents/citation.dta", clear
-keep if patent_id=="6715423" | patent_id=="7899652" | patent_id=="8166254" | patent_id=="6122808" | patent_id=="6213093" | patent_id=="9226521" | patent_id=="6135089"
-" | patent_id=="7535209" | patent_id=="9226521"
+keep if patent_id=="6715423" | patent_id=="7899652" | patent_id=="8166254" | patent_id=="6122808" | patent_id=="6213093" | patent_id=="9226521" | patent_id=="6135089" | patent_id=="7535209" | patent_id=="9226521"
 sort patent_id
 export delimited citation100.csv, replace
 

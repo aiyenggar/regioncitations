@@ -19,7 +19,7 @@ degreeTreshold=0.3 # to set the bounding box based on latitude and longitude
 outputPrefix = fileDatePrefix + "-" + urbanareaConfig + "-" + calculateCitationDistanceString
 
 veryLargeValue = sys.maxsize
-update_freq_lines=5000000
+update_freq_lines=10000000
 #update_freq_lines=100
 attributeErrorValue=['-2'] # List value is empty
 keyErrorValue=['-3'] # No information
@@ -53,6 +53,7 @@ citationFlowsFile = pathPrefix + outputPrefix + "-citation-flows.csv"
 citationFlowsParquet = pathPrefix + outputPrefix + "-citation-flows.parquet"
 singleUaidFlowsFile = pathPrefix + outputPrefix + "-single-citation-flows-%s.parquet"
 flowsFile = pathPrefix + outputPrefix + "-flows.parquet"
+flowsFileCsv = pathPrefix + outputPrefix + "-flows.csv"
 missing_dict = {} #global
 
 def isValidUrbanArea(uaid):
