@@ -8,6 +8,7 @@ Created on Tue Dec 31 13:36:30 2019
 import citationutils as ut
 import pandas as pd
 import time
+import random
 
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Beginning Pre-processing")
 df = pd.read_csv(ut.citationFlowsFile, \
@@ -26,13 +27,17 @@ df.drop_duplicates(subset=['uaid', 'patent_id', 'citation_id'], keep='first', in
 df.to_parquet(ut.singleUaidFlowsFile, compression='gzip')
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Writing to Parquet")
 
-df.set_index('uaid', append=True, inplace=True)
+df = pd.read_parquet(ut.singleUaidFlowsFile)
+
+st = random.randrange(0, len(df))
+df1 = df.iloc[st:st+100000]
+df1.set_index('uaid', append=True, inplace=True)
+df1.drop('q0', axis=1, inplace=True)
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Adding uaid index")
 
 df.to_parquet(ut.flowsFile, compression='gzip')
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Writing to Parquet with year, uaid index")
 
-df = pd.read_parquet(ut.flowsFile)
 """
 # p = df[df['patent_id'] == "8290346"]
 # 8290346  6854688
