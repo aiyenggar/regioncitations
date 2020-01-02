@@ -32,7 +32,7 @@ summaryFile=pathPrefix + "patent_summary.csv"
 # patent_id,assigneelist,latlonglist,ualist
 keysFile1=pathPrefix + fileDatePrefix + "-" + urbanareaConfig + "-patent_list_location_assignee.csv"
 # year_application,patent_id,citation_id,citation_type,sequence,kind
-searchFileName=pathPrefix + "citation.csv"
+searchFileName=pathPrefix + "c1.csv"
 distancesFile=pathPrefix + "latlong_urbanarea_2.csv"
 latlongFile=pathPrefix + "latlong_urbanarea.csv"
 # Within Cluster, Within Firm: q1

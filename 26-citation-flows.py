@@ -11,9 +11,6 @@ import pandas as pd
 import time
 import geopy.distance
 
-flowsDict = {}
-uaDuplicatesDict = {}
-
 def getDistance(latlong1, latlong2):
     retVal = ut.veryLargeValue
     key1 = tuple([latlong1, latlong2])
@@ -60,8 +57,11 @@ searchf = open(ut.searchFileName, 'r', encoding='utf-8')
 sreader = csv.reader(searchf)
 last_time = 0
 
+allflowslist = []
 for citation in sreader:
     if sreader.line_num == 1:
+        flowsDict = {}
+        previous_patent = citation[1].strip()
         continue # we skip the header line
 
     if sreader.line_num >= last_time + ut.update_freq_lines:
@@ -77,6 +77,13 @@ for citation in sreader:
     citation_id = citation[2].strip() # to remove leading and trailing spaces
     if (len(patent_id) == 0) or (len(citation_id) == 0):
         continue
+    
+    if previous_patent != patent_id: #seeing a new patent_id, flush the dictionary
+        fl = [[k[0], k[1], k[2], v[0], v[1], v[2], v[3], v[4], v[5], v[6]] for k,v in flowsDict.items()]
+        allflowslist += fl
+        flowsDict = {}
+        previous_patent = patent_id
+        
     precutoff_flag = False
     try:
         intcitation_id = int(citation_id)
@@ -106,7 +113,7 @@ for citation in sreader:
     c_count_inventors = ut.readDict(citation_id, 'cnt_inventor', summary_dict)
     
     for pind in range(len(p_loc)):
-        pflow = [0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
+        pflow = [1, 0.0, 0.0, 0.0, 0.0, 0.0]
         divisor = 1
         if p_count_patents_cited > 1:
             divisor *= p_count_patents_cited
@@ -123,11 +130,9 @@ for citation in sreader:
             continue
         k1 = tuple([patloc, patent_id, citation_id])
         if k1 in flowsDict:
-            if k1 in uaDuplicatesDict:
-                uaDuplicatesDict[k1] = uaDuplicatesDict[k1] + 1
-            else:
-                print(str(k1) + " No entry in duplicates list")
+            flowsDict[k1][0] += 1 # increment the duplicates count
             continue # We just increment duplicates, and avoid processing
+
         for cind in range(len(c_loc)):
             citllid = int(c_latlongid[cind])
             citloc = int(c_loc[cind])
@@ -163,23 +168,15 @@ for citation in sreader:
                                 quadrant = 4
                     pflow[quadrant] += flow_value
         roundedflow = [round(x,4) for x in pflow]
-        k1 = tuple([patloc, patent_id, citation_id])
         if k1 not in flowsDict:
-            flowsDict[k1] = [year] + roundedflow[1:]
-            uaDuplicatesDict[k1] = 1
+            flowsDict[k1] =  roundedflow + [year]
         else:
             print(str(k1) + " already in flowsDict. Error. ")
-
-for k2 in uaDuplicatesDict:
-    if k2 in flowsDict:
-        flowsDict[k2] = flowsDict[k2] + [uaDuplicatesDict[k2]]
-    else:
-        print(str(k2) + "in Duplicates but not in Flows")
         
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Creating DataFrame")
-df = pd.DataFrame([[k[0], k[1], k[2], v[0], v[1], v[2], v[3], v[4], v[5], v[6]] for k,v in flowsDict.items()]).rename(columns={0:'uaid', 1:'patent_id', 2:'citation_id',3:'year', 4:'q1', 5:'q2', 6:'q3', 7:'q4', 8:'q5', 9:'duplicates'}).set_index(['uaid', 'year'])
+df = pd.DataFrame(allflowslist).rename(columns={0:'uaid', 1:'patent_id', 2:'citation_id', 3:'duplicates', 4:'q1', 5:'q2', 6:'q3', 7:'q4', 8:'q5',9:'year'}).set_index(['uaid', 'patent_id', 'citation_id'])
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Creating DataFrame")
-df.to_parquet(ut.flowsFile, compression='gzip')
+df.to_parquet(ut.singleUaidFlowsFile, compression='gzip')
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Writing to Parquet")
     
 searchf.close()
