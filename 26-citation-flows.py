@@ -56,8 +56,9 @@ distwriter.writerow(["category", "p_uaid", "c_uaid", "p_llid", "c_llid", "distan
 searchf = open(ut.searchFileName, 'r', encoding='utf-8')
 sreader = csv.reader(searchf)
 last_time = 0
-
+last_index = 0
 allflowslist = []
+
 for citation in sreader:
     if sreader.line_num == 1:
         flowsDict = {}
@@ -67,6 +68,13 @@ for citation in sreader:
     if sreader.line_num >= last_time + ut.update_freq_lines:
         print(time.strftime("%Y-%m-%d %H:%M:%S") + " Processed " + str(sreader.line_num) + " raw citations")
         last_time = sreader.line_num
+        last_index += 1
+        print(time.strftime("%Y-%m-%d %H:%M:%S") + " Creating DataFrame")
+        df = pd.DataFrame(allflowslist).rename(columns={0:'uaid', 1:'patent_id', 2:'citation_id', 3:'q1', 4:'q2', 5:'q3', 6:'q4', 7:'q5',8:'year'}).set_index(['uaid', 'patent_id', 'citation_id'])
+        print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Creating DataFrame")
+        df.to_parquet(ut.singleUaidFlowsFile % last_index, compression='gzip')
+        print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Writing " + ut.singleUaidFlowsFile % last_index)
+        allflowslist = []
         distf.flush()
 
     try:
@@ -79,8 +87,7 @@ for citation in sreader:
         continue
     
     if previous_patent != patent_id: #seeing a new patent_id, flush the dictionary
-        fl = [[k[0], k[1], k[2], v[0], v[1], v[2], v[3], v[4], v[5], v[6]] for k,v in flowsDict.items()]
-        allflowslist += fl
+        allflowslist += [[k[0], k[1], k[2], v[0], v[1], v[2], v[3], v[4], v[5]] for k,v in flowsDict.items()]
         flowsDict = {}
         previous_patent = patent_id
         
@@ -109,11 +116,16 @@ for citation in sreader:
                             ut.readDict(patent_id, 'cited_type4', summary_dict) +\
                             ut.readDict(patent_id, 'cited_type5', summary_dict)
     p_count_assignees = ut.readDict(patent_id, 'cnt_assignee', summary_dict)
+    p_count_inventors = ut.readDict(patent_id, 'cnt_inventor', summary_dict)
     c_count_assignees = ut.readDict(citation_id, 'cnt_assignee', summary_dict)
     c_count_inventors = ut.readDict(citation_id, 'cnt_inventor', summary_dict)
     
     for pind in range(len(p_loc)):
-        pflow = [1, 0.0, 0.0, 0.0, 0.0, 0.0]
+        patllid = int(p_latlongid[pind])
+        patloc = int(p_loc[pind])
+        if not ut.isValidUrbanArea(patloc):
+            continue
+        pflow = [-1, 0.0, 0.0, 0.0, 0.0, 0.0]
         divisor = 1
         if p_count_patents_cited > 1:
             divisor *= p_count_patents_cited
@@ -121,18 +133,12 @@ for citation in sreader:
             divisor *= p_count_assignees
         if c_count_assignees > 1:
             divisor *= c_count_assignees
+        if p_count_inventors > 1:
+            divisor *= p_count_inventors
         if c_count_inventors > 1:
             divisor *= c_count_inventors
         flow_value = 1/divisor
-        patllid = int(p_latlongid[pind])
-        patloc = int(p_loc[pind])
-        if not ut.isValidUrbanArea(patloc):
-            continue
-        k1 = tuple([patloc, patent_id, citation_id])
-        if k1 in flowsDict:
-            flowsDict[k1][0] += 1 # increment the duplicates count
-            continue # We just increment duplicates, and avoid processing
-
+        
         for cind in range(len(c_loc)):
             citllid = int(c_latlongid[cind])
             citloc = int(c_loc[cind])
@@ -168,16 +174,27 @@ for citation in sreader:
                                 quadrant = 4
                     pflow[quadrant] += flow_value
         roundedflow = [round(x,4) for x in pflow]
+        k1 = tuple([patloc, patent_id, citation_id])
         if k1 not in flowsDict:
-            flowsDict[k1] =  roundedflow + [year]
+            flowsDict[k1] =  roundedflow[1:] + [year]
         else:
-            print(str(k1) + " already in flowsDict. Error. ")
-        
+            priorflow = flowsDict[k1][:5]
+            sumflow = [priorflow[i] + roundedflow[i+1] for i in range(len(priorflow))]
+            flowsDict[k1] = sumflow + [year]
+
+allflowslist += [[k[0], k[1], k[2], v[0], v[1], v[2], v[3], v[4], v[5]] for k,v in flowsDict.items()]
+flowsDict = {}
+previous_patent = patent_id
+print(time.strftime("%Y-%m-%d %H:%M:%S") + " Processed " + str(sreader.line_num) + " raw citations")
+last_time = sreader.line_num
+last_index += 1
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Creating DataFrame")
-df = pd.DataFrame(allflowslist).rename(columns={0:'uaid', 1:'patent_id', 2:'citation_id', 3:'duplicates', 4:'q1', 5:'q2', 6:'q3', 7:'q4', 8:'q5',9:'year'}).set_index(['uaid', 'patent_id', 'citation_id'])
+df = pd.DataFrame(allflowslist).rename(columns={0:'uaid', 1:'patent_id', 2:'citation_id', 3:'q1', 4:'q2', 5:'q3', 6:'q4', 7:'q5',8:'year'}).set_index(['uaid', 'patent_id', 'citation_id'])
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Creating DataFrame")
-df.to_parquet(ut.singleUaidFlowsFile, compression='gzip')
-print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Writing to Parquet")
+df.to_parquet(ut.singleUaidFlowsFile % last_index, compression='gzip')
+print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Writing " + ut.singleUaidFlowsFile % last_index)
+allflowslist = []
+distf.flush()
     
 searchf.close()
 distf.close()

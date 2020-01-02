@@ -10,6 +10,17 @@ import pandas as pd
 import time
 import random
 
+maxindex = 1
+last_index = 0
+bigdf = None
+while last_index < maxindex:
+    last_index += 1
+    df = pd.read_parquet(ut.singleUaidFlowsFile % last_index)
+    if bigdf == None:
+        bigdf = df
+    else:
+        bigdf.append(df)
+
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Beginning Pre-processing")
 df = pd.read_csv(ut.citationFlowsFile, \
                  usecols = ['year', 'uaid', 'patent_id', 'citation_id', 'q0', 'q1', 'q2', 'q3', 'q4', 'q5'], \

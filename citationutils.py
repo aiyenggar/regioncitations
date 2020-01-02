@@ -19,7 +19,7 @@ degreeTreshold=0.3 # to set the bounding box based on latitude and longitude
 outputPrefix = fileDatePrefix + "-" + urbanareaConfig + "-" + calculateCitationDistanceString
 
 veryLargeValue = sys.maxsize
-update_freq_lines=15000000
+update_freq_lines=5000000
 #update_freq_lines=100
 attributeErrorValue=['-2'] # List value is empty
 keyErrorValue=['-3'] # No information
@@ -32,7 +32,7 @@ summaryFile=pathPrefix + "patent_summary.csv"
 # patent_id,assigneelist,latlonglist,ualist
 keysFile1=pathPrefix + fileDatePrefix + "-" + urbanareaConfig + "-patent_list_location_assignee.csv"
 # year_application,patent_id,citation_id,citation_type,sequence,kind
-searchFileName=pathPrefix + "citation.csv"
+searchFileName=pathPrefix + "citation268k.csv"
 distancesFile=pathPrefix + "latlong_urbanarea_2.csv"
 latlongFile=pathPrefix + "latlong_urbanarea.csv"
 # Within Cluster, Within Firm: q1
@@ -51,7 +51,7 @@ citationDistanceUsedFileName = pathPrefix + outputPrefix + "-patent-citation-dis
 #year,uaid,patent_id,citation_id,q0,q1,q2,q3,q4,q5
 citationFlowsFile = pathPrefix + outputPrefix + "-citation-flows.csv"
 citationFlowsParquet = pathPrefix + outputPrefix + "-citation-flows.parquet"
-singleUaidFlowsFile = pathPrefix + outputPrefix + "-single-citation-flows.parquet"
+singleUaidFlowsFile = pathPrefix + outputPrefix + "-single-citation-flows-%s.parquet"
 flowsFile = pathPrefix + outputPrefix + "-flows.parquet"
 missing_dict = {} #global
 
