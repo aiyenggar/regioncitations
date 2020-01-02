@@ -70,7 +70,7 @@ for citation in sreader:
         last_time = sreader.line_num
         last_index += 1
         print(time.strftime("%Y-%m-%d %H:%M:%S") + " Creating DataFrame")
-        df = pd.DataFrame(allflowslist).rename(columns={0:'uaid', 1:'patent_id', 2:'citation_id', 3:'q1', 4:'q2', 5:'q3', 6:'q4', 7:'q5',8:'year'}).set_index(['uaid', 'patent_id', 'citation_id'])
+        df = pd.DataFrame(allflowslist).rename(columns={0:'uaid', 1:'patent_id', 2:'citation_id', 3:'q1', 4:'q2', 5:'q3', 6:'q4', 7:'q5',8:'year'})
         print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Creating DataFrame")
         df.to_parquet(ut.singleUaidFlowsFile % last_index, compression='gzip')
         print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Writing " + ut.singleUaidFlowsFile % last_index)
@@ -189,8 +189,7 @@ print(time.strftime("%Y-%m-%d %H:%M:%S") + " Processed " + str(sreader.line_num)
 last_time = sreader.line_num
 last_index += 1
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Creating DataFrame")
-df = pd.DataFrame(allflowslist).rename(columns={0:'uaid', 1:'patent_id', 2:'citation_id', 3:'q1', 4:'q2', 5:'q3', 6:'q4', 7:'q5',8:'year'}).set_index(['uaid', 'patent_id', 'citation_id'])
-print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Creating DataFrame")
+df = pd.DataFrame(allflowslist).rename(columns={0:'uaid', 1:'patent_id', 2:'citation_id', 3:'q1', 4:'q2', 5:'q3', 6:'q4', 7:'q5',8:'year'})print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Creating DataFrame")
 df.to_parquet(ut.singleUaidFlowsFile % last_index, compression='gzip')
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Writing " + ut.singleUaidFlowsFile % last_index)
 allflowslist = []
