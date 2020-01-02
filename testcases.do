@@ -12,7 +12,17 @@ keep if patent_id=="6715423" | patent_id=="7899652" | patent_id=="8166254" | pat
 sort patent_id
 export delimited citation100.csv, replace
 
+use "/Users/aiyenggar/processed/patents/citation.dta", clear
+gen kp = 1 if citation_id=="7042440" 
+replace kp = 0 if missing(kp)
+bysort patent_id: replace kp = sum(kp)
+by patent_id: replace kp = kp[_N]
+keep if kp != 0
+drop kp
+export delimited citation200k.csv, replace
+
 /*
+7042440 for dv
 keep if cnt_assignee <= 3
 keep if all_patents_cited <= 10
 keep if cnt_inventor > 1 & cnt_inventor < 5

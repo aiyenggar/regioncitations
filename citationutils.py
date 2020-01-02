@@ -43,8 +43,8 @@ latlongFile=pathPrefix + "latlong_urbanarea.csv"
 
 inputfile22 = keysFile1
 searchfile22 = searchFileName
-outputfile22 = pathPrefix + outputPrefix + "-patent-citation-received-by-year.csv"
-outputheader22 = ["year", "patent_id", "total_citations_received", "self_citations_received", "nonself_citations_received"]
+outputfile22 = pathPrefix + outputPrefix + "-citations-received-by-patent.csv"
+outputheader22 = ["citation_id", "patent_id", "uaid", "total_citations_received", "self_citations_received", "nonself_citations_received", "year"]
 errorfile22 = pathPrefix + outputPrefix + "-err22.csv"
 errorheader22 = ["patent_id", "field", "error_value", "num_raw_citations"]
 citationDistanceUsedFileName = pathPrefix + outputPrefix + "-patent-citation-distance.csv"

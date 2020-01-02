@@ -11,18 +11,23 @@ import citationutils as ut
 
 # read keysFile1
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Beginning Pre-processing")
-assignee_dict = pd.read_csv(ut.inputfile22, usecols = ['patent_id','assigneelist'], dtype={'patent_id':str,'assigneelist':str}, index_col='patent_id').to_dict()
-citrecd = {}
-searchf = open(ut.searchfile22, 'r', encoding='utf-8')
+inv_uaid_dict = pd.read_csv(ut.keysFile1, usecols = ['patent_id','ualist'], dtype={'patent_id':str,'ualist':str}, index_col='patent_id').to_dict()
+assignee_dict = pd.read_csv(ut.keysFile1, usecols = ['patent_id','assigneelist'], dtype={'patent_id':str,'assigneelist':str}, index_col='patent_id').to_dict()
+searchf = open(ut.searchFileName, 'r', encoding='utf-8')
 sreader = csv.reader(searchf)
 last_time = 0
+mapf = open(ut.outputfile22, 'w', encoding='utf-8')
+mapwriter = csv.writer(mapf)
+mapwriter.writerow(ut.outputheader22)
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Pre-processing")
 for citation in sreader:
+    citrecd = {}
     if sreader.line_num == 1:
         continue # we skip the header line
     if sreader.line_num >= last_time + ut.update_freq_lines:
         print(time.strftime("%Y-%m-%d %H:%M:%S") + " Processed " + str(sreader.line_num) + " raw citations")
         last_time = sreader.line_num
+        mapf.flush()
     try:
         year = int(citation[0])
     except ValueError:
@@ -37,32 +42,42 @@ for citation in sreader:
 
     p_ass = ut.splitFromDict(patent_id, "assigneelist", ",", assignee_dict)
     c_ass = ut.splitFromDict(citation_id, "assigneelist", ",", assignee_dict)
+    c_loc = ut.splitFromDict(citation_id, "ualist", ",", inv_uaid_dict)
+    c_count_inventors = len(c_loc)
+    
+    wt_all_citations = 1
+    if c_count_inventors > 1:
+        wt_all_citations *= c_count_inventors
 
-    key = tuple([year, citation_id])
-    if key not in citrecd:
-        citrecd[key] = [0, 0, 0]
-    citrecd[key][0] += 1 # increment total citations received
-    selfcount = 0
-    nonselfcount = 0
-    for apind in range(len(p_ass)):
-        for acind in range(len(c_ass)):
-            patass = int(p_ass[apind])
-            citass = int(c_ass[acind])
-            if patass == citass:
-                selfcount += 1
-            else:
-                nonselfcount += 1
-    if selfcount > 0:
-        citrecd[key][1] += 1 # increment self citations received
-    if nonselfcount > 0:
-        citrecd[key][2] += 1 # increment nonself citations received
+    p_ass_cnt = len(p_ass)
+    c_ass_cnt = len(c_ass)
+    wt_self_citations = wt_all_citations
+    if p_ass_cnt > 1:
+        wt_self_citations *= p_ass_cnt
+    if c_ass_cnt > 1:
+        wt_self_citations *= c_ass_cnt
+        
+    for cind in range(len(c_loc)):
+        citloc = int(c_loc[cind])
+        key = tuple([citation_id, patent_id, citloc])
+        if key not in citrecd:
+            citrecd[key] = [0.0, 0.0, 0.0]
+        citrecd[key][0] += (1/wt_all_citations) # increment total citations received
+
+        for apind in range(p_ass_cnt):
+            for acind in range(c_ass_cnt):
+                patass = int(p_ass[apind])
+                citass = int(c_ass[acind])
+
+                if patass == citass:
+                    citrecd[key][1] += (1/wt_self_citations)
+                else:
+                    citrecd[key][2] += (1/wt_self_citations) # Weighting for non-self citations is the same as that for self-citations
+    for key in citrecd:
+        mapwriter.writerow(list(key) + [round(x,4) for x in citrecd[key]]  + [year])
+
 
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed reading through search file")
-mapf = open(ut.outputfile22, 'w', encoding='utf-8')
-mapwriter = csv.writer(mapf)
-mapwriter.writerow(ut.outputheader22)
-for key in citrecd:
-    mapwriter.writerow(list(key) + citrecd[key])
 mapf.close()
 
 errf = open(ut.errorfile22, 'w', encoding='utf-8')
