@@ -236,7 +236,8 @@ egen precutoff_patents_cited = sum(precutoff), by(patent_id)
 bysort patent_id citation_id: gen all_patents_cited = _n == 1
 by patent_id: replace all_patents_cited = sum(all_patents_cited)
 by patent_id: replace all_patents_cited = all_patents_cited[_N]
-
+replace all_patents_cited = 0 if missing(citation_id)
+replace citation_type = 0 if missing(citation_id)
 bysort patent_id citation_type citation_id: gen cited_type = _n == 1
 by patent_id citation_type: replace cited_type = sum(cited_type)
 by patent_id citation_type: replace cited_type = cited_type[_N]
@@ -246,7 +247,9 @@ keep if tokeep == 1
 
 keep patent_id citation_type precutoff_patents_cited all_patents_cited cited_type
 sort patent_id
+
 reshape wide cited_type, i(patent_id) j(citation_type)
+drop cited_type0
 label variable precutoff_patents_cited "Count of Patents Cited with unknown or prior-1976 application"
 label variable all_patents_cited "Count of Patents Cited"
 label variable cited_type1 "Count of Patents Cited of Undetermined Citation Type (NULL)"
