@@ -1,5 +1,5 @@
 use "/Users/aiyenggar/processed/patents/citation.dta", clear
-keep if year_application == 2010 | year_application == 2005 | year_application == 2000
+keep if patent_application_year == 2010 | patent_application_year == 2005 | patent_application_year == 2000
 bysort patent_id: keep if _n <= 10
 egen myid = group(patent_id)
 keep if mod(myid, 17) == 3
@@ -22,7 +22,7 @@ drop kp
 export delimited citation200k.csv, replace
 
 use "/Users/aiyenggar/processed/patents/citation.dta", clear
-keep if patent_id == "3930680" | patent_id == "4368286" | patent_id == "3930513" | patent_id == "3931910" | patent_id == "5046259"
+keep if patent_id == "9460691" | patent_id == "3930680" | patent_id == "4368286" | patent_id == "3930513" | patent_id == "3931910" | patent_id == "5046259"
 save test_citation.dta, replace
 levelsof patent_id, local(files)
 foreach f of local files {
@@ -30,6 +30,7 @@ foreach f of local files {
 	}
 
 /* 
+9460691 receives no citations
 8227965 has multiple inventors across 2 locations US and JP 
 3930513 shows a less than 1 flow
 */

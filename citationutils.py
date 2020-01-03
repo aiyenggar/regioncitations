@@ -8,7 +8,7 @@ import sys
 pathPrefix = "/Users/aiyenggar/processed/patents/"
 #backwardCitationsConfig="Expanded"
 backwardCitationsConfig="Pure-Collapsed"
-fileDatePrefix="20191230"
+fileDatePrefix="20200104"
 urbanareaConfig="ua3"
 calculateCitationDistance=True
 calculateCitationDistanceString="dis"
@@ -32,7 +32,8 @@ summaryFile=pathPrefix + "patent_summary.csv"
 # patent_id,assigneelist,latlonglist,ualist
 keysFile1=pathPrefix + fileDatePrefix + "-" + urbanareaConfig + "-patent_list_location_assignee.csv"
 # patent_application_year,patent_id,citation_id,citation_type,sequence,kind,citation_application_year
-searchFileName=pathPrefix + "citation.csv"
+#searchFileName=pathPrefix + "citation.csv"
+searchFileName=pathPrefix + "3930513-citation.csv"
 distancesFile=pathPrefix + "latlong_urbanarea_2.csv"
 latlongFile=pathPrefix + "latlong_urbanarea.csv"
 # Within Cluster, Within Firm: q1

@@ -65,8 +65,8 @@ for citation in sreader:
         previous_patent = citation[1].strip()
         continue # we skip the header line
 
-    if sreader.line_num >= last_time + ut.update_freq_lines:
-        print(time.strftime("%Y-%m-%d %H:%M:%S") + " Processed " + str(sreader.line_num) + " raw citations")
+    if sreader.line_num >= last_time + ut.update_freq_lines + 1:
+        print(time.strftime("%Y-%m-%d %H:%M:%S") + " Processed " + str(sreader.line_num - 1) + " raw citations")
         last_time = sreader.line_num
         last_index += 1
         print(time.strftime("%Y-%m-%d %H:%M:%S") + " Creating DataFrame")
@@ -87,17 +87,24 @@ for citation in sreader:
         continue
     
     if previous_patent != patent_id: #seeing a new patent_id, flush the dictionary
-        allflowslist += [[k[0], k[1], k[2], v[0], v[1], v[2], v[3], v[4], v[5], v[6]] for k,v in flowsDict.items()]
+        allflowslist += [list(k) + list(v) for k,v in flowsDict.items()]
         flowsDict = {}
         previous_patent = patent_id
-
-    type_citation = int(citation[3]) # 1 Null, 2 Applicant, 3 Examiner, 4 Other, 5 Third Party
-    seq_citation = int(citation[4])
+    try:
+        type_citation = int(citation[3]) # 1 Null, 2 Applicant, 3 Examiner, 4 Other, 5 Third Party
+    except ValueError:
+        type_citation = ut.keyErrorValue[0]
+    try:
+        seq_citation = int(citation[4])
+    except ValueError:
+        seq_citation = ut.keyErrorValue[0]
+            
     kind_citation = citation[5] # B1, A etc
+    
     try:
         citation_application_year = int(citation[6])
     except ValueError:
-        citation_application_year = -1 # We can go on
+        citation_application_year = ut.keyErrorValue[0] # We can go on
 
     p_latlongid = ut.splitFromDict(patent_id, "latlonglist", ",", inv_latlongid_dict)
     p_loc = ut.splitFromDict(patent_id, "ualist", ",", inv_uaid_dict)
@@ -107,11 +114,12 @@ for citation in sreader:
     c_loc = ut.splitFromDict(citation_id, "ualist", ",", inv_uaid_dict)
     c_ass = ut.splitFromDict(citation_id, "assigneelist", ",", assignee_dict)
 
-    p_count_patents_cited = ut.readDict(patent_id, 'cited_type1', summary_dict) +\
-                            ut.readDict(patent_id, 'cited_type2', summary_dict) +\
-                            ut.readDict(patent_id, 'cited_type3', summary_dict) +\
-                            ut.readDict(patent_id, 'cited_type4', summary_dict) +\
-                            ut.readDict(patent_id, 'cited_type5', summary_dict)
+    p_count_patents_cited_type1 = ut.readDict(patent_id, 'cited_type1', summary_dict)
+    p_count_patents_cited_type2 = ut.readDict(patent_id, 'cited_type2', summary_dict)
+    p_count_patents_cited_type3 = ut.readDict(patent_id, 'cited_type3', summary_dict)
+    p_count_patents_cited_type4 = ut.readDict(patent_id, 'cited_type4', summary_dict)
+    p_count_patents_cited_type4 = ut.readDict(patent_id, 'cited_type5', summary_dict)
+    p_count_patents_cited_all = ut.readDict(patent_id, 'all_patents_cited', summary_dict) 
     p_count_assignees = ut.readDict(patent_id, 'cnt_assignee', summary_dict)
     p_count_inventors = ut.readDict(patent_id, 'cnt_inventor', summary_dict)
     c_count_assignees = ut.readDict(citation_id, 'cnt_assignee', summary_dict)
@@ -125,8 +133,8 @@ for citation in sreader:
             continue
         pflow = [-1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         divisor = 1
-        if p_count_patents_cited > 1:
-            divisor *= p_count_patents_cited
+        if p_count_patents_cited_all > 1:
+            divisor *= p_count_patents_cited_all
         if p_count_assignees > 1:
             divisor *= p_count_assignees
         if c_count_assignees > 1:
@@ -137,7 +145,7 @@ for citation in sreader:
             divisor *= c_count_inventors
         flow_value = 1/divisor
         
-        if len(citation_id) == 0: # we found a patent that did not cite any other
+        if p_count_patents_cited_all == 0: # we found a patent that did not cite any other
             quadrant = 6
             pflow[quadrant] = flow_value
         else:        
@@ -186,10 +194,10 @@ for citation in sreader:
             sumflow = [priorflow[i] + roundedflow[i+1] for i in range(len(priorflow))]
             flowsDict[k1] = sumflow + [year]
 
-allflowslist += [[k[0], k[1], k[2], v[0], v[1], v[2], v[3], v[4], v[5], v[6]] for k,v in flowsDict.items()]
+allflowslist += [list(k) + list(v) for k,v in flowsDict.items()]
 flowsDict = {}
 previous_patent = patent_id
-print(time.strftime("%Y-%m-%d %H:%M:%S") + " Processed " + str(sreader.line_num) + " raw citations")
+print(time.strftime("%Y-%m-%d %H:%M:%S") + " Processed " + str(sreader.line_num - 1) + " raw citations")
 last_time = sreader.line_num
 last_index += 1
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Creating DataFrame")

@@ -36,13 +36,22 @@ for citation in sreader:
     citation_id = citation[2].strip() # to remove leading and trailing spaces
     if (len(citation_id) == 0):
         continue
-    type_citation = int(citation[3]) # 1 Null, 2 Applicant, 3 Examiner, 4 Other, 5 Third Party
-    seq_citation = int(citation[4])
+    try:
+        type_citation = int(citation[3]) # 1 Null, 2 Applicant, 3 Examiner, 4 Other, 5 Third Party
+    except ValueError:
+        type_citation = ut.keyErrorValue[0]
+    try:
+        seq_citation = int(citation[4])
+    except ValueError:
+        seq_citation = ut.keyErrorValue[0]
+            
     kind_citation = citation[5] # B1, A etc
+    
     try:
         citation_application_year = int(citation[6])
     except ValueError:
-        citation_application_year = -1 # We can go on
+        citation_application_year = ut.keyErrorValue[0] # We can go on
+
         
     p_ass = ut.splitFromDict(patent_id, "assigneelist", ",", assignee_dict)
     c_ass = ut.splitFromDict(citation_id, "assigneelist", ",", assignee_dict)

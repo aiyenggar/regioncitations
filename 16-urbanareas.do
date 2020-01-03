@@ -124,38 +124,30 @@ sort rawlocation_id
 save `destdir'rawlocation_urbanarea.dta, replace
 
 use `destdir'rawinventor.dta, clear
-/* We start with 15,752,110 observations */
-merge m:1 patent_id using `destdir'application.dta, keep(match master) nogen
-/* 1 observation has patent_id as NULL leaving 15,752,109 matched entries */
 drop if patent_id=="NULL"
-gen appl_date = date(date,"YMD")
-gen year=year(appl_date)
-rename number application_id
-keep patent_id inventor_id rawlocation_id year sequence
-rename sequence inventorseq
+keep patent_id inventor_id rawlocation_id
 sort rawlocation_id
-drop if missing(rawlocation_id)
-/* 287 observations have an empty rawlocation_id  */
-/* 15,751,822 of the initial 15,752,109 remain */
-merge 1:1 rawlocation_id using `destdir'rawlocation_urbanarea.dta
-/* 3562 rawlocation_id go unmatched, leaving 15,748,260 matched entries */
-replace ua1 = -2 if _merge==1
-replace ua2 = -2 if _merge==1
-replace ua3 = -2 if _merge==1
-replace latlongid = -2 if _merge==1
-drop if _merge == 2 /* from using */
-/* We retain all 15,751,822 observations but set ua1, ua2, ua3 to -2 for the unmatched */
-drop  _merge rawlocation_id
-order year patent_id inventor_id ua* 
-bysort patent_id inventor_id: gen index = _N
-keep if index == 1 /* There are 4790 repeats with the same inventor_id but with different sequence numbers */
+merge m:1 rawlocation_id using `destdir'rawlocation_urbanarea.dta, keep(match master) nogen
+sort patent_id
+/* We start with 15,752,109 observations */
+merge m:1 patent_id using `destdir'patent_date.dta, nogen
+/* 832 observations from using not matched, 15,752,109 matched entries, total 15,752,941 */
+replace ua1 = -2 if missing(ua1)
+replace ua2 = -2 if missing(ua2)
+replace ua3 = -2 if missing(ua3)
+replace latlongid = -2 if missing(latlongid)
+
+bysort patent_id inventor_id: keep if _n == 1
 bysort patent_id: gen cnt_inventor=_N
+replace cnt_inventor = 0 if missing(inventor_id)
 bysort patent_id ua3: gen cnt_ua3_inventor = _N
+replace cnt_ua3_inventor = 0 if ua3 < 0
+
 save `destdir'patent_inventor_urbanarea.dta, replace
-count if ua1 < 0 /* 4,314,067 of 15,751,822 */
-count if ua2 < 0 /* 2,035,898 of 15,751,822 */
-count if ua3 < 0 /* 1,320,707 of 15,751,822 */
-tab year if ua1 <= -1 & ua2 <= -1 & ua3 <= -1
+count if ua1 < 0 /* 4,313,714 of 15,748,151 */
+count if ua2 < 0 /* 2,036,354 of 15,748,151 */
+count if ua3 < 0 /* 1,321,379 of 15,748,151 */
+tab application_year if ua1 <= -1 & ua2 <= -1 & ua3 <= -1
 
 use `destdir'rawassignee.dta, clear
 /* assignee processing for human readability and reduced space requirement, this value is not used to determine matches, assignee_id is */
@@ -186,6 +178,7 @@ bysort patent_id: keep if _n == 1 /* 988614 observations */
 /* Isolated those patents that are individual patents. These need their assignee set differently */
 merge 1:m patent_id using `destdir'rawinventor.dta, keep(match) nogen
 /* 1421594 observations */
+bysort patent_id inventor_id: keep if _n == 1 // rawinventor has duplicates that are different on rawlocation_id
 keep patent_id inventor_id
 gen attr_assignee="inventor-"+inventor_id
 keep patent_id attr_assignee
@@ -199,7 +192,7 @@ replace joinflag = -1 * (100 + round(1000000 * uniform())) if missing(joinflag)
 bysort patent_id joinflag: gen index = _n
 drop if joinflag == 1 & index > 1 /* We want only one entry per flagged patent */
 drop index /* 10724 dropped, 6826825 remain */
-merge 1:m patent_id joinflag using individual_patents, keep(match master) /* 1421594 matched, 7260075 remain */
+merge 1:m patent_id joinflag using individual_patents, keep(match master) /* 1,419,523 matched, ? remain */
 replace assignee_id = attr_assignee if joinflag==1 & _merge==3
 egen assignee_numid = group(assignee_id) if strlen(assignee_id) > 0
 replace assignee_numid = -1 * (100 + round(1000000 * uniform())) if missing(assignee_numid)
@@ -236,7 +229,8 @@ egen precutoff_patents_cited = sum(precutoff), by(patent_id)
 bysort patent_id citation_id: gen all_patents_cited = _n == 1
 by patent_id: replace all_patents_cited = sum(all_patents_cited)
 by patent_id: replace all_patents_cited = all_patents_cited[_N]
-replace all_patents_cited = 0 if missing(citation_id)
+drop if missing(citation_id) & all_patents_cited > 1 // Patents that cite but also have an empty citation
+replace all_patents_cited = 0 if missing(citation_id) // Those patents that do not cite
 replace citation_type = 0 if missing(citation_id)
 bysort patent_id citation_type citation_id: gen cited_type = _n == 1
 by patent_id citation_type: replace cited_type = sum(cited_type)
@@ -263,7 +257,6 @@ use count_citations.dta, clear
 merge 1:1 patent_id using count_assignee, nogen
 merge 1:1 patent_id using count_inventor, nogen
 merge 1:1 patent_id using patent_date, nogen
-drop if patent_id == "NULL"
 save patent_summary.dta, replace
 replace cited_type1 = 0 if missing(cited_type1)
 replace cited_type2 = 0 if missing(cited_type2)
@@ -274,4 +267,6 @@ replace precutoff_patents_cited = -1 if missing(precutoff_patents_cited)
 replace all_patents_cited = -1 if missing(all_patents_cited)
 replace cnt_assignee = -1 if missing(cnt_assignee)
 replace cnt_inventor = -1 if missing(cnt_inventor)
+replace application_year = -1 if missing(application_year)
+replace grant_year = -1 if missing(grant_year)
 export delimited `destdir'patent_summary.csv, replace

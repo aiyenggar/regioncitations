@@ -1,6 +1,6 @@
 set more off
 global destdir ~/processed/patents/
-local inputprefix "20191230-ua3"
+local inputprefix "20200104-ua3"
 local distest "dis"
 local baseprefix "${destdir}`inputprefix'-"
 local prefix "${destdir}`inputprefix'-`distest'-"
