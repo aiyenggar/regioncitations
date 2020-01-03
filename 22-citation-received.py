@@ -39,7 +39,11 @@ for citation in sreader:
     type_citation = int(citation[3]) # 1 Null, 2 Applicant, 3 Examiner, 4 Other, 5 Third Party
     seq_citation = int(citation[4])
     kind_citation = citation[5] # B1, A etc
-
+    try:
+        citation_application_year = int(citation[6])
+    except ValueError:
+        citation_application_year = -1 # We can go on
+        
     p_ass = ut.splitFromDict(patent_id, "assigneelist", ",", assignee_dict)
     c_ass = ut.splitFromDict(citation_id, "assigneelist", ",", assignee_dict)
     c_loc = ut.splitFromDict(citation_id, "ualist", ",", inv_uaid_dict)
@@ -74,7 +78,7 @@ for citation in sreader:
                 else:
                     citrecd[key][2] += (1/wt_self_citations) # Weighting for non-self citations is the same as that for self-citations
     for key in citrecd:
-        mapwriter.writerow(list(key) + [round(x,4) for x in citrecd[key]]  + [year])
+        mapwriter.writerow(list(key) + [round(x,8) for x in citrecd[key]]  + [year])
 
 
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed reading through search file")

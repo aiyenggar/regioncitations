@@ -30,7 +30,7 @@ def getDistance(latlong1, latlong2):
     return retVal
 
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Beginning Pre-processing")
-summary_dict = pd.read_csv(ut.summaryFile, usecols = ['patent_id','cited_type1','cited_type2','cited_type3','cited_type4','cited_type5','precutoff_patents_cited','all_patents_cited','cnt_assignee','cnt_inventor'], dtype={'patent_id':str,'cited_type1':int,'cited_type2':int,'cited_type3':int,'cited_type4':int,'cited_type5':int,'precutoff_patents_cited':int,'all_patents_cited':int,'cnt_assignee':int,'cnt_inventor':int}, index_col='patent_id').to_dict()
+summary_dict = pd.read_csv(ut.summaryFile, usecols = ['patent_id','cited_type1','cited_type2','cited_type3','cited_type4','cited_type5','precutoff_patents_cited','all_patents_cited','cnt_assignee','cnt_inventor','application_year'], dtype={'patent_id':str,'cited_type1':int,'cited_type2':int,'cited_type3':int,'cited_type4':int,'cited_type5':int,'precutoff_patents_cited':int,'all_patents_cited':int,'cnt_assignee':int,'cnt_inventor':int,'application_year':int}, index_col='patent_id').to_dict()
 
 inv_uaid_dict = pd.read_csv(ut.keysFile1, usecols = ['patent_id','ualist'], dtype={'patent_id':str,'ualist':str}, index_col='patent_id').to_dict()
 assignee_dict = pd.read_csv(ut.keysFile1, usecols = ['patent_id','assigneelist'], dtype={'patent_id':str,'assigneelist':str}, index_col='patent_id').to_dict()
@@ -70,7 +70,7 @@ for citation in sreader:
         last_time = sreader.line_num
         last_index += 1
         print(time.strftime("%Y-%m-%d %H:%M:%S") + " Creating DataFrame")
-        df = pd.DataFrame(allflowslist).rename(columns={0:'uaid', 1:'patent_id', 2:'citation_id', 3:'q1', 4:'q2', 5:'q3', 6:'q4', 7:'q5',8:'year'})
+        df = pd.DataFrame(allflowslist).rename(columns={0:'uaid', 1:'patent_id', 2:'citation_id', 3:'q1', 4:'q2', 5:'q3', 6:'q4', 7:'q5',8:'q6',9:'year'})
         print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Creating DataFrame")
         df.to_parquet(ut.singleUaidFlowsFile % last_index, compression='gzip')
         print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Writing " + ut.singleUaidFlowsFile % last_index)
@@ -83,24 +83,21 @@ for citation in sreader:
         continue
     patent_id = citation[1].strip() # to remove leading and trailing spaces
     citation_id = citation[2].strip() # to remove leading and trailing spaces
-    if (len(patent_id) == 0) or (len(citation_id) == 0):
+    if (len(patent_id) == 0): # We now place len(citation_id) == 0 into q6
         continue
     
     if previous_patent != patent_id: #seeing a new patent_id, flush the dictionary
-        allflowslist += [[k[0], k[1], k[2], v[0], v[1], v[2], v[3], v[4], v[5]] for k,v in flowsDict.items()]
+        allflowslist += [[k[0], k[1], k[2], v[0], v[1], v[2], v[3], v[4], v[5], v[6]] for k,v in flowsDict.items()]
         flowsDict = {}
         previous_patent = patent_id
-        
-    precutoff_flag = False
-    try:
-        intcitation_id = int(citation_id)
-        if intcitation_id < 3930271:
-            precutoff_flag = True
-    except ValueError:
-        continue
+
     type_citation = int(citation[3]) # 1 Null, 2 Applicant, 3 Examiner, 4 Other, 5 Third Party
     seq_citation = int(citation[4])
     kind_citation = citation[5] # B1, A etc
+    try:
+        citation_application_year = int(citation[6])
+    except ValueError:
+        citation_application_year = -1 # We can go on
 
     p_latlongid = ut.splitFromDict(patent_id, "latlonglist", ",", inv_latlongid_dict)
     p_loc = ut.splitFromDict(patent_id, "ualist", ",", inv_uaid_dict)
@@ -119,13 +116,14 @@ for citation in sreader:
     p_count_inventors = ut.readDict(patent_id, 'cnt_inventor', summary_dict)
     c_count_assignees = ut.readDict(citation_id, 'cnt_assignee', summary_dict)
     c_count_inventors = ut.readDict(citation_id, 'cnt_inventor', summary_dict)
+    c_application_year = ut.readDict(citation_id, 'application_year', summary_dict)
     
     for pind in range(len(p_loc)):
         patllid = int(p_latlongid[pind])
         patloc = int(p_loc[pind])
         if not ut.isValidUrbanArea(patloc):
             continue
-        pflow = [-1, 0.0, 0.0, 0.0, 0.0, 0.0]
+        pflow = [-1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         divisor = 1
         if p_count_patents_cited > 1:
             divisor *= p_count_patents_cited
@@ -139,41 +137,47 @@ for citation in sreader:
             divisor *= c_count_inventors
         flow_value = 1/divisor
         
-        for cind in range(len(c_loc)):
-            citllid = int(c_latlongid[cind])
-            citloc = int(c_loc[cind])
-            for apind in range(len(p_ass)):
-                patass = int(p_ass[apind])
-                for acind in range(len(c_ass)):
-                    citass = int(c_ass[acind])
-
-                    if ut.calculateCitationDistance and ut.isValidLatLongId(patllid) and ut.isValidLatLongId(citllid):
-                        if ut.isValidUrbanArea(patloc) and (not ut.isValidUrbanArea(citloc)):
-                            dt = getDistance(patllid, citllid)
-                            if (dt < ut.distanceTreshold):
-                                distwriter.writerow(['C', patloc, citloc, patllid, citllid, dt])
-                                citloc = patloc
-                        if ut.isValidUrbanArea(citloc) and (not ut.isValidUrbanArea(patloc)):
-                            dt = getDistance(patllid, citllid)
-                            if (dt < ut.distanceTreshold):
-                                distwriter.writerow(['P', patloc, citloc, patllid, citllid, dt])
-                                patloc = citloc
-
-                    if precutoff_flag or (not ut.isValidAssignee(patass)) and (not ut.isValidAssignee(citass)):
-                        quadrant = 5
-                    else:
-                        if patloc == citloc: # same urban area
-                            if patass == citass: # same assignee
-                                quadrant = 1
-                            else: # different assignee
-                                quadrant = 2
-                        else: # different urban area
-                            if patass == citass: # same assignee
-                                quadrant = 3
-                            else: # different assignee
-                                quadrant = 4
-                    pflow[quadrant] += flow_value
-        roundedflow = [round(x,4) for x in pflow]
+        if len(citation_id) == 0: # we found a patent that did not cite any other
+            quadrant = 6
+            pflow[quadrant] = flow_value
+        else:        
+            for cind in range(len(c_loc)):
+                citllid = int(c_latlongid[cind])
+                citloc = int(c_loc[cind])
+                for apind in range(len(p_ass)):
+                    patass = int(p_ass[apind])
+                    for acind in range(len(c_ass)):
+                        citass = int(c_ass[acind])
+    
+                        if ut.calculateCitationDistance and ut.isValidLatLongId(patllid) and ut.isValidLatLongId(citllid):
+                            if ut.isValidUrbanArea(patloc) and (not ut.isValidUrbanArea(citloc)):
+                                dt = getDistance(patllid, citllid)
+                                if (dt < ut.distanceTreshold):
+                                    distwriter.writerow(['C', patloc, citloc, patllid, citllid, dt])
+                                    citloc = patloc
+                            if ut.isValidUrbanArea(citloc) and (not ut.isValidUrbanArea(patloc)):
+                                dt = getDistance(patllid, citllid)
+                                if (dt < ut.distanceTreshold):
+                                    distwriter.writerow(['P', patloc, citloc, patllid, citllid, dt])
+                                    patloc = citloc
+    
+                        if (c_application_year < 1976): # includes missing citation_years
+                            quadrant = 5
+                        elif (not ut.isValidAssignee(patass)) and (not ut.isValidAssignee(citass)):
+                            quadrant = 5
+                        else:
+                            if patloc == citloc: # same urban area
+                                if patass == citass: # same assignee
+                                    quadrant = 1
+                                else: # different assignee
+                                    quadrant = 2
+                            else: # different urban area
+                                if patass == citass: # same assignee
+                                    quadrant = 3
+                                else: # different assignee
+                                    quadrant = 4
+                        pflow[quadrant] += flow_value
+        roundedflow = [round(x,8) for x in pflow]
         k1 = tuple([patloc, patent_id, citation_id])
         if k1 not in flowsDict:
             flowsDict[k1] =  roundedflow[1:] + [year]
@@ -182,14 +186,15 @@ for citation in sreader:
             sumflow = [priorflow[i] + roundedflow[i+1] for i in range(len(priorflow))]
             flowsDict[k1] = sumflow + [year]
 
-allflowslist += [[k[0], k[1], k[2], v[0], v[1], v[2], v[3], v[4], v[5]] for k,v in flowsDict.items()]
+allflowslist += [[k[0], k[1], k[2], v[0], v[1], v[2], v[3], v[4], v[5], v[6]] for k,v in flowsDict.items()]
 flowsDict = {}
 previous_patent = patent_id
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Processed " + str(sreader.line_num) + " raw citations")
 last_time = sreader.line_num
 last_index += 1
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Creating DataFrame")
-df = pd.DataFrame(allflowslist).rename(columns={0:'uaid', 1:'patent_id', 2:'citation_id', 3:'q1', 4:'q2', 5:'q3', 6:'q4', 7:'q5',8:'year'})print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Creating DataFrame")
+df = pd.DataFrame(allflowslist).rename(columns={0:'uaid', 1:'patent_id', 2:'citation_id', 3:'q1', 4:'q2', 5:'q3', 6:'q4', 7:'q5',8:'q6',9:'year'})
+print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Creating DataFrame")
 df.to_parquet(ut.singleUaidFlowsFile % last_index, compression='gzip')
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Writing " + ut.singleUaidFlowsFile % last_index)
 allflowslist = []

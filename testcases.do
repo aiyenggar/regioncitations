@@ -29,6 +29,10 @@ foreach f of local files {
 	export delimited `f'-citation.csv if patent_id=="`f'", replace
 	}
 
+/* 
+8227965 has multiple inventors across 2 locations US and JP 
+3930513 shows a less than 1 flow
+*/
 /*
 7042440 for dv
 keep if cnt_assignee <= 3

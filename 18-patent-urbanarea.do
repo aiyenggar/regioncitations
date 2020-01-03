@@ -7,7 +7,7 @@ use ${destdir}`inputprefix'-patent.dta, clear
 /* We start with 15,751,822 entries */
 
 keep year patent_id inventor_id uaid country
-label variable uaid "urban area id per uaid.dta"
+label variable uaid "urban area id as per uaid.dta"
 
 bysort uaid year inventor_id: gen inventor_index=_n if uaid >= 0
 replace inventor_index=0 if inventor_index > 1

@@ -35,10 +35,20 @@ third party5|      2,062        0.00      100.00
 
 drop category date
 sort patent_id
-merge m:1 patent_id using patent_date.dta, keep(match master) nogen
+merge m:1 patent_id using patent_date.dta, nogen
 keep application_year patent_id citation_id citation_type sequence kind
 order application_year patent_id citation_id citation_type sequence kind
+sort citation_id
+rename patent_id temp
+rename application_year patent_application_year
+rename citation_id patent_id
+merge m:1 patent_id using patent_date.dta, nogen
+rename application_year citation_application_year
+rename patent_id citation_id
+rename temp patent_id
+keep patent_application_year patent_id citation_id citation_type sequence kind citation_application_year
 bysort patent_id citation_id: keep if _n == 1
+drop if missing(patent_id)
 export delimited `destdir'citation.csv, replace
 save citation.dta, replace
 
@@ -137,7 +147,10 @@ drop if _merge == 2 /* from using */
 /* We retain all 15,751,822 observations but set ua1, ua2, ua3 to -2 for the unmatched */
 drop  _merge rawlocation_id
 order year patent_id inventor_id ua* 
-sort patent_id
+bysort patent_id inventor_id: gen index = _N
+keep if index == 1 /* There are 4790 repeats with the same inventor_id but with different sequence numbers */
+bysort patent_id: gen cnt_inventor=_N
+bysort patent_id ua3: gen cnt_ua3_inventor = _N
 save `destdir'patent_inventor_urbanarea.dta, replace
 count if ua1 < 0 /* 4,314,067 of 15,751,822 */
 count if ua2 < 0 /* 2,035,898 of 15,751,822 */
@@ -203,13 +216,21 @@ by patent_id: keep if _n == 1
 label variable cnt_assignee "Count of assignees for patent"
 save count_assignee.dta, replace
 
-use citation.dta, clear
-bysort patent_id citation_id: gen citseq = _n
-keep if citseq == 1 /* drop identical citations */
-keep patent_id citation_id citation_type
+use patent_inventor_urbanarea.dta, clear
+bysort patent_id ua3: keep if _n == 1
+rename ua3 uaid
+rename cnt_ua3_inventor cnt_uaid_inventor
+keep patent_id uaid cnt_uaid_inventor cnt_inventor
+label variable cnt_inventor "Count of unique inventors on patent"
+label variable cnt_uaid_inventor "Count of inventors on patent in same urban area"
+save count_uaid_inventor.dta, replace /* [patent_id, uaid] num of inventors and [patent_id] num of inventors */
 
-destring citation_id, generate(intcitation_id) force
-gen precutoff = intcitation_id < 3930271
+bysort patent_id: keep if _n == 1
+keep patent_id cnt_inventor
+save count_inventor.dta, replace
+
+use citation.dta, clear
+gen precutoff = !missing(citation_id) & (missing(citation_application_year) | citation_application_year < 1976)
 egen precutoff_patents_cited = sum(precutoff), by(patent_id)
 
 bysort patent_id citation_id: gen all_patents_cited = _n == 1
@@ -222,10 +243,11 @@ by patent_id citation_type: replace cited_type = cited_type[_N]
 
 bysort patent_id citation_type: gen tokeep = _n
 keep if tokeep == 1
+
 keep patent_id citation_type precutoff_patents_cited all_patents_cited cited_type
 sort patent_id
 reshape wide cited_type, i(patent_id) j(citation_type)
-label variable precutoff_patents_cited "Count of Patents Cited with Patent ID less than 3930271"
+label variable precutoff_patents_cited "Count of Patents Cited with unknown or prior-1976 application"
 label variable all_patents_cited "Count of Patents Cited"
 label variable cited_type1 "Count of Patents Cited of Undetermined Citation Type (NULL)"
 label variable cited_type2 "Count of Patents Cited by Applicant"
@@ -233,16 +255,6 @@ label variable cited_type3 "Count of Patents Cited by Examiner"
 label variable cited_type4 "Count of Patents Cited by Other"
 label variable cited_type5 "Count of Patents Cited by Third Party"
 save count_citations.dta, replace
-
-use rawinventor.dta, clear
-keep patent_id inventor_id
-bysort patent_id inventor_id: gen cnt_inventor = _n == 1
-keep if cnt_inventor == 1 /* drop duplicate entries of the same inventor on a patent */
-by patent_id: replace cnt_inventor = sum(cnt_inventor)
-by patent_id: replace cnt_inventor = cnt_inventor[_N]
-drop inventor_id
-by patent_id: keep if _n == 1
-save count_inventor.dta, replace
 
 use count_citations.dta, clear
 merge 1:1 patent_id using count_assignee, nogen
