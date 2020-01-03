@@ -36,8 +36,9 @@ third party5|      2,062        0.00      100.00
 drop category date
 sort patent_id
 merge m:1 patent_id using patent_date.dta, keep(match master) nogen
-keep year_application patent_id citation_id citation_type sequence kind
-order year_application patent_id citation_id citation_type sequence kind
+keep application_year patent_id citation_id citation_type sequence kind
+order application_year patent_id citation_id citation_type sequence kind
+bysort patent_id citation_id: keep if _n == 1
 export delimited `destdir'citation.csv, replace
 save citation.dta, replace
 

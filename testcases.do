@@ -21,6 +21,14 @@ keep if kp != 0
 drop kp
 export delimited citation200k.csv, replace
 
+use "/Users/aiyenggar/processed/patents/citation.dta", clear
+keep if patent_id == "3930680" | patent_id == "4368286" | patent_id == "3930513" | patent_id == "3931910" | patent_id == "5046259"
+save test_citation.dta, replace
+levelsof patent_id, local(files)
+foreach f of local files {
+	export delimited `f'-citation.csv if patent_id=="`f'", replace
+	}
+
 /*
 7042440 for dv
 keep if cnt_assignee <= 3
