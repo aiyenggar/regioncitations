@@ -9,7 +9,7 @@ import citationutils as ut
 import pandas as pd
 import time
 
-maxindex = 1
+maxindex = 10
 ldf = []
 for last_index in range(1, maxindex + 1):
     print(time.strftime("%Y-%m-%d %H:%M:%S") + " Reading " + ut.singleUaidFlowsFile % last_index)
