@@ -1,5 +1,4 @@
 global destdir ~/processed/patents/
-global date : display %tdCYND daily("$S_DATE", "DMY")
 
 use ${destdir}assignee_year.dta, clear
 keep patent_id assignee_numid
@@ -7,8 +6,10 @@ tostring assignee_numid, generate(assigneelist)
 bysort patent_id: replace assigneelist = assigneelist[_n-1] + "," + assigneelist if _n > 1
 bysort patent_id: keep if _n == _N
 drop assignee_numid
-save ${destdir}${date}-assignee.dta, replace
+save ${destdir}assigneelist.dta, replace
 
+global destdir ~/processed/patents/
+global date : display %tdCYND daily("$S_DATE", "DMY")
 // global uacut "ua3 ua2 ua1"
 global uacut "ua3"
 foreach uastr in $uacut {
@@ -22,7 +23,6 @@ foreach uastr in $uacut {
 	rename country rawcountry
 	/* uaid_country.dta should ideally be generated from the naturalearth data */
 	merge m:1 uaid using ${destdir}uaid_country.dta, keep(match master) nogen
-	drop urban_area /* save space, uaid will do the job */
 	sort patent_id
 	save ${date}-`uastr'-patent.dta, replace
 
@@ -35,12 +35,7 @@ foreach uastr in $uacut {
 
 	bysort patent_id: keep if _n == _N
 	drop inventor_id uaid latlongid
-	save ${destdir}${date}-`uastr'-inventor.dta, replace
-	
-	use ${destdir}${date}-assignee.dta, clear
-	merge 1:1 patent_id using ${destdir}${date}-`uastr'-inventor.dta
-	/* We are missing assignee information for 0 patents (_merge==2) */
-	/* We are missing inventor information for 869 patents (_merge==1) */
-	drop _merge
-	export delimited ${destdir}${date}-`uastr'-patent_list_location_assignee.csv, replace
+
+	merge 1:1 patent_id using ${destdir}assigneelist.dta, nogen
+	export delimited ${destdir}${date}-`uastr'-uaid-assignee-map.csv, replace
 }

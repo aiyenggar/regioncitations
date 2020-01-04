@@ -141,7 +141,7 @@ bysort patent_id inventor_id: keep if _n == 1
 bysort patent_id: gen cnt_inventor=_N
 replace cnt_inventor = 0 if missing(inventor_id)
 bysort patent_id ua3: gen cnt_ua3_inventor = _N
-replace cnt_ua3_inventor = 0 if ua3 < 0
+replace cnt_ua3_inventor = 0 if ua3 < 0 & cnt_inventor == 0
 
 save `destdir'patent_inventor_urbanarea.dta, replace
 count if ua1 < 0 /* 4,313,714 of 15,748,151 */

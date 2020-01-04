@@ -1,11 +1,10 @@
 set more off
 global destdir ~/processed/patents/
-
 local inputprefix "20200104-ua3"
 
 use ${destdir}`inputprefix'-patent.dta, clear
 /* We start with 15,751,822 entries */
-
+rename application_year year
 keep year patent_id inventor_id uaid country
 label variable uaid "urban area id as per uaid.dta"
 
@@ -46,10 +45,6 @@ bysort patent_id uaid: gen index1 = _n if uaid >= 0
 label variable index1 "[ua] index of patent-inventor location"
 keep if index1 == 1
 drop index1 assignee_numid
-
-global destdir ~/processed/patents/
-
-local inputprefix "20191230-ua3"
 
 merge m:1 patent_id using ${destdir}patent_technology_classification.dta, keep(match master) nogen
 /* 47,859 observations are not matched and 7,655,088 are matched

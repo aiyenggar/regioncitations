@@ -129,8 +129,7 @@ for citation in sreader:
     for pind in range(len(p_loc)):
         patllid = int(p_latlongid[pind])
         patloc = int(p_loc[pind])
-        if not ut.isValidUrbanArea(patloc):
-            continue
+
         pflow = [-1, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
         divisor = 1
         if p_count_patents_cited_all > 1:
@@ -147,7 +146,7 @@ for citation in sreader:
         
         if p_count_patents_cited_all == 0: # we found a patent that did not cite any other
             quadrant = 6
-            pflow[quadrant] = flow_value
+            pflow[quadrant] += flow_value
         else:        
             for cind in range(len(c_loc)):
                 citllid = int(c_latlongid[cind])
@@ -171,6 +170,8 @@ for citation in sreader:
     
                         if (c_application_year < 1976): # includes missing citation_years
                             quadrant = 5
+                        elif (not ut.isValidUrbanArea(patloc)) and (not ut.isValidUrbanArea(citloc)):
+                            quadrant = 5
                         elif (not ut.isValidAssignee(patass)) and (not ut.isValidAssignee(citass)):
                             quadrant = 5
                         else:
@@ -190,7 +191,7 @@ for citation in sreader:
         if k1 not in flowsDict:
             flowsDict[k1] =  roundedflow[1:] + [year]
         else:
-            priorflow = flowsDict[k1][:5]
+            priorflow = flowsDict[k1][:6]
             sumflow = [priorflow[i] + roundedflow[i+1] for i in range(len(priorflow))]
             flowsDict[k1] = sumflow + [year]
 

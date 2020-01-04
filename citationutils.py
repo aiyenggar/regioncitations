@@ -30,10 +30,9 @@ expandedCitationLastFileSuffix=1
 summaryFile=pathPrefix + "patent_summary.csv"
 # the below file needs to be augmented to include a list of latlongid, so whenever uaid is -1, one may fall back onto the latlongid to then calculate the actual distance
 # patent_id,assigneelist,latlonglist,ualist
-keysFile1=pathPrefix + fileDatePrefix + "-" + urbanareaConfig + "-patent_list_location_assignee.csv"
+keysFile1=pathPrefix + fileDatePrefix + "-" + urbanareaConfig + "-uaid-assignee-map.csv"
 # patent_application_year,patent_id,citation_id,citation_type,sequence,kind,citation_application_year
-#searchFileName=pathPrefix + "citation.csv"
-searchFileName=pathPrefix + "3930513-citation.csv"
+searchFileName=pathPrefix + "citation.csv"
 distancesFile=pathPrefix + "latlong_urbanarea_2.csv"
 latlongFile=pathPrefix + "latlong_urbanarea.csv"
 # Within Cluster, Within Firm: q1

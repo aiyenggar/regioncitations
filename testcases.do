@@ -22,7 +22,7 @@ drop kp
 export delimited citation200k.csv, replace
 
 use "/Users/aiyenggar/processed/patents/citation.dta", clear
-keep if patent_id == "9460691" | patent_id == "3930680" | patent_id == "4368286" | patent_id == "3930513" | patent_id == "3931910" | patent_id == "5046259"
+keep if patent_id == "4478836" | patent_id == "6108066" | patent_id == "6116691" | patent_id == "6124731" | patent_id == "6120002" | patent_id == "6122539" | patent_id == "6126790" | patent_id == "9460691" | patent_id == "3930680" | patent_id == "4368286" | patent_id == "3930513" | patent_id == "3931910" | patent_id == "5046259"
 save test_citation.dta, replace
 levelsof patent_id, local(files)
 foreach f of local files {
