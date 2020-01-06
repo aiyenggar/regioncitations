@@ -198,6 +198,8 @@ egen assignee_numid = group(assignee_id) if strlen(assignee_id) > 0
 replace assignee_numid = -1 * (100 + round(1000000 * uniform())) if missing(assignee_numid)
 drop joinflag attr_assignee _merge
 save assignee_year.dta, replace
+keep patent_id assignee_numid
+export delimited patent-assignee-numid.csv, replace
 
 keep patent_id assignee_numid
 bysort patent_id assignee_numid: gen cnt_assignee = _n == 1
