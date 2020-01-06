@@ -11,6 +11,10 @@ import pandas as pd
 import time
 import geopy.distance
 
+distf = open(ut.citationDistanceUsedFileName, 'w', encoding='utf-8')
+distwriter = csv.writer(distf)
+distwriter.writerow(["llid1", "llid2", "distance"])
+
 def getDistance(latlong1, latlong2):
     retVal = ut.veryLargeValue
     key1 = tuple([latlong1, latlong2])
@@ -24,9 +28,10 @@ def getDistance(latlong1, latlong2):
         l_long = latlong_dict['longitude'][latlong1]
         r_lat = latlong_dict['latitude'][latlong2]
         r_long = latlong_dict['longitude'][latlong2]
-        if (l_lat < r_lat + ut.degreeTreshold) and (l_lat > r_lat - ut.degreeTreshold) and (l_long < r_long + ut.degreeTreshold) and (l_long > r_long - ut.degreeTreshold):
+        if (l_lat < r_lat + ut.latitudeDegreeTreshold) and (l_lat > r_lat - ut.latitudeDegreeTreshold):
             retVal = round(geopy.distance.geodesic((l_lat, l_long),(r_lat, r_long)).km,2)
             distances_dict['distance'][key1] = retVal
+            distwriter.writerow(list(key1) + [retVal])
     return retVal
 
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Beginning Pre-processing")
@@ -36,22 +41,15 @@ inv_uaid_dict = pd.read_csv(ut.keysFile1, usecols = ['patent_id','ualist'], dtyp
 assignee_dict = pd.read_csv(ut.keysFile1, usecols = ['patent_id','assigneelist'], dtype={'patent_id':str,'assigneelist':str}, index_col='patent_id').to_dict()
 inv_latlongid_dict = pd.read_csv(ut.keysFile1, usecols = ['patent_id','latlonglist'], dtype={'patent_id':str,'latlonglist':str}, index_col='patent_id').to_dict()
 
-if ut.calculateCitationDistance:
-    dist_df = pd.read_csv(ut.distancesFile, usecols = ['l_latlongid','r_latlongid','distance'], dtype={'l_latlongid':int,'r_latlongid':int,'distance':float})
-    dist_df.sort_values(by=['l_latlongid','r_latlongid'], inplace=True)
-    dist_df['lr']=list(zip(dist_df.l_latlongid, dist_df.r_latlongid))
-    dist_df.drop(columns=['l_latlongid','r_latlongid'], inplace=True)
-    dist_df.set_index('lr', inplace=True)
-    distances_dict = dist_df.to_dict()
-    latlong_dict = pd.read_csv(ut.latlongFile, usecols = ['latlongid','latitude','longitude'], dtype={'latlongid':int,'latitude':float,'longitude':float}, index_col='latlongid').to_dict()
-else:
-    distances_dict = None
-    latlong_dict = None
-print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Pre-processing")
+dist_df = pd.read_csv(ut.distancesFile, usecols = ['l_latlongid','r_latlongid','distance'], dtype={'l_latlongid':int,'r_latlongid':int,'distance':float})
+dist_df.sort_values(by=['l_latlongid','r_latlongid'], inplace=True)
+dist_df['lr']=list(zip(dist_df.l_latlongid, dist_df.r_latlongid))
+dist_df.drop(columns=['l_latlongid','r_latlongid'], inplace=True)
+dist_df.set_index('lr', inplace=True)
+distances_dict = dist_df.to_dict()
+latlong_dict = pd.read_csv(ut.latlongFile, usecols = ['latlongid','latitude','longitude'], dtype={'latlongid':int,'latitude':float,'longitude':float}, index_col='latlongid').to_dict()
 
-distf = open(ut.citationDistanceUsedFileName, 'w', encoding='utf-8')
-distwriter = csv.writer(distf)
-distwriter.writerow(["category", "p_uaid", "c_uaid", "p_llid", "c_llid", "distance"])
+print(time.strftime("%Y-%m-%d %H:%M:%S") + " Completed Pre-processing")
 
 searchf = open(ut.searchFileName, 'r', encoding='utf-8')
 sreader = csv.reader(searchf)
@@ -155,18 +153,13 @@ for citation in sreader:
                     patass = int(p_ass[apind])
                     for acind in range(len(c_ass)):
                         citass = int(c_ass[acind])
-    
-                        if ut.calculateCitationDistance and ut.isValidLatLongId(patllid) and ut.isValidLatLongId(citllid):
-                            if ut.isValidUrbanArea(patloc) and (not ut.isValidUrbanArea(citloc)):
+                        same_ua_calculated = False
+                        if ut.isValidLatLongId(patllid) and ut.isValidLatLongId(citllid):
+                            if (ut.isValidUrbanArea(patloc) and (not ut.isValidUrbanArea(citloc))) or (ut.isValidUrbanArea(citloc) and (not ut.isValidUrbanArea(patloc))):
                                 dt = getDistance(patllid, citllid)
                                 if (dt < ut.distanceTreshold):
-                                    distwriter.writerow(['C', patloc, citloc, patllid, citllid, dt])
-                                    citloc = patloc
-                            if ut.isValidUrbanArea(citloc) and (not ut.isValidUrbanArea(patloc)):
-                                dt = getDistance(patllid, citllid)
-                                if (dt < ut.distanceTreshold):
-                                    distwriter.writerow(['P', patloc, citloc, patllid, citllid, dt])
-                                    patloc = citloc
+                                    same_ua_calculated = True
+
     
                         if (c_application_year < 1976): # includes missing citation_years
                             quadrant = 5
@@ -175,7 +168,7 @@ for citation in sreader:
                         elif (not ut.isValidAssignee(patass)) and (not ut.isValidAssignee(citass)):
                             quadrant = 5
                         else:
-                            if patloc == citloc: # same urban area
+                            if (same_ua_calculated == True) or (patloc == citloc): # same urban area
                                 if patass == citass: # same assignee
                                     quadrant = 1
                                 else: # different assignee

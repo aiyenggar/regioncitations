@@ -10,12 +10,9 @@ pathPrefix = "/Users/aiyenggar/processed/patents/"
 backwardCitationsConfig="Pure-Collapsed"
 fileDatePrefix="20200104"
 urbanareaConfig="ua3"
-calculateCitationDistance=True
 calculateCitationDistanceString="dis"
-#calculateCitationDistance=False
-#calculateCitationDistanceString="nod"
 distanceTreshold=30.01
-degreeTreshold=0.3 # to set the bounding box based on latitude and longitude
+latitudeDegreeTreshold=0.3 # to set the bounding box based on latitude and longitude
 outputPrefix = fileDatePrefix + "-" + urbanareaConfig + "-" + calculateCitationDistanceString
 
 veryLargeValue = sys.maxsize
@@ -32,8 +29,8 @@ summaryFile=pathPrefix + "patent_summary.csv"
 # patent_id,assigneelist,latlonglist,ualist
 keysFile1=pathPrefix + fileDatePrefix + "-" + urbanareaConfig + "-uaid-assignee-map.csv"
 # patent_application_year,patent_id,citation_id,citation_type,sequence,kind,citation_application_year
-searchFileName=pathPrefix + "citation.csv"
-distancesFile=pathPrefix + "latlong_urbanarea_2.csv"
+searchFileName=pathPrefix + "8749084-citation.csv"
+distancesFile=pathPrefix + "latlong_distance.csv"
 latlongFile=pathPrefix + "latlong_urbanarea.csv"
 # Within Cluster, Within Firm: q1
 # Within Cluster, Outside Frim: q2
