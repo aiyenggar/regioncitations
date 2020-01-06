@@ -62,11 +62,12 @@ for mindex, masterow in master.iterrows():
         if key not in dist_dict:
             distance = round(geopy.distance.geodesic(l,r).km,2)
             dist_dict[key] = distance
-        # save all the calculated distances so as to avoid calculating again
-        if dist_dict[key] < 30.01:
-            writer.writerow([nrow['latlongid'], masterow['latlongid'], dist_dict[key]])
+            # save all the calculated distances so as to avoid calculating again
+            if dist_dict[key] < 30.01: # need to write only once
+                writer.writerow([nrow['latlongid'], masterow['latlongid'], dist_dict[key]])
     if (mindex > prev_line_seen + treshold_lines):
         print(time.strftime("%Y-%m-%d %H:%M:%S") + " Processed  till index " + str(mindex) + " of " + str(max_lines))
         prev_line_seen = mindex
         csvFile.flush()
+        dist_dict = {}
 csvFile.close()
