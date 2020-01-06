@@ -23,9 +23,12 @@ keyErrorValue=['-3'] # No information
 defaultErrorValue=['-4']
 expandedCitationLastFileSuffix=1
 
-#patent_id,cited_type1,cited_type2,cited_type3,cited_type4,cited_type5,precutoff_patents_cited,all_patents_cited,cnt_assignee,cnt_inventor,date_grant,date_application,year_application,year_grant
+# patent_id,cited_type1,cited_type2,cited_type3,cited_type4,cited_type5,precutoff_patents_cited,all_patents_cited,cnt_assignee,cnt_inventor,date_grant,date_application,year_application,year_grant
 summaryFile=pathPrefix + "patent_summary.csv"
-# the below file needs to be augmented to include a list of latlongid, so whenever uaid is -1, one may fall back onto the latlongid to then calculate the actual distance
+# patent_id,inventor_id,latlongid,uaid
+patentUrbanAreaFile=pathPrefix + fileDatePrefix + "-" + urbanareaConfig + "-patent.csv"
+# patent_id,assignee_numid
+patentAssigneeFile=pathPrefix + "patent-assignee-numid.csv"
 # patent_id,assigneelist,latlonglist,ualist
 keysFile1=pathPrefix + fileDatePrefix + "-" + urbanareaConfig + "-uaid-assignee-map.csv"
 # patent_application_year,patent_id,citation_id,citation_type,sequence,kind,citation_application_year
