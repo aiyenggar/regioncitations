@@ -20,7 +20,7 @@ defaultErrorValue=['-4']
 expandedCitationLastFileSuffix=1
 
 # patent_id,cited_type1,cited_type2,cited_type3,cited_type4,cited_type5,precutoff_patents_cited,all_patents_cited,cnt_assignee,cnt_inventor,date_grant,date_application,year_application,year_grant
-summaryFile=pathPrefix + "patent_summary.csv"
+summaryFile=pathPrefix + "patent-summary.csv"
 # patent_id,inventor_id,latlongid,uaid
 patentUrbanAreaFile=pathPrefix + "patent-inventor-uaid.csv"
 # patent_id,assignee_numid

@@ -1,5 +1,5 @@
 set more off
-global destdir ~/processed/regioncitaitons/
+global destdir ~/processed/regioncitations/
 local inputprefix "20200107"
 local baseprefix "${destdir}`inputprefix'-"
 
