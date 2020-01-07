@@ -118,7 +118,7 @@ sort latlong
 merge m:1 latlong using `destdir'latlongid.dta, keep(match master) nogen
 drop latlong
 /* bring ua1, ua2 and ua3 where ua3 is the union */
-merge m:1 latlongid using `destdir'latlong_urbanarea.dta, keep(match master) nogen
+merge m:1 latlongid using `destdir'latlong-urbanarea.dta, keep(match master) nogen
 sort rawlocation_id
 /* 25M rawlocation_id are now mapped to ua1-ua3 via latlongid */
 save `destdir'rawlocation_urbanarea.dta, replace
@@ -143,7 +143,7 @@ replace cnt_inventor = 0 if missing(inventor_id)
 bysort patent_id ua3: gen cnt_ua3_inventor = _N
 replace cnt_ua3_inventor = 0 if ua3 < 0 & cnt_inventor == 0
 
-save `destdir'patent_inventor_urbanarea.dta, replace
+save `destdir'patent-inventor-urbanarea.dta, replace
 count if ua1 < 0 /* 4,313,714 of 15,748,151 */
 count if ua2 < 0 /* 2,036,354 of 15,748,151 */
 count if ua3 < 0 /* 1,321,379 of 15,748,151 */
@@ -197,6 +197,7 @@ replace assignee_id = attr_assignee if joinflag==1 & _merge==3
 egen assignee_numid = group(assignee_id) if strlen(assignee_id) > 0
 replace assignee_numid = -1 * (100 + round(1000000 * uniform())) if missing(assignee_numid)
 drop joinflag attr_assignee _merge
+sort patent_id assignee_id
 save assignee_year.dta, replace
 keep patent_id assignee_numid
 export delimited patent-assignee-numid.csv, replace
@@ -211,7 +212,7 @@ by patent_id: keep if _n == 1
 label variable cnt_assignee "Count of assignees for patent"
 save count_assignee.dta, replace
 
-use patent_inventor_urbanarea.dta, clear
+use patent-inventor-urbanarea.dta, clear
 bysort patent_id ua3: keep if _n == 1
 rename ua3 uaid
 rename cnt_ua3_inventor cnt_uaid_inventor

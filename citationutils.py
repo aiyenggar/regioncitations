@@ -33,8 +33,8 @@ patentAssigneeFile=pathPrefix + "patent-assignee-numid.csv"
 keysFile1=pathPrefix + fileDatePrefix + "-" + urbanareaConfig + "-uaid-assignee-map.csv"
 # patent_application_year,patent_id,citation_id,citation_type,sequence,kind,citation_application_year
 searchFileName=pathPrefix + "8749084-citation.csv"
-distancesFile=pathPrefix + "latlong_distance.csv"
-latlongFile=pathPrefix + "latlong_urbanarea.csv"
+distancesFile=pathPrefix + "latlong-distance.csv"
+latlongFile=pathPrefix + "latlong-urbanarea.csv"
 # Within Cluster, Within Firm: q1
 # Within Cluster, Outside Frim: q2
 # Outside Cluster, Within Firm: q3

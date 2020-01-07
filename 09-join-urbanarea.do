@@ -2,12 +2,11 @@ set more off
 local destdir ~/processed/patents/
 cd `destdir'
 
-import delimited `destdir'latlong_distance.csv, encoding(ISO-8859-1)clear
-keep if distance < 30.01
+import delimited `destdir'latlong-distance.csv, encoding(ISO-8859-1)clear
 bysort l_latlongid: gen near_points=_N
 rename r_latlongid latlongid /* this latlongid is known to be mapped onto an urban area */
 sort latlongid
-merge m:1 latlongid using latlong_urbanarea_1.dta, keep(match master) nogen
+merge m:1 latlongid using latlong-urbanarea-1.dta, keep(match master) nogen
 drop latitude longitude
 
 by l_latlongid ua1, sort: gen nvals = _n == 1
@@ -27,7 +26,7 @@ order l_latlongid ua2 ua3
 rename l_latlongid latlongid
 save `destdir'nearby.dta, replace
 
-use `destdir'latlong_urbanarea_1.dta, clear
+use `destdir'latlong-urbanarea-1.dta, clear
 label var ua1 "urban area id of perfect match"
 merge 1:1 latlongid using nearby.dta, keep(match master) nogen
 order latlongid latitude longitude ua1 ua2 ua3
@@ -36,8 +35,8 @@ replace ua2 = ua1 if missing(ua2)
 label var ua2 "UAID of perfect match or of unique urban area within 30km"
 replace ua3 = ua2 if missing(ua3)
 label var ua3 "UAID of perfect match or of closest urban area within 30km"
-save `destdir'latlong_urbanarea.dta, replace /* both dta and csv are used. csv during processing of citations */
-export delimited using latlong_urbanarea.csv, replace
+save `destdir'latlong-urbanarea.dta, replace /* both dta and csv are used. csv during processing of citations */
+export delimited using latlong-urbanarea.csv, replace
 count if ua1 != -1 /* 32580 of 127782 */
-count if ua2 != -1 /* 73149 of 127782 */
-count if ua3 != -1 /* 84490 of 127782 */
+count if ua2 != -1 /* 74,128 now, previously 73149 of 127782 */
+count if ua3 != -1 /* 87,517 now, previously 84490 of 127782 */

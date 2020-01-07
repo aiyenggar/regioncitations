@@ -11,8 +11,8 @@ import geopy.distance
 import time
 
 basepath="/Users/aiyenggar/processed/patents/"
-file_latlong_urbanarea=basepath+"latlong_urbanarea_1.csv"
-file_filled_urbanarea=basepath+"latlong_distance.csv" # this file with stored distances between points is reused while processing citations, but this is subject to the +-0.3 bounding condition on the latitude
+file_latlong_urbanarea=basepath+"latlong-urbanarea-1.csv"
+file_filled_urbanarea=basepath+"latlong-distance.csv" # this file with stored distances between points is reused while processing citations, but this is subject to the +-0.3 bounding condition on the latitude
 
 def dump(dictionary, filename):
     with open(filename, 'w') as csvFile:
