@@ -10,7 +10,8 @@ drop if uaid < 0
 collapse (sum) s_total=total_citations_received s_self=self_citations_received s_nonself=nonself_citations_received , by(citation_id uaid)
 rename citation_id patent_id
 sort patent_id
-merge m:1 patent_id using patent_summary, keep(match master) nogen
+
+merge m:1 patent_id using patent-summary.dta, keep(match master) nogen
 keep patent_id application_year uaid s_*
 rename application_year year
 sort uaid year

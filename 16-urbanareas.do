@@ -58,35 +58,35 @@ save citation.dta, replace
 /* year_cpc_subclass.dta will have number of unique patents by application year for each cpc subclass e.g., H01M */
 use patent_date_cpc.dta, clear
 bysort patent_id subclass_id: keep if _n == 1
-keep subclass_id year_application
-bysort subclass_id year_application: gen patents_applyear_subclass = _N
-bysort subclass_id year_application: keep if _n == 1
+keep subclass_id application_year
+bysort subclass_id application_year: gen patents_applyear_subclass = _N
+bysort subclass_id application_year: keep if _n == 1
 bysort subclass_id: egen patents_subclass = sum(patents_applyear_subclass)
 merge m:1 subclass_id using cpc_subclass, keep(match master) nogen
 gen subclass_desc = proper(substr(title, 1, 108))
 drop title
-egen rank_subclass_byyear = rank(-patents_applyear_subclass), by(year_application)
-gsort -year_application rank_subclass_byyear 
-order year_application patents* rank* subclass_id subclass_desc
-drop if year_application > 2017
+egen rank_subclass_byyear = rank(-patents_applyear_subclass), by(application_year)
+gsort -application_year rank_subclass_byyear 
+order application_year patents* rank* subclass_id subclass_desc
+drop if application_year > 2017
 save year_cpcsubclass.dta, replace
 
 /* year_cpc_maingroup.dta will have number of unique patents by application year for each cpc subclass e.g., H01M8/00 */
 use patent_date_cpc.dta, clear
 bysort patent_id maingroup_id: keep if _n == 1
 keep maingroup_id year_application
-bysort maingroup_id year_application: gen patents_applyear_maingroup = _N
-bysort maingroup_id year_application: keep if _n == 1
+bysort maingroup_id application_year: gen patents_applyear_maingroup = _N
+bysort maingroup_id application_year: keep if _n == 1
 bysort maingroup_id: egen patents_maingroup = sum(patents_applyear_maingroup)
 gen subgroup_id = maingroup_id
 merge m:1 subgroup_id using cpc_subgroup, keep(match master) nogen
 gen maingroup_desc = proper(substr(title, 1, 108))
 drop title
-egen rank_maingroup_byyear = rank(-patents_applyear_maingroup), by(year_application)
+egen rank_maingroup_byyear = rank(-patents_applyear_maingroup), by(application_year)
 gsort -year_application rank_maingroup_byyear
 keep year_application patents* rank* maingroup_id maingroup_desc
 order year_application patents* rank* maingroup_id maingroup_desc
-drop if year_application > 2017
+drop if application_year > 2017
 save year_cpcmaingroup.dta, replace
 
 

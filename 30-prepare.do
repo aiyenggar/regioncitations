@@ -1,11 +1,9 @@
 set more off
-global destdir ~/processed/patents/
-local inputprefix "20200104-ua3"
-local distest "dis"
+global destdir ~/processed/regioncitations/
+local inputprefix "20200107"
 local baseprefix "${destdir}`inputprefix'-"
-local prefix "${destdir}`inputprefix'-`distest'-"
 
-use `prefix'explanatory-variables.dta, clear
+use `baseprefix'explanatory-variables.dta, clear
 // label variable citation_type "1 Null, 2 Applicant, 3 Examiner, 4 Other, 5 Third Party, 100 All"
 // label variable countstyle "ALL - all flows UNIQ - flows between urban areas and assignees counted only once per citation"
 rename sq1 q1
@@ -38,8 +36,8 @@ gen rcit_made_other=q5/cit_made_total
 label variable rcit_made_other "Share Citations Made[Other]"
 sort uaid year
 
-merge m:1 uaid year using `inputprefix'-ua-year-patents.dta, keep(match master) nogen
-merge m:1 uaid year using `prefix'dependent-variables.dta, keep(match master) nogen
+merge m:1 uaid year using ua-year-patents.dta, keep(match master) nogen
+merge m:1 uaid year using `baseprefix'dependent-variables.dta, keep(match master) nogen
 merge m:1 uaid using uaid.dta, keep(match master) nogen
 drop population areakm
 sort urban_area year
@@ -63,4 +61,4 @@ foreach ly of local levelyear {
 /* done generating year dummies */
 
 order year urban_area uaid country *focus *diversification *recd* *made* lnpatents lnpool d* 
-save `prefix'urbanarea-year-estimation.dta, replace
+save `baseprefix'urbanarea-year-estimation.dta, replace
