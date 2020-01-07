@@ -13,7 +13,7 @@ foreach uastr in $uacut {
 	rename country rawcountry
 	/* uaid_country.dta should ideally be generated from the naturalearth data */
 	merge m:1 uaid using ${destdir}uaid_country.dta, keep(match master) nogen
-	sort patent_id
+	sort patent_id inventor_id
 	save ${date}-`uastr'-patent.dta, replace
 	
 	keep patent_id inventor_id uaid latlongid
