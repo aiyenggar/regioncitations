@@ -37,9 +37,9 @@ def getDistance(latlong1, latlong2):
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Beginning Pre-processing")
 summary_dict = pd.read_csv(ut.summaryFile, usecols = ['patent_id','cited_type1','cited_type2','cited_type3','cited_type4','cited_type5','precutoff_patents_cited','all_patents_cited','cnt_assignee','cnt_inventor','application_year'], dtype={'patent_id':str,'cited_type1':int,'cited_type2':int,'cited_type3':int,'cited_type4':int,'cited_type5':int,'precutoff_patents_cited':int,'all_patents_cited':int,'cnt_assignee':int,'cnt_inventor':int,'application_year':int}, index_col='patent_id').to_dict()
 
-inv_uaid_dict = pd.read_csv(ut.keysFile1, usecols = ['patent_id','ualist'], dtype={'patent_id':str,'ualist':str}, index_col='patent_id').to_dict()
-assignee_dict = pd.read_csv(ut.keysFile1, usecols = ['patent_id','assigneelist'], dtype={'patent_id':str,'assigneelist':str}, index_col='patent_id').to_dict()
-inv_latlongid_dict = pd.read_csv(ut.keysFile1, usecols = ['patent_id','latlonglist'], dtype={'patent_id':str,'latlonglist':str}, index_col='patent_id').to_dict()
+inv_uaid_dict = pd.read_csv(ut.keysFile1, usecols = ['patent_id','uaid_list'], dtype={'patent_id':str,'uaid_list':str}, index_col='patent_id').to_dict()
+assignee_dict = pd.read_csv(ut.keysFile1, usecols = ['patent_id','assignee_numid_list'], dtype={'patent_id':str,'assignee_numid_list':str}, index_col='patent_id').to_dict()
+inv_latlongid_dict = pd.read_csv(ut.keysFile1, usecols = ['patent_id','latlongid_list'], dtype={'patent_id':str,'latlongid_list':str}, index_col='patent_id').to_dict()
 
 dist_df = pd.read_csv(ut.distancesFile, usecols = ['l_latlongid','r_latlongid','distance'], dtype={'l_latlongid':int,'r_latlongid':int,'distance':float})
 dist_df.sort_values(by=['l_latlongid','r_latlongid'], inplace=True)
@@ -104,13 +104,13 @@ for citation in sreader:
     except ValueError:
         citation_application_year = ut.keyErrorValue[0] # We can go on
 
-    p_latlongid = ut.splitFromDict(patent_id, "latlonglist", ",", inv_latlongid_dict)
-    p_loc = ut.splitFromDict(patent_id, "ualist", ",", inv_uaid_dict)
-    p_ass = ut.splitFromDict(patent_id, "assigneelist", ",", assignee_dict)
+    p_latlongid = ut.splitFromDict(patent_id, "latlongid_list", ",", inv_latlongid_dict)
+    p_loc = ut.splitFromDict(patent_id, "uaid_list", ",", inv_uaid_dict)
+    p_ass = ut.splitFromDict(patent_id, "assignee_numid_list", ",", assignee_dict)
 
-    c_latlongid = ut.splitFromDict(citation_id, "latlonglist", ",", inv_latlongid_dict)
-    c_loc = ut.splitFromDict(citation_id, "ualist", ",", inv_uaid_dict)
-    c_ass = ut.splitFromDict(citation_id, "assigneelist", ",", assignee_dict)
+    c_latlongid = ut.splitFromDict(citation_id, "latlongid_list", ",", inv_latlongid_dict)
+    c_loc = ut.splitFromDict(citation_id, "uaid_list", ",", inv_uaid_dict)
+    c_ass = ut.splitFromDict(citation_id, "assignee_numid_list", ",", assignee_dict)
 
     p_count_patents_cited_type1 = ut.readDict(patent_id, 'cited_type1', summary_dict)
     p_count_patents_cited_type2 = ut.readDict(patent_id, 'cited_type2', summary_dict)

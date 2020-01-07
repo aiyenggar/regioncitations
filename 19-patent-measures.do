@@ -1,8 +1,7 @@
 set more off
-global destdir ~/processed/uaid_country/
-local inputprefix "20200107-ua3"
+global destdir ~/processed/regioncitations/
 
-use ${destdir}`inputprefix'-patent.dta, clear
+use ${destdir}patent-inventor-uaid.dta, clear
 /* We start with 15,751,822 entries */
 rename application_year year
 keep year patent_id inventor_id uaid country
@@ -33,7 +32,7 @@ bysort uaid year: egen avg_ua_share = mean(ua_share)
 label variable avg_ua_share "[ua-year] share of inventors in urban areas (avg)"
 sort patent_id
 
-merge m:m patent_id using assignee_year.dta, keep(match master) nogen
+merge m:m patent_id using assignee-year.dta, keep(match master) nogen
 drop assignee_id assigneetype assigneeseq assignee
 bysort uaid year assignee_numid: gen assignee_index=_n if !missing(assignee_numid)
 replace assignee_index=0 if assignee_index > 1
@@ -112,13 +111,13 @@ save tempsubcatpercent.dta, replace
 restore
 merge m:1 uaid year using tempcatpercent.dta, keep(match master) nogen
 merge m:1 uaid year using tempsubcatpercent.dta, keep(match master) nogen
-save ${destdir}`inputprefix'-patent-technology.dta, replace
+save ${destdir}patent-technology.dta, replace
 
-drop uspc_class uspc_subclass nber_cat nber_subcat inventor_index patent_id *tempsum sqf_class sqf_category sqf_subcategory id_uspc_class catpercent subcatpercent patents_in_class patents_in_category patents_in_subcategory year_application year_grant
+drop uspc_class uspc_subclass nber_cat nber_subcat inventor_index patent_id *tempsum sqf_class sqf_category sqf_subcategory id_uspc_class catpercent subcatpercent patents_in_class patents_in_category patents_in_subcategory application_year grant_year
 sort uaid year
 bysort uaid year: keep if _n == 1
 bysort uaid: gen pat_pool=sum(pat_cnt)
 replace pat_pool = pat_pool - pat_cnt
 label variable pat_pool "[ua-year] pool of patents"
 order year uaid pat_cnt pat_pool *_focus *_diversification
-save ${destdir}`inputprefix'-ua-year-patents.dta, replace
+save ${destdir}ua-year-patents.dta, replace

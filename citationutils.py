@@ -6,8 +6,6 @@ Created on Wed Feb  27 05:48:51 2019
 
 import sys
 pathPrefix = "/Users/aiyenggar/processed/regioncitations/"
-#backwardCitationsConfig="Expanded"
-backwardCitationsConfig="Pure-Collapsed"
 fileDatePrefix="20200107"
 distanceTreshold=30.01
 latitudeDegreeTreshold=0.3 # to set the bounding box based on latitude and longitude
@@ -24,15 +22,15 @@ expandedCitationLastFileSuffix=1
 # patent_id,cited_type1,cited_type2,cited_type3,cited_type4,cited_type5,precutoff_patents_cited,all_patents_cited,cnt_assignee,cnt_inventor,date_grant,date_application,year_application,year_grant
 summaryFile=pathPrefix + "patent_summary.csv"
 # patent_id,inventor_id,latlongid,uaid
-patentUrbanAreaFile=pathPrefix + "patent-inventor-uaid"
+patentUrbanAreaFile=pathPrefix + "patent-inventor-uaid.csv"
 # patent_id,assignee_numid
 patentAssigneeFile=pathPrefix + "patent-assignee-numid.csv"
-# patent_id,assigneelist,latlonglist,ualist
-keysFile1=pathPrefix + outputPrefix + "-uaid-assignee-map.csv"
+"patent_id", "inventor_id_list", "latlongid_list", "uaid_list", "assignee_numid_list"
+keysFile1=pathPrefix + "uaid-assignee-map.csv"
 latlongUrbanAreaFile=pathPrefix + "latlong-urbanarea-1.csv"
 
 #  patent_application_year, patent_id, citation_id, citation_type,sequence,kind, citation_application_year
-searchFileName=pathPrefix + "8749084-citation.csv"
+searchFileName=pathPrefix + "citation.csv"
 distancesFile=pathPrefix + "latlong-distance.csv"
 latlongFile=pathPrefix + "latlong-urbanarea.csv"
 # Within Cluster, Within Firm: q1

@@ -11,8 +11,8 @@ import citationutils as ut
 
 # read keysFile1
 print(time.strftime("%Y-%m-%d %H:%M:%S") + " Beginning Pre-processing")
-inv_uaid_dict = pd.read_csv(ut.keysFile1, usecols = ['patent_id','ualist'], dtype={'patent_id':str,'ualist':str}, index_col='patent_id').to_dict()
-assignee_dict = pd.read_csv(ut.keysFile1, usecols = ['patent_id','assigneelist'], dtype={'patent_id':str,'assigneelist':str}, index_col='patent_id').to_dict()
+inv_uaid_dict = pd.read_csv(ut.keysFile1, usecols = ['patent_id','uaid_list'], dtype={'patent_id':str,'uaid_list':str}, index_col='patent_id').to_dict()
+assignee_dict = pd.read_csv(ut.keysFile1, usecols = ['patent_id','assignee_numid_list'], dtype={'patent_id':str,'assignee_numid_list':str}, index_col='patent_id').to_dict()
 searchf = open(ut.searchFileName, 'r', encoding='utf-8')
 sreader = csv.reader(searchf)
 last_time = 0
@@ -53,9 +53,9 @@ for citation in sreader:
         citation_application_year = ut.keyErrorValue[0] # We can go on
 
         
-    p_ass = ut.splitFromDict(patent_id, "assigneelist", ",", assignee_dict)
-    c_ass = ut.splitFromDict(citation_id, "assigneelist", ",", assignee_dict)
-    c_loc = ut.splitFromDict(citation_id, "ualist", ",", inv_uaid_dict)
+    p_ass = ut.splitFromDict(patent_id, "assignee_numid_list", ",", assignee_dict)
+    c_ass = ut.splitFromDict(citation_id, "assignee_numid_list", ",", assignee_dict)
+    c_loc = ut.splitFromDict(citation_id, "uaid_list", ",", inv_uaid_dict)
     c_count_inventors = len(c_loc)
     
     wt_all_citations = 1
