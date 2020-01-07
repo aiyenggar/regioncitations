@@ -1,6 +1,6 @@
 set more off
-global destdir ~/processed/patents/
-local inputprefix "20200104-ua3"
+global destdir ~/processed/uaid_country/
+local inputprefix "20200107-ua3"
 
 use ${destdir}`inputprefix'-patent.dta, clear
 /* We start with 15,751,822 entries */

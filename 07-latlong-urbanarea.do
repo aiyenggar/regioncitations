@@ -1,5 +1,5 @@
 set more off
-local destdir ~/processed/patents/
+local destdir ~/processed/regioncitations/
 cd `destdir'
 
 import delimited `destdir'one-many-latlong-urbanarea.csv, varnames(1) encoding(ISO-8859-1) clear
@@ -31,6 +31,6 @@ bysort latlong: keep if _n==_N /* We map to the urbanarea largest in area */
 sort latlongid
 rename uaid ua1
 keep latlongid ua1 latitude longitude
-save `destdir'latlong_urbanarea_1.dta, replace /* both the dta and the csv are used */
-export delimited using latlong_urbanarea_1.csv, replace
+save `destdir'latlong-urbanarea-1.dta, replace /* both the dta and the csv are used */
+export delimited using latlong-urbanarea-1.csv, replace
 

@@ -1,5 +1,5 @@
 set more off
-local destdir ~/processed/patents/
+local destdir ~/processed/regioncitations/
 cd `destdir'
 
 import delimited `destdir'latlong-distance.csv, encoding(ISO-8859-1)clear

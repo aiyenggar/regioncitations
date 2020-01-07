@@ -10,9 +10,6 @@ import pandas as pd
 import geopy.distance
 import time
 
-basepath="/Users/aiyenggar/processed/patents/"
-file_latlong_urbanarea=basepath+"latlong-urbanarea-1.csv"
-file_filled_urbanarea=basepath+"latlong-distance.csv" # this file with stored distances between points is reused while processing citations, but this is subject to the +-0.3 bounding condition on the latitude
 
 def dump(dictionary, filename):
     with open(filename, 'w') as csvFile:
@@ -24,7 +21,7 @@ def dump(dictionary, filename):
         csvFile.close()
 
 # read the latlongid to ua1 mapping into latlong_urbanarea
-latlong_urbanarea = pd.read_csv(file_latlong_urbanarea, usecols = ['latlongid', 'ua1', 'latitude', 'longitude'], dtype={'latlongid':int, 'ua1':int, 'latitude':float, 'longitude':float})
+latlong_urbanarea = pd.read_csv(ut.latlongUrbanAreaFile, usecols = ['latlongid', 'ua1', 'latitude', 'longitude'], dtype={'latlongid':int, 'ua1':int, 'latitude':float, 'longitude':float})
 
 # set mindist to the circumference of the earth (a high value)
 latlong_urbanarea['mindist']=round(2 * 3.14159 * 6371,2)
@@ -38,7 +35,7 @@ dist_dict = {}
 master = latlong_urbanarea[latlong_urbanarea['ua1'] != -1]
 missing = latlong_urbanarea[latlong_urbanarea['ua1'] == -1]
 
-csvFile = open(file_filled_urbanarea, 'w')
+csvFile = open(ut.distancesFile, 'w')
 writer = csv.writer(csvFile)
 writer.writerow(['l_latlongid', 'r_latlongid', 'distance'])
 neighbours = {}

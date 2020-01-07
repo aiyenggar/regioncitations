@@ -1,6 +1,6 @@
 set more off
 local datadir ~/data/20180528-patentsview/
-local destdir ~/processed/patents/
+local destdir ~/processed/regioncitations/
 cd `destdir'
 
 import delimited `datadir'rawlocation.tsv, varnames(1) encoding(UTF-8) clear

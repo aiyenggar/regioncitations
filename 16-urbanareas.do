@@ -1,5 +1,5 @@
 set more off
-local destdir ~/processed/patents/
+local destdir ~/processed/regioncitations/
 cd `destdir'
 
 /* Create a dta file with patent_id, date_application, date_grant, year_application, year_grant */
@@ -12,10 +12,10 @@ rename date date_application
 keep patent_id date_grant date_application
 gen year_application=year(date(date_application,"YMD"))
 gen year_grant=year(date(date_grant,"YMD"))
-save patent_date.dta, replace
+save patent-date.dta, replace
 
 use cpc_current.dta, clear
-merge m:1 patent_id using patent_date.dta, keep(match master) nogen
+merge m:1 patent_id using patent-date.dta, keep(match master) nogen
 save patent_date_cpc.dta, replace
 
 use uspatentcitation.dta, clear
@@ -35,14 +35,14 @@ third party5|      2,062        0.00      100.00
 
 drop category date
 sort patent_id
-merge m:1 patent_id using patent_date.dta, nogen
+merge m:1 patent_id using patent-date.dta, nogen
 keep application_year patent_id citation_id citation_type sequence kind
 order application_year patent_id citation_id citation_type sequence kind
 sort citation_id
 rename patent_id temp
 rename application_year patent_application_year
 rename citation_id patent_id
-merge m:1 patent_id using patent_date.dta, nogen
+merge m:1 patent_id using patent-date.dta, nogen
 rename application_year citation_application_year
 rename patent_id citation_id
 rename temp patent_id
@@ -121,16 +121,16 @@ drop latlong
 merge m:1 latlongid using `destdir'latlong-urbanarea.dta, keep(match master) nogen
 sort rawlocation_id
 /* 25M rawlocation_id are now mapped to ua1-ua3 via latlongid */
-save `destdir'rawlocation_urbanarea.dta, replace
+save `destdir'rawlocation-urbanarea.dta, replace
 
 use `destdir'rawinventor.dta, clear
 drop if patent_id=="NULL"
 keep patent_id inventor_id rawlocation_id
 sort rawlocation_id
-merge m:1 rawlocation_id using `destdir'rawlocation_urbanarea.dta, keep(match master) nogen
+merge m:1 rawlocation_id using `destdir'rawlocation-urbanarea.dta, keep(match master) nogen
 sort patent_id
 /* We start with 15,752,109 observations */
-merge m:1 patent_id using `destdir'patent_date.dta, nogen
+merge m:1 patent_id using `destdir'patent-date.dta, nogen
 /* 832 observations from using not matched, 15,752,109 matched entries, total 15,752,941 */
 replace ua1 = -2 if missing(ua1)
 replace ua2 = -2 if missing(ua2)
@@ -142,12 +142,17 @@ bysort patent_id: gen cnt_inventor=_N
 replace cnt_inventor = 0 if missing(inventor_id)
 bysort patent_id ua3: gen cnt_ua3_inventor = _N
 replace cnt_ua3_inventor = 0 if ua3 < 0 & cnt_inventor == 0
-
 save `destdir'patent-inventor-urbanarea.dta, replace
-count if ua1 < 0 /* 4,313,714 of 15,748,151 */
-count if ua2 < 0 /* 2,036,354 of 15,748,151 */
-count if ua3 < 0 /* 1,321,379 of 15,748,151 */
-tab application_year if ua1 <= -1 & ua2 <= -1 & ua3 <= -1
+gen uaid = ua3
+/* country as received from patent_inventor_urbanarea.dta (source rawlocation.dta) is not fully reliable */
+/* this step is out of step, in that the basic processing needs to be done before uaid_country.dta is available */
+rename country rawcountry
+/* uaid-country.dta should ideally be generated from the naturalearth data */
+merge m:1 uaid using uaid-country.dta, keep(match master) nogen
+sort patent_id inventor_id
+save patent-inventor-uaid.dta, replace
+keep patent_id inventor_id uaid latlongid
+export delimited patent-inventor-uaid.csv, replace
 
 use `destdir'rawassignee.dta, clear
 /* assignee processing for human readability and reduced space requirement, this value is not used to determine matches, assignee_id is */
@@ -161,9 +166,9 @@ rename type assigneetype
 /* We start with 5,903,411 entries */
 keep patent_id assignee_id assignee assigneetype assigneeseq 
 sort patent_id
-merge m:1 patent_id using patent_date.dta, nogen /* 934138 unmatched from using, total 6837549 */
-keep patent_id assignee_id assigneetype assigneeseq assignee year_application year_grant
-save rawassignee_year.dta, replace
+merge m:1 patent_id using patent-date.dta, nogen /* 934138 unmatched from using, total 6837549 */
+keep patent_id assignee_id assigneetype assigneeseq assignee application_year grant_year
+save rawassignee-year.dta, replace
 /*
 https://www.uspto.gov/web/offices/ac/ido/oeip/taf/inv_all.htm
  
@@ -184,21 +189,21 @@ gen attr_assignee="inventor-"+inventor_id
 keep patent_id attr_assignee
 sort patent_id
 gen joinflag = 1
-save `destdir'individual_patents.dta, replace /* 1421594 */
+save `destdir'individual-patents.dta, replace /* 1421594 */
 
-use rawassignee_year.dta, clear
+use rawassignee-year.dta, clear
 gen joinflag = 1 if missing(assignee_id) | assigneetype == 4 | assigneetype == 5 | assigneetype == 14 | assigneetype == 15
 replace joinflag = -1 * (100 + round(1000000 * uniform())) if missing(joinflag)
 bysort patent_id joinflag: gen index = _n
 drop if joinflag == 1 & index > 1 /* We want only one entry per flagged patent */
 drop index /* 10724 dropped, 6826825 remain */
-merge 1:m patent_id joinflag using individual_patents, keep(match master) /* 1,419,523 matched, ? remain */
+merge 1:m patent_id joinflag using individual-patents, keep(match master) /* 1,419,523 matched, ? remain */
 replace assignee_id = attr_assignee if joinflag==1 & _merge==3
 egen assignee_numid = group(assignee_id) if strlen(assignee_id) > 0
 replace assignee_numid = -1 * (100 + round(1000000 * uniform())) if missing(assignee_numid)
 drop joinflag attr_assignee _merge
 sort patent_id assignee_id
-save assignee_year.dta, replace
+save assignee-year.dta, replace
 keep patent_id assignee_numid
 export delimited patent-assignee-numid.csv, replace
 
@@ -210,7 +215,7 @@ by patent_id: replace cnt_assignee = cnt_assignee[_N]
 drop assignee_numid
 by patent_id: keep if _n == 1
 label variable cnt_assignee "Count of assignees for patent"
-save count_assignee.dta, replace
+save count-assignee.dta, replace
 
 use patent-inventor-urbanarea.dta, clear
 bysort patent_id ua3: keep if _n == 1
@@ -219,11 +224,11 @@ rename cnt_ua3_inventor cnt_uaid_inventor
 keep patent_id uaid cnt_uaid_inventor cnt_inventor
 label variable cnt_inventor "Count of unique inventors on patent"
 label variable cnt_uaid_inventor "Count of inventors on patent in same urban area"
-save count_uaid_inventor.dta, replace /* [patent_id, uaid] num of inventors and [patent_id] num of inventors */
+save count-uaid-inventor.dta, replace /* [patent_id, uaid] num of inventors and [patent_id] num of inventors */
 
 bysort patent_id: keep if _n == 1
 keep patent_id cnt_inventor
-save count_inventor.dta, replace
+save count-inventor.dta, replace
 
 use citation.dta, clear
 gen precutoff = !missing(citation_id) & (missing(citation_application_year) | citation_application_year < 1976)
@@ -254,13 +259,13 @@ label variable cited_type2 "Count of Patents Cited by Applicant"
 label variable cited_type3 "Count of Patents Cited by Examiner"
 label variable cited_type4 "Count of Patents Cited by Other"
 label variable cited_type5 "Count of Patents Cited by Third Party"
-save count_citations.dta, replace
+save count-citations.dta, replace
 
-use count_citations.dta, clear
-merge 1:1 patent_id using count_assignee, nogen
-merge 1:1 patent_id using count_inventor, nogen
-merge 1:1 patent_id using patent_date, nogen
-save patent_summary.dta, replace
+use count-citations.dta, clear
+merge 1:1 patent_id using count-assignee.dta, nogen
+merge 1:1 patent_id using count-inventor.dta, nogen
+merge 1:1 patent_id using patent-date.dta, nogen
+save patent-summary.dta, replace
 replace cited_type1 = 0 if missing(cited_type1)
 replace cited_type2 = 0 if missing(cited_type2)
 replace cited_type3 = 0 if missing(cited_type3)
@@ -272,4 +277,4 @@ replace cnt_assignee = -1 if missing(cnt_assignee)
 replace cnt_inventor = -1 if missing(cnt_inventor)
 replace application_year = -1 if missing(application_year)
 replace grant_year = -1 if missing(grant_year)
-export delimited `destdir'patent_summary.csv, replace
+export delimited `destdir'patent-summary.csv, replace
