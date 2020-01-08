@@ -85,7 +85,7 @@ drop title
 egen rank_maingroup_byyear = rank(-patents_applyear_maingroup), by(application_year)
 gsort -application_year rank_maingroup_byyear
 keep application_year patents* rank* maingroup_id maingroup_desc
-order year_application patents* rank* maingroup_id maingroup_desc
+order application_year patents* rank* maingroup_id maingroup_desc
 drop if application_year > 2017
 save year_cpcmaingroup.dta, replace
 

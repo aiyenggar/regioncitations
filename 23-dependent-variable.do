@@ -5,7 +5,7 @@ local baseprefix "${destdir}`inputprefix'-"
 
 import delimited "`baseprefix'citations-received-by-patent.csv", encoding(ISO-8859-1) clear
 sort citation_id patent_id uaid
-save "`prefix'citations-received-by-patent.dta", replace
+save "`baseprefix'citations-received-by-patent.dta", replace
 drop if uaid < 0
 collapse (sum) s_total=total_citations_received s_self=self_citations_received s_nonself=nonself_citations_received , by(citation_id uaid)
 rename citation_id patent_id
