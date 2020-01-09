@@ -1,5 +1,6 @@
 set more off
 global destdir ~/processed/regioncitations/
+cd ${destdir}
 local inputprefix "20200107"
 local baseprefix "${destdir}`inputprefix'-"
 
@@ -11,6 +12,7 @@ rename sq2 q2
 rename sq3 q3
 rename sq4 q4
 rename sq5 q5
+rename sq6 q6
 rename suaid_share uaid_flow_share
 
 gen cit_made_total = q1 + q2 + q3 + q4 + q5
@@ -23,6 +25,7 @@ label variable q2 "[ua-year] ua(same) assg(diff) citations made"
 label variable q3 "[ua-year] ua(diff) assg(same) citations made"
 label variable q4 "[ua-year] ua(diff) assg(diff) citations made"
 label variable q5 "[ua-year] other (undeterminable) citations made"
+label variable q6 "[ua-year] count of patents that made no citations"
 
 gen rcit_made_localinternal=q1/cit_made_total
 label variable rcit_made_localinternal "Share Citations Made[Same Urban Area, Same Assignee]"
@@ -36,8 +39,12 @@ gen rcit_made_other=q5/cit_made_total
 label variable rcit_made_other "Share Citations Made[Other]"
 sort uaid year
 
-merge m:1 uaid year using ua-year-patents.dta, keep(match master) nogen
-merge m:1 uaid year using `baseprefix'dependent-variables.dta, keep(match master) nogen
+merge m:1 uaid year using ${destdir}ua-year-patents.dta, keep(match master) nogen
+merge m:1 uaid year using `baseprefix'dependent-variables.dta, keep(match master)
+replace cit_recd_total = 0 if _merge == 1
+replace cit_recd_self = 0 if _merge == 1
+replace cit_recd_nonself = 0 if _merge == 1
+drop _merge
 merge m:1 uaid using uaid.dta, keep(match master) nogen
 drop population areakm
 sort urban_area year

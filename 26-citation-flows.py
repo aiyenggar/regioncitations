@@ -141,44 +141,42 @@ for citation in sreader:
         if c_count_inventors > 1:
             divisor *= c_count_inventors
         flow_value = 1/divisor
-        
-        if p_count_patents_cited_all == 0: # we found a patent that did not cite any other
-            quadrant = 6
-            pflow[quadrant] += flow_value
-        else:        
-            for cind in range(len(c_loc)):
-                citllid = int(c_latlongid[cind])
-                citloc = int(c_loc[cind])
-                for apind in range(len(p_ass)):
-                    patass = int(p_ass[apind])
-                    for acind in range(len(c_ass)):
-                        citass = int(c_ass[acind])
-                        same_ua_calculated = False
-                        if ut.isValidLatLongId(patllid) and ut.isValidLatLongId(citllid):
-                            if (ut.isValidUrbanArea(patloc) and (not ut.isValidUrbanArea(citloc))) or (ut.isValidUrbanArea(citloc) and (not ut.isValidUrbanArea(patloc))):
-                                dt = getDistance(patllid, citllid)
-                                if (dt < ut.distanceTreshold):
-                                    same_ua_calculated = True
-
-    
-                        if (c_application_year < 1976): # includes missing citation_years
-                            quadrant = 5
-                        elif (not ut.isValidUrbanArea(patloc)) and (not ut.isValidUrbanArea(citloc)):
-                            quadrant = 5
-                        elif (not ut.isValidAssignee(patass)) and (not ut.isValidAssignee(citass)):
-                            quadrant = 5
-                        else:
-                            if (same_ua_calculated == True) or (patloc == citloc): # same urban area
-                                if patass == citass: # same assignee
-                                    quadrant = 1
-                                else: # different assignee
-                                    quadrant = 2
-                            else: # different urban area
-                                if patass == citass: # same assignee
-                                    quadrant = 3
-                                else: # different assignee
-                                    quadrant = 4
-                        pflow[quadrant] += flow_value
+           
+        for cind in range(len(c_loc)):
+            citllid = int(c_latlongid[cind])
+            citloc = int(c_loc[cind])
+            for apind in range(len(p_ass)):
+                patass = int(p_ass[apind])
+                for acind in range(len(c_ass)):
+                    citass = int(c_ass[acind])
+                    same_ua_calculated = False
+                    """ Do not calculate distance for flows
+                    if ut.isValidLatLongId(patllid) and ut.isValidLatLongId(citllid):
+                        if (ut.isValidUrbanArea(patloc) and (not ut.isValidUrbanArea(citloc))) or (ut.isValidUrbanArea(citloc) and (not ut.isValidUrbanArea(patloc))):
+                            dt = getDistance(patllid, citllid)
+                            if (dt < ut.distanceTreshold):
+                                same_ua_calculated = True
+                    """
+                    if (p_count_patents_cited_all == 0) or (len(citation_id) == 0): # we found a patent that did not cite any other
+                        quadrant = 6
+                    elif (c_application_year < 1976): # includes missing citation_years
+                        quadrant = 5
+                    elif (not ut.isValidUrbanArea(patloc)) and (not ut.isValidUrbanArea(citloc)):
+                        quadrant = 5
+                    elif (not ut.isValidAssignee(patass)) and (not ut.isValidAssignee(citass)):
+                        quadrant = 5
+                    else:
+                        if (same_ua_calculated == True) or (patloc == citloc): # same urban area
+                            if patass == citass: # same assignee
+                                quadrant = 1
+                            else: # different assignee
+                                quadrant = 2
+                        else: # different urban area
+                            if patass == citass: # same assignee
+                                quadrant = 3
+                            else: # different assignee
+                                quadrant = 4
+                    pflow[quadrant] += flow_value
         roundedflow = [round(x,8) for x in pflow]
         k1 = tuple([patloc, patent_id, citation_id])
         if k1 not in flowsDict:
