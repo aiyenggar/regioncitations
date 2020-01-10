@@ -15,7 +15,7 @@ rename sq5 q5
 rename sq6 q6
 rename suaid_share uaid_flow_share
 
-gen cit_made_total = q1 + q2 + q3 + q4 + q5
+gen cit_made_total = q1 + q2 + q3 + q4 + q5 + q6
 label variable cit_made_total "Total Citation Flows"
 gen lncit_made_total=ln(1 + cit_made_total)
 label variable lncit_made_total "Log (Total Citation Flows)"
@@ -67,5 +67,5 @@ foreach ly of local levelyear {
 }
 /* done generating year dummies */
 
-order year urban_area uaid country *focus *diversification *recd* *made* lnpatents lnpool d* 
+order year urban_area uaid country *diversification *recd* *made* lnpatents lnpool
 save `baseprefix'urbanarea-year-estimation.dta, replace

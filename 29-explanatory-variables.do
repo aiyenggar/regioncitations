@@ -15,5 +15,5 @@ save "`baseprefix'patent-flows.dta", replace
 
 drop if uaid < 0
 collapse (sum) sq1=q1 sq2=q2 sq3=q3 sq4=q4 sq5=q5 sq6=q6 suaid_share=uaid_share, by(uaid year)
-label variable suaid_share "[uaid, year] Sum of uaid_share per [patent_id, uaid]"
+label variable suaid_share "[ua-year] Sum of uaid_share per [patent_id-uaid]"
 save "`baseprefix'explanatory-variables.dta", replace

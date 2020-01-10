@@ -89,8 +89,6 @@ order application_year patents* rank* maingroup_id maingroup_desc
 drop if application_year > 2017
 save year_cpcmaingroup.dta, replace
 
-
-
 use `destdir'uspc_current.dta, clear
 /* We start with 22,880,877 observations. Tabulated by mainclass count at the end of this file. */
 /* By keeping only one entry per patent, we lose many mainclass associations, and many subclass associations for the class retained as well as those dropped */
@@ -100,14 +98,19 @@ drop sequence
 sort mainclass_id
 rename mainclass_id class
 rename subclass_id subclass
-merge m:1 class using `destdir'nber_class_match.dta
+merge m:1 class using `destdir'nber_class_match.dta, keep(match master) nogen
 /* 5,108,545 of the 6,610,258 entries are matched */
 /* class 287 723 903 930 935 968 976 977 984 987 are found in no patents */
-/* Provide a new catergory (8) and subcategory (81) for all design patents */
-replace cat=8 if (strpos(class,"D")==1 & strpos(subclass,"D")==1 & missing(cat))
-replace subcat=81 if (strpos(class,"D")==1 & strpos(subclass,"D")==1 & missing(subcat))
-keep if _merge == 1 | _merge == 3
-drop _merge
+/* Provide a new catergory (8) and subcategory (81) for all design patents and all plant patents */
+replace cat = 8 if (strpos(class,"D")==1 & strpos(subclass,"D")==1 & missing(cat))
+replace subcat = 81 if (strpos(class,"D")==1 & strpos(subclass,"D")==1 & missing(subcat))
+replace cat = 8 if (strpos(class, "PLT") & missing(cat))
+replace subcat = 81 if (strpos(class, "PLT") & missing(subcat))
+rename cat nber_cat
+rename subcat nber_subcat
+rename class uspc_class
+rename subclass uspc_subclass
+egen id_uspc_class = group(uspc_class) if !strpos(uspc_class,"No longer published") & !strpos(uspc_class,"-0T")
 sort patent_id
 save `destdir'patent_technology_classification.dta, replace
 
