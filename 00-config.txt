@@ -1,5 +1,5 @@
 path to patentsview files in 05-rawlocation.do, 15-import.do
-path to processed folder: 06-spatial-join.txt, 07-latlong-urbanarea.do, 08-distance-calc.py, 09-join-urbanarea.do, 15-import.do, 16-urbanareas.do, 17-assign_urbanarea.do
+path to processed folder: 06-spatial-join.txt, 07-latlong-urbanarea.do, 08-distance-calc.py, 09-join-urbanarea.do, 15-import.do, 16-urbanareas.do, citationutils.py
 
 latlong_distance.csv is the new name for latlong_urbanarea_2.csv
 08-distance-calc.py is the new name for 08-fill-urbanarea.py
@@ -7,11 +7,9 @@ latlong_distance.csv is the new name for latlong_urbanarea_2.csv
 0.3 lat long bounding box in 08-distance-calc.py
 30 KM cutoff in 09-join-urbanarea.do as 30.01
 
-ua of -2 is genrated in 16-urbanareas.do when a rawlocation_id shows up in rawinventor.dta that was not in rawlocation.dta
+ua of -2 is generated in 16-urbanareas.do when a rawlocation_id shows up in rawinventor.dta that was not in rawlocation.dta
 
 Assignee manipulation happens in 16-urbanareas.do (decisions about individual assignee when none is provided)
-
-I do not understand the second half of 16-urbanareas.do
 
 Steps:
 
