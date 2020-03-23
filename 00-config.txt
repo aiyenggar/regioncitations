@@ -1,3 +1,7 @@
+Unzipping may no longer be needed (01-dataunzip.sh)
+Data folder path in 02-data-validate.sh
+
+
 path to patentsview files in 05-rawlocation.do, 15-import.do
 path to processed folder: 06-spatial-join.txt, 07-latlong-urbanarea.do, 08-distance-calc.py, 09-join-urbanarea.do, 15-import.do, 16-urbanareas.do, citationutils.py
 

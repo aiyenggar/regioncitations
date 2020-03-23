@@ -1,5 +1,4 @@
-# 20180528-patentsview clean up steps
-DATADIR=$HOME/data/20180528-patentsview
+DATADIR=$HOME/data/20191231-patentsview
 FILES="application assignee patent_assignee patent_inventor patent rawassignee rawinventor rawlocation uspatentcitation uspc_current"
 echo `date` > $DATADIR/bad.file 
 for file in $FILES
